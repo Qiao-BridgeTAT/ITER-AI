@@ -1,0 +1,69 @@
+{
+  "$defs": {
+    "TripListItem": {
+      "additionalProperties": false,
+      "properties": {
+        "phase": {
+          "$ref": "#/$defs/TripPhase"
+        },
+        "title": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Title",
+          "type": "string"
+        },
+        "trip_id": {
+          "format": "uuid",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "trip_id",
+        "phase",
+        "title",
+        "updated_at"
+      ],
+      "title": "TripListItem",
+      "type": "object"
+    },
+    "TripPhase": {
+      "enum": [
+        "cold_start",
+        "city_selection",
+        "city_brief",
+        "trip_setup",
+        "interest_selection",
+        "attraction_selection",
+        "dining_selection",
+        "lodging_selection",
+        "task_reflection",
+        "planning",
+        "draft_ready",
+        "revising",
+        "confirmed"
+      ],
+      "title": "TripPhase",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/trip-list-view.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "trips": {
+      "items": {
+        "$ref": "#/$defs/TripListItem"
+      },
+      "title": "Trips",
+      "type": "array"
+    }
+  },
+  "title": "TripListView",
+  "type": "object"
+}

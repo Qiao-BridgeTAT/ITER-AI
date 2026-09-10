@@ -1,0 +1,4 @@
+/* Imported with the shared component, including in galleries and map panels. */
+.poi-photo {
+  dynamic-range-limit: standard;
+}

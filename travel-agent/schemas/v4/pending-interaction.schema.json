@@ -1,0 +1,174 @@
+{
+  "$defs": {
+    "CardGenerationRecovery": {
+      "additionalProperties": false,
+      "description": "A durable retry affordance, never a selectable card or semantic answer.",
+      "properties": {
+        "action": {
+          "const": "retry_card",
+          "default": "retry_card",
+          "title": "Action",
+          "type": "string"
+        },
+        "failure_code": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Failure Code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failure_code"
+      ],
+      "title": "CardGenerationRecovery",
+      "type": "object"
+    },
+    "DiscoverySection": {
+      "enum": [
+        "other",
+        "attraction_preference",
+        "attraction_specific",
+        "dining_preference",
+        "dining_specific",
+        "lodging_area_preference",
+        "lodging_class_preference",
+        "final_supplement",
+        "task_book_review"
+      ],
+      "title": "DiscoverySection",
+      "type": "string"
+    },
+    "InteractionStatus": {
+      "enum": [
+        "active",
+        "answered",
+        "superseded",
+        "expired"
+      ],
+      "title": "InteractionStatus",
+      "type": "string"
+    },
+    "PendingInteractionKind": {
+      "enum": [
+        "preference_card",
+        "specific_card",
+        "free_text_question",
+        "confirmation"
+      ],
+      "title": "PendingInteractionKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/pending-interaction.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "recovery": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "recovery"
+        ]
+      },
+      "then": {
+        "properties": {
+          "kind": {
+            "const": "free_text_question"
+          },
+          "option_refs": {
+            "maxItems": 0,
+            "type": "array"
+          },
+          "section": {
+            "enum": [
+              "attraction_preference",
+              "attraction_specific",
+              "dining_preference",
+              "dining_specific",
+              "lodging_area_preference",
+              "lodging_class_preference"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "based_on_state_version": {
+      "minimum": 0,
+      "title": "Based On State Version",
+      "type": "integer"
+    },
+    "dependency_fingerprint": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Dependency Fingerprint",
+      "type": "string"
+    },
+    "interaction_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Interaction Id",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/PendingInteractionKind"
+    },
+    "option_refs": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Option Refs",
+      "type": "array"
+    },
+    "recovery": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CardGenerationRecovery"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "section": {
+      "$ref": "#/$defs/DiscoverySection"
+    },
+    "status": {
+      "$ref": "#/$defs/InteractionStatus",
+      "default": "active"
+    },
+    "target_ids": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Target Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "interaction_id",
+    "kind",
+    "section",
+    "target_ids",
+    "based_on_state_version",
+    "dependency_fingerprint"
+  ],
+  "title": "PendingInteraction",
+  "type": "object"
+}

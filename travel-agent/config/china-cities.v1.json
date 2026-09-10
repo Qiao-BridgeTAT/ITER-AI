@@ -1,0 +1,5151 @@
+{
+  "catalog_version": "1.0.0",
+  "scope": "mainland_city_like_destinations",
+  "source": {
+    "provider": "amap",
+    "download_url": "https://a.amap.com/lbs/static/code_resource/AMap_adcode_citycode.zip",
+    "workbook_name": "AMap_adcode_citycode.xlsx",
+    "published_on": "2026-01-07",
+    "workbook_sha256": "05754c176e598e8a49044509885fbbbfbe3573ae2dc325b8510f17bed3daf331"
+  },
+  "cities": [
+    {
+      "official_name": "北京市",
+      "adcode": "110000",
+      "citycode": "010",
+      "province_name": "北京市",
+      "province_adcode": "110000"
+    },
+    {
+      "official_name": "天津市",
+      "adcode": "120000",
+      "citycode": "022",
+      "province_name": "天津市",
+      "province_adcode": "120000"
+    },
+    {
+      "official_name": "石家庄市",
+      "adcode": "130100",
+      "citycode": "0311",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "辛集市",
+      "adcode": "130181",
+      "citycode": "0311",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "晋州市",
+      "adcode": "130183",
+      "citycode": "0311",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "新乐市",
+      "adcode": "130184",
+      "citycode": "0311",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "唐山市",
+      "adcode": "130200",
+      "citycode": "0315",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "遵化市",
+      "adcode": "130281",
+      "citycode": "0315",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "迁安市",
+      "adcode": "130283",
+      "citycode": "0315",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "滦州市",
+      "adcode": "130284",
+      "citycode": "0315",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "秦皇岛市",
+      "adcode": "130300",
+      "citycode": "0335",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "邯郸市",
+      "adcode": "130400",
+      "citycode": "0310",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "武安市",
+      "adcode": "130481",
+      "citycode": "0310",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "邢台市",
+      "adcode": "130500",
+      "citycode": "0319",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "南宫市",
+      "adcode": "130581",
+      "citycode": "0319",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "沙河市",
+      "adcode": "130582",
+      "citycode": "0319",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "保定市",
+      "adcode": "130600",
+      "citycode": "0312",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "涿州市",
+      "adcode": "130681",
+      "citycode": "0312",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "定州市",
+      "adcode": "130682",
+      "citycode": "0312",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "安国市",
+      "adcode": "130683",
+      "citycode": "0312",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "高碑店市",
+      "adcode": "130684",
+      "citycode": "0312",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "张家口市",
+      "adcode": "130700",
+      "citycode": "0313",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "承德市",
+      "adcode": "130800",
+      "citycode": "0314",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "平泉市",
+      "adcode": "130881",
+      "citycode": "0314",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "沧州市",
+      "adcode": "130900",
+      "citycode": "0317",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "泊头市",
+      "adcode": "130981",
+      "citycode": "0317",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "任丘市",
+      "adcode": "130982",
+      "citycode": "0317",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "黄骅市",
+      "adcode": "130983",
+      "citycode": "0317",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "河间市",
+      "adcode": "130984",
+      "citycode": "0317",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "廊坊市",
+      "adcode": "131000",
+      "citycode": "0316",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "霸州市",
+      "adcode": "131081",
+      "citycode": "0316",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "三河市",
+      "adcode": "131082",
+      "citycode": "0316",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "衡水市",
+      "adcode": "131100",
+      "citycode": "0318",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "深州市",
+      "adcode": "131182",
+      "citycode": "0318",
+      "province_name": "河北省",
+      "province_adcode": "130000"
+    },
+    {
+      "official_name": "太原市",
+      "adcode": "140100",
+      "citycode": "0351",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "古交市",
+      "adcode": "140181",
+      "citycode": "0351",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "大同市",
+      "adcode": "140200",
+      "citycode": "0352",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "阳泉市",
+      "adcode": "140300",
+      "citycode": "0353",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "长治市",
+      "adcode": "140400",
+      "citycode": "0355",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "晋城市",
+      "adcode": "140500",
+      "citycode": "0356",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "高平市",
+      "adcode": "140581",
+      "citycode": "0356",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "朔州市",
+      "adcode": "140600",
+      "citycode": "0349",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "怀仁市",
+      "adcode": "140681",
+      "citycode": "0349",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "晋中市",
+      "adcode": "140700",
+      "citycode": "0354",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "介休市",
+      "adcode": "140781",
+      "citycode": "0354",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "运城市",
+      "adcode": "140800",
+      "citycode": "0359",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "永济市",
+      "adcode": "140881",
+      "citycode": "0359",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "河津市",
+      "adcode": "140882",
+      "citycode": "0359",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "忻州市",
+      "adcode": "140900",
+      "citycode": "0350",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "原平市",
+      "adcode": "140981",
+      "citycode": "0350",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "临汾市",
+      "adcode": "141000",
+      "citycode": "0357",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "侯马市",
+      "adcode": "141081",
+      "citycode": "0357",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "霍州市",
+      "adcode": "141082",
+      "citycode": "0357",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "吕梁市",
+      "adcode": "141100",
+      "citycode": "0358",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "孝义市",
+      "adcode": "141181",
+      "citycode": "0358",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "汾阳市",
+      "adcode": "141182",
+      "citycode": "0358",
+      "province_name": "山西省",
+      "province_adcode": "140000"
+    },
+    {
+      "official_name": "呼和浩特市",
+      "adcode": "150100",
+      "citycode": "0471",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "包头市",
+      "adcode": "150200",
+      "citycode": "0472",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "乌海市",
+      "adcode": "150300",
+      "citycode": "0473",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "赤峰市",
+      "adcode": "150400",
+      "citycode": "0476",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "通辽市",
+      "adcode": "150500",
+      "citycode": "0475",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "霍林郭勒市",
+      "adcode": "150581",
+      "citycode": "0475",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "鄂尔多斯市",
+      "adcode": "150600",
+      "citycode": "0477",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "呼伦贝尔市",
+      "adcode": "150700",
+      "citycode": "0470",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "满洲里市",
+      "adcode": "150781",
+      "citycode": "0470",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "牙克石市",
+      "adcode": "150782",
+      "citycode": "0470",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "扎兰屯市",
+      "adcode": "150783",
+      "citycode": "0470",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "额尔古纳市",
+      "adcode": "150784",
+      "citycode": "0470",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "根河市",
+      "adcode": "150785",
+      "citycode": "0470",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "巴彦淖尔市",
+      "adcode": "150800",
+      "citycode": "0478",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "乌兰察布市",
+      "adcode": "150900",
+      "citycode": "0474",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "丰镇市",
+      "adcode": "150981",
+      "citycode": "0474",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "兴安盟",
+      "adcode": "152200",
+      "citycode": "0482",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "乌兰浩特市",
+      "adcode": "152201",
+      "citycode": "0482",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "阿尔山市",
+      "adcode": "152202",
+      "citycode": "0482",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "锡林郭勒盟",
+      "adcode": "152500",
+      "citycode": "0479",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "二连浩特市",
+      "adcode": "152501",
+      "citycode": "0479",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "锡林浩特市",
+      "adcode": "152502",
+      "citycode": "0479",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "阿拉善盟",
+      "adcode": "152900",
+      "citycode": "0483",
+      "province_name": "内蒙古自治区",
+      "province_adcode": "150000"
+    },
+    {
+      "official_name": "沈阳市",
+      "adcode": "210100",
+      "citycode": "024",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "新民市",
+      "adcode": "210181",
+      "citycode": "024",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "大连市",
+      "adcode": "210200",
+      "citycode": "0411",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "瓦房店市",
+      "adcode": "210281",
+      "citycode": "0411",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "庄河市",
+      "adcode": "210283",
+      "citycode": "0411",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "鞍山市",
+      "adcode": "210300",
+      "citycode": "0412",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "海城市",
+      "adcode": "210381",
+      "citycode": "0412",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "抚顺市",
+      "adcode": "210400",
+      "citycode": "0413",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "本溪市",
+      "adcode": "210500",
+      "citycode": "0414",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "丹东市",
+      "adcode": "210600",
+      "citycode": "0415",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "东港市",
+      "adcode": "210681",
+      "citycode": "0415",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "凤城市",
+      "adcode": "210682",
+      "citycode": "0415",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "锦州市",
+      "adcode": "210700",
+      "citycode": "0416",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "凌海市",
+      "adcode": "210781",
+      "citycode": "0416",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "北镇市",
+      "adcode": "210782",
+      "citycode": "0416",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "营口市",
+      "adcode": "210800",
+      "citycode": "0417",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "盖州市",
+      "adcode": "210881",
+      "citycode": "0417",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "大石桥市",
+      "adcode": "210882",
+      "citycode": "0417",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "阜新市",
+      "adcode": "210900",
+      "citycode": "0418",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "辽阳市",
+      "adcode": "211000",
+      "citycode": "0419",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "灯塔市",
+      "adcode": "211081",
+      "citycode": "0419",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "盘锦市",
+      "adcode": "211100",
+      "citycode": "0427",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "铁岭市",
+      "adcode": "211200",
+      "citycode": "0410",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "调兵山市",
+      "adcode": "211281",
+      "citycode": "0410",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "开原市",
+      "adcode": "211282",
+      "citycode": "0410",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "朝阳市",
+      "adcode": "211300",
+      "citycode": "0421",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "北票市",
+      "adcode": "211381",
+      "citycode": "0421",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "凌源市",
+      "adcode": "211382",
+      "citycode": "0421",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "葫芦岛市",
+      "adcode": "211400",
+      "citycode": "0429",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "兴城市",
+      "adcode": "211481",
+      "citycode": "0429",
+      "province_name": "辽宁省",
+      "province_adcode": "210000"
+    },
+    {
+      "official_name": "长春市",
+      "adcode": "220100",
+      "citycode": "0431",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "榆树市",
+      "adcode": "220182",
+      "citycode": "0431",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "德惠市",
+      "adcode": "220183",
+      "citycode": "0431",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "公主岭市",
+      "adcode": "220184",
+      "citycode": "0431",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "吉林市",
+      "adcode": "220200",
+      "citycode": "0432",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "蛟河市",
+      "adcode": "220281",
+      "citycode": "0432",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "桦甸市",
+      "adcode": "220282",
+      "citycode": "0432",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "舒兰市",
+      "adcode": "220283",
+      "citycode": "0432",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "磐石市",
+      "adcode": "220284",
+      "citycode": "0432",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "四平市",
+      "adcode": "220300",
+      "citycode": "0434",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "双辽市",
+      "adcode": "220382",
+      "citycode": "0434",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "辽源市",
+      "adcode": "220400",
+      "citycode": "0437",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "通化市",
+      "adcode": "220500",
+      "citycode": "0435",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "梅河口市",
+      "adcode": "220581",
+      "citycode": "0435",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "集安市",
+      "adcode": "220582",
+      "citycode": "0435",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "白山市",
+      "adcode": "220600",
+      "citycode": "0439",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "临江市",
+      "adcode": "220681",
+      "citycode": "0439",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "松原市",
+      "adcode": "220700",
+      "citycode": "0438",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "扶余市",
+      "adcode": "220781",
+      "citycode": "0438",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "白城市",
+      "adcode": "220800",
+      "citycode": "0436",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "洮南市",
+      "adcode": "220881",
+      "citycode": "0436",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "大安市",
+      "adcode": "220882",
+      "citycode": "0436",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "延边朝鲜族自治州",
+      "adcode": "222400",
+      "citycode": "1433",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "延吉市",
+      "adcode": "222401",
+      "citycode": "1433",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "图们市",
+      "adcode": "222402",
+      "citycode": "1433",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "敦化市",
+      "adcode": "222403",
+      "citycode": "1433",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "珲春市",
+      "adcode": "222404",
+      "citycode": "1433",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "龙井市",
+      "adcode": "222405",
+      "citycode": "1433",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "和龙市",
+      "adcode": "222406",
+      "citycode": "1433",
+      "province_name": "吉林省",
+      "province_adcode": "220000"
+    },
+    {
+      "official_name": "哈尔滨市",
+      "adcode": "230100",
+      "citycode": "0451",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "尚志市",
+      "adcode": "230183",
+      "citycode": "0451",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "五常市",
+      "adcode": "230184",
+      "citycode": "0451",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "齐齐哈尔市",
+      "adcode": "230200",
+      "citycode": "0452",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "讷河市",
+      "adcode": "230281",
+      "citycode": "0452",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "鸡西市",
+      "adcode": "230300",
+      "citycode": "0467",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "虎林市",
+      "adcode": "230381",
+      "citycode": "0467",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "密山市",
+      "adcode": "230382",
+      "citycode": "0467",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "鹤岗市",
+      "adcode": "230400",
+      "citycode": "0468",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "双鸭山市",
+      "adcode": "230500",
+      "citycode": "0469",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "大庆市",
+      "adcode": "230600",
+      "citycode": "0459",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "伊春市",
+      "adcode": "230700",
+      "citycode": "0458",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "铁力市",
+      "adcode": "230781",
+      "citycode": "0458",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "佳木斯市",
+      "adcode": "230800",
+      "citycode": "0454",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "同江市",
+      "adcode": "230881",
+      "citycode": "0454",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "富锦市",
+      "adcode": "230882",
+      "citycode": "0454",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "抚远市",
+      "adcode": "230883",
+      "citycode": "0454",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "七台河市",
+      "adcode": "230900",
+      "citycode": "0464",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "牡丹江市",
+      "adcode": "231000",
+      "citycode": "0453",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "绥芬河市",
+      "adcode": "231081",
+      "citycode": "0453",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "海林市",
+      "adcode": "231083",
+      "citycode": "0453",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "宁安市",
+      "adcode": "231084",
+      "citycode": "0453",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "穆棱市",
+      "adcode": "231085",
+      "citycode": "0453",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "东宁市",
+      "adcode": "231086",
+      "citycode": "0453",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "黑河市",
+      "adcode": "231100",
+      "citycode": "0456",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "北安市",
+      "adcode": "231181",
+      "citycode": "0456",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "五大连池市",
+      "adcode": "231182",
+      "citycode": "0456",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "嫩江市",
+      "adcode": "231183",
+      "citycode": "0456",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "绥化市",
+      "adcode": "231200",
+      "citycode": "0455",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "安达市",
+      "adcode": "231281",
+      "citycode": "0455",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "肇东市",
+      "adcode": "231282",
+      "citycode": "0455",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "海伦市",
+      "adcode": "231283",
+      "citycode": "0455",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "大兴安岭地区",
+      "adcode": "232700",
+      "citycode": "0457",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "漠河市",
+      "adcode": "232701",
+      "citycode": "0457",
+      "province_name": "黑龙江省",
+      "province_adcode": "230000"
+    },
+    {
+      "official_name": "上海市",
+      "adcode": "310000",
+      "citycode": "021",
+      "province_name": "上海市",
+      "province_adcode": "310000"
+    },
+    {
+      "official_name": "南京市",
+      "adcode": "320100",
+      "citycode": "025",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "无锡市",
+      "adcode": "320200",
+      "citycode": "0510",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "江阴市",
+      "adcode": "320281",
+      "citycode": "0510",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "宜兴市",
+      "adcode": "320282",
+      "citycode": "0510",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "徐州市",
+      "adcode": "320300",
+      "citycode": "0516",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "新沂市",
+      "adcode": "320381",
+      "citycode": "0516",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "邳州市",
+      "adcode": "320382",
+      "citycode": "0516",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "常州市",
+      "adcode": "320400",
+      "citycode": "0519",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "溧阳市",
+      "adcode": "320481",
+      "citycode": "0519",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "苏州市",
+      "adcode": "320500",
+      "citycode": "0512",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "常熟市",
+      "adcode": "320581",
+      "citycode": "0512",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "张家港市",
+      "adcode": "320582",
+      "citycode": "0512",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "昆山市",
+      "adcode": "320583",
+      "citycode": "0512",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "太仓市",
+      "adcode": "320585",
+      "citycode": "0512",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "南通市",
+      "adcode": "320600",
+      "citycode": "0513",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "启东市",
+      "adcode": "320681",
+      "citycode": "0513",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "如皋市",
+      "adcode": "320682",
+      "citycode": "0513",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "海安市",
+      "adcode": "320685",
+      "citycode": "0513",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "连云港市",
+      "adcode": "320700",
+      "citycode": "0518",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "淮安市",
+      "adcode": "320800",
+      "citycode": "0517",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "盐城市",
+      "adcode": "320900",
+      "citycode": "0515",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "东台市",
+      "adcode": "320981",
+      "citycode": "0515",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "扬州市",
+      "adcode": "321000",
+      "citycode": "0514",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "仪征市",
+      "adcode": "321081",
+      "citycode": "0514",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "高邮市",
+      "adcode": "321084",
+      "citycode": "0514",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "镇江市",
+      "adcode": "321100",
+      "citycode": "0511",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "丹阳市",
+      "adcode": "321181",
+      "citycode": "0511",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "扬中市",
+      "adcode": "321182",
+      "citycode": "0511",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "句容市",
+      "adcode": "321183",
+      "citycode": "0511",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "泰州市",
+      "adcode": "321200",
+      "citycode": "0523",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "兴化市",
+      "adcode": "321281",
+      "citycode": "0523",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "靖江市",
+      "adcode": "321282",
+      "citycode": "0523",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "泰兴市",
+      "adcode": "321283",
+      "citycode": "0523",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "宿迁市",
+      "adcode": "321300",
+      "citycode": "0527",
+      "province_name": "江苏省",
+      "province_adcode": "320000"
+    },
+    {
+      "official_name": "杭州市",
+      "adcode": "330100",
+      "citycode": "0571",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "建德市",
+      "adcode": "330182",
+      "citycode": "0571",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "宁波市",
+      "adcode": "330200",
+      "citycode": "0574",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "余姚市",
+      "adcode": "330281",
+      "citycode": "0574",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "慈溪市",
+      "adcode": "330282",
+      "citycode": "0574",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "温州市",
+      "adcode": "330300",
+      "citycode": "0577",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "瑞安市",
+      "adcode": "330381",
+      "citycode": "0577",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "乐清市",
+      "adcode": "330382",
+      "citycode": "0577",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "龙港市",
+      "adcode": "330383",
+      "citycode": "0577",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "嘉兴市",
+      "adcode": "330400",
+      "citycode": "0573",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "海宁市",
+      "adcode": "330481",
+      "citycode": "0573",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "平湖市",
+      "adcode": "330482",
+      "citycode": "0573",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "桐乡市",
+      "adcode": "330483",
+      "citycode": "0573",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "湖州市",
+      "adcode": "330500",
+      "citycode": "0572",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "绍兴市",
+      "adcode": "330600",
+      "citycode": "0575",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "诸暨市",
+      "adcode": "330681",
+      "citycode": "0575",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "嵊州市",
+      "adcode": "330683",
+      "citycode": "0575",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "金华市",
+      "adcode": "330700",
+      "citycode": "0579",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "兰溪市",
+      "adcode": "330781",
+      "citycode": "0579",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "义乌市",
+      "adcode": "330782",
+      "citycode": "0579",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "东阳市",
+      "adcode": "330783",
+      "citycode": "0579",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "永康市",
+      "adcode": "330784",
+      "citycode": "0579",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "衢州市",
+      "adcode": "330800",
+      "citycode": "0570",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "江山市",
+      "adcode": "330881",
+      "citycode": "0570",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "舟山市",
+      "adcode": "330900",
+      "citycode": "0580",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "台州市",
+      "adcode": "331000",
+      "citycode": "0576",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "温岭市",
+      "adcode": "331081",
+      "citycode": "0576",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "临海市",
+      "adcode": "331082",
+      "citycode": "0576",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "玉环市",
+      "adcode": "331083",
+      "citycode": "0576",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "丽水市",
+      "adcode": "331100",
+      "citycode": "0578",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "龙泉市",
+      "adcode": "331181",
+      "citycode": "0578",
+      "province_name": "浙江省",
+      "province_adcode": "330000"
+    },
+    {
+      "official_name": "合肥市",
+      "adcode": "340100",
+      "citycode": "0551",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "巢湖市",
+      "adcode": "340181",
+      "citycode": "0551",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "芜湖市",
+      "adcode": "340200",
+      "citycode": "0553",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "无为市",
+      "adcode": "340281",
+      "citycode": "0553",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "蚌埠市",
+      "adcode": "340300",
+      "citycode": "0552",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "淮南市",
+      "adcode": "340400",
+      "citycode": "0554",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "马鞍山市",
+      "adcode": "340500",
+      "citycode": "0555",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "淮北市",
+      "adcode": "340600",
+      "citycode": "0561",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "铜陵市",
+      "adcode": "340700",
+      "citycode": "0562",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "安庆市",
+      "adcode": "340800",
+      "citycode": "0556",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "桐城市",
+      "adcode": "340881",
+      "citycode": "0556",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "潜山市",
+      "adcode": "340882",
+      "citycode": "0556",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "黄山市",
+      "adcode": "341000",
+      "citycode": "0559",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "滁州市",
+      "adcode": "341100",
+      "citycode": "0550",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "天长市",
+      "adcode": "341181",
+      "citycode": "0550",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "明光市",
+      "adcode": "341182",
+      "citycode": "0550",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "阜阳市",
+      "adcode": "341200",
+      "citycode": "1558",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "界首市",
+      "adcode": "341282",
+      "citycode": "1558",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "宿州市",
+      "adcode": "341300",
+      "citycode": "0557",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "六安市",
+      "adcode": "341500",
+      "citycode": "0564",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "亳州市",
+      "adcode": "341600",
+      "citycode": "0558",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "池州市",
+      "adcode": "341700",
+      "citycode": "0566",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "宣城市",
+      "adcode": "341800",
+      "citycode": "0563",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "宁国市",
+      "adcode": "341881",
+      "citycode": "0563",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "广德市",
+      "adcode": "341882",
+      "citycode": "0563",
+      "province_name": "安徽省",
+      "province_adcode": "340000"
+    },
+    {
+      "official_name": "福州市",
+      "adcode": "350100",
+      "citycode": "0591",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "福清市",
+      "adcode": "350181",
+      "citycode": "0591",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "厦门市",
+      "adcode": "350200",
+      "citycode": "0592",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "莆田市",
+      "adcode": "350300",
+      "citycode": "0594",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "三明市",
+      "adcode": "350400",
+      "citycode": "0598",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "永安市",
+      "adcode": "350481",
+      "citycode": "0598",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "泉州市",
+      "adcode": "350500",
+      "citycode": "0595",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "石狮市",
+      "adcode": "350581",
+      "citycode": "0595",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "晋江市",
+      "adcode": "350582",
+      "citycode": "0595",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "南安市",
+      "adcode": "350583",
+      "citycode": "0595",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "漳州市",
+      "adcode": "350600",
+      "citycode": "0596",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "南平市",
+      "adcode": "350700",
+      "citycode": "0599",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "邵武市",
+      "adcode": "350781",
+      "citycode": "0599",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "武夷山市",
+      "adcode": "350782",
+      "citycode": "0599",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "建瓯市",
+      "adcode": "350783",
+      "citycode": "0599",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "龙岩市",
+      "adcode": "350800",
+      "citycode": "0597",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "漳平市",
+      "adcode": "350881",
+      "citycode": "0597",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "宁德市",
+      "adcode": "350900",
+      "citycode": "0593",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "福安市",
+      "adcode": "350981",
+      "citycode": "0593",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "福鼎市",
+      "adcode": "350982",
+      "citycode": "0593",
+      "province_name": "福建省",
+      "province_adcode": "350000"
+    },
+    {
+      "official_name": "南昌市",
+      "adcode": "360100",
+      "citycode": "0791",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "景德镇市",
+      "adcode": "360200",
+      "citycode": "0798",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "乐平市",
+      "adcode": "360281",
+      "citycode": "0798",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "萍乡市",
+      "adcode": "360300",
+      "citycode": "0799",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "九江市",
+      "adcode": "360400",
+      "citycode": "0792",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "瑞昌市",
+      "adcode": "360481",
+      "citycode": "0792",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "共青城市",
+      "adcode": "360482",
+      "citycode": "0792",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "庐山市",
+      "adcode": "360483",
+      "citycode": "0792",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "新余市",
+      "adcode": "360500",
+      "citycode": "0790",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "鹰潭市",
+      "adcode": "360600",
+      "citycode": "0701",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "贵溪市",
+      "adcode": "360681",
+      "citycode": "0701",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "赣州市",
+      "adcode": "360700",
+      "citycode": "0797",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "瑞金市",
+      "adcode": "360781",
+      "citycode": "0797",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "龙南市",
+      "adcode": "360783",
+      "citycode": "0797",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "吉安市",
+      "adcode": "360800",
+      "citycode": "0796",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "井冈山市",
+      "adcode": "360881",
+      "citycode": "0796",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "宜春市",
+      "adcode": "360900",
+      "citycode": "0795",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "丰城市",
+      "adcode": "360981",
+      "citycode": "0795",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "樟树市",
+      "adcode": "360982",
+      "citycode": "0795",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "高安市",
+      "adcode": "360983",
+      "citycode": "0795",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "抚州市",
+      "adcode": "361000",
+      "citycode": "0794",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "上饶市",
+      "adcode": "361100",
+      "citycode": "0793",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "德兴市",
+      "adcode": "361181",
+      "citycode": "0793",
+      "province_name": "江西省",
+      "province_adcode": "360000"
+    },
+    {
+      "official_name": "济南市",
+      "adcode": "370100",
+      "citycode": "0531",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "青岛市",
+      "adcode": "370200",
+      "citycode": "0532",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "胶州市",
+      "adcode": "370281",
+      "citycode": "0532",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "平度市",
+      "adcode": "370283",
+      "citycode": "0532",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "莱西市",
+      "adcode": "370285",
+      "citycode": "0532",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "淄博市",
+      "adcode": "370300",
+      "citycode": "0533",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "枣庄市",
+      "adcode": "370400",
+      "citycode": "0632",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "滕州市",
+      "adcode": "370481",
+      "citycode": "0632",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "东营市",
+      "adcode": "370500",
+      "citycode": "0546",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "烟台市",
+      "adcode": "370600",
+      "citycode": "0535",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "龙口市",
+      "adcode": "370681",
+      "citycode": "0535",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "莱阳市",
+      "adcode": "370682",
+      "citycode": "0535",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "莱州市",
+      "adcode": "370683",
+      "citycode": "0535",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "招远市",
+      "adcode": "370685",
+      "citycode": "0535",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "栖霞市",
+      "adcode": "370686",
+      "citycode": "0535",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "海阳市",
+      "adcode": "370687",
+      "citycode": "0535",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "潍坊市",
+      "adcode": "370700",
+      "citycode": "0536",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "青州市",
+      "adcode": "370781",
+      "citycode": "0536",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "诸城市",
+      "adcode": "370782",
+      "citycode": "0536",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "寿光市",
+      "adcode": "370783",
+      "citycode": "0536",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "安丘市",
+      "adcode": "370784",
+      "citycode": "0536",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "高密市",
+      "adcode": "370785",
+      "citycode": "0536",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "昌邑市",
+      "adcode": "370786",
+      "citycode": "0536",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "济宁市",
+      "adcode": "370800",
+      "citycode": "0537",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "曲阜市",
+      "adcode": "370881",
+      "citycode": "0537",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "邹城市",
+      "adcode": "370883",
+      "citycode": "0537",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "泰安市",
+      "adcode": "370900",
+      "citycode": "0538",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "新泰市",
+      "adcode": "370982",
+      "citycode": "0538",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "肥城市",
+      "adcode": "370983",
+      "citycode": "0538",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "威海市",
+      "adcode": "371000",
+      "citycode": "0631",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "荣成市",
+      "adcode": "371082",
+      "citycode": "0631",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "乳山市",
+      "adcode": "371083",
+      "citycode": "0631",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "日照市",
+      "adcode": "371100",
+      "citycode": "0633",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "临沂市",
+      "adcode": "371300",
+      "citycode": "0539",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "德州市",
+      "adcode": "371400",
+      "citycode": "0534",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "乐陵市",
+      "adcode": "371481",
+      "citycode": "0534",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "禹城市",
+      "adcode": "371482",
+      "citycode": "0534",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "聊城市",
+      "adcode": "371500",
+      "citycode": "0635",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "临清市",
+      "adcode": "371581",
+      "citycode": "0635",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "滨州市",
+      "adcode": "371600",
+      "citycode": "0543",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "邹平市",
+      "adcode": "371681",
+      "citycode": "0543",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "菏泽市",
+      "adcode": "371700",
+      "citycode": "0530",
+      "province_name": "山东省",
+      "province_adcode": "370000"
+    },
+    {
+      "official_name": "郑州市",
+      "adcode": "410100",
+      "citycode": "0371",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "巩义市",
+      "adcode": "410181",
+      "citycode": "0371",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "荥阳市",
+      "adcode": "410182",
+      "citycode": "0371",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "新密市",
+      "adcode": "410183",
+      "citycode": "0371",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "新郑市",
+      "adcode": "410184",
+      "citycode": "0371",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "登封市",
+      "adcode": "410185",
+      "citycode": "0371",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "开封市",
+      "adcode": "410200",
+      "citycode": "0378",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "洛阳市",
+      "adcode": "410300",
+      "citycode": "0379",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "平顶山市",
+      "adcode": "410400",
+      "citycode": "0375",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "舞钢市",
+      "adcode": "410481",
+      "citycode": "0375",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "汝州市",
+      "adcode": "410482",
+      "citycode": "0375",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "安阳市",
+      "adcode": "410500",
+      "citycode": "0372",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "林州市",
+      "adcode": "410581",
+      "citycode": "0372",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "鹤壁市",
+      "adcode": "410600",
+      "citycode": "0392",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "新乡市",
+      "adcode": "410700",
+      "citycode": "0373",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "卫辉市",
+      "adcode": "410781",
+      "citycode": "0373",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "辉县市",
+      "adcode": "410782",
+      "citycode": "0373",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "长垣市",
+      "adcode": "410783",
+      "citycode": "0373",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "焦作市",
+      "adcode": "410800",
+      "citycode": "0391",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "沁阳市",
+      "adcode": "410882",
+      "citycode": "0391",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "孟州市",
+      "adcode": "410883",
+      "citycode": "0391",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "濮阳市",
+      "adcode": "410900",
+      "citycode": "0393",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "许昌市",
+      "adcode": "411000",
+      "citycode": "0374",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "禹州市",
+      "adcode": "411081",
+      "citycode": "0374",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "长葛市",
+      "adcode": "411082",
+      "citycode": "0374",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "漯河市",
+      "adcode": "411100",
+      "citycode": "0395",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "三门峡市",
+      "adcode": "411200",
+      "citycode": "0398",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "义马市",
+      "adcode": "411281",
+      "citycode": "0398",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "灵宝市",
+      "adcode": "411282",
+      "citycode": "0398",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "南阳市",
+      "adcode": "411300",
+      "citycode": "0377",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "邓州市",
+      "adcode": "411381",
+      "citycode": "0377",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "商丘市",
+      "adcode": "411400",
+      "citycode": "0370",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "永城市",
+      "adcode": "411481",
+      "citycode": "0370",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "信阳市",
+      "adcode": "411500",
+      "citycode": "0376",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "周口市",
+      "adcode": "411600",
+      "citycode": "0394",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "项城市",
+      "adcode": "411681",
+      "citycode": "0394",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "驻马店市",
+      "adcode": "411700",
+      "citycode": "0396",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "济源市",
+      "adcode": "419001",
+      "citycode": "1391",
+      "province_name": "河南省",
+      "province_adcode": "410000"
+    },
+    {
+      "official_name": "武汉市",
+      "adcode": "420100",
+      "citycode": "027",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "黄石市",
+      "adcode": "420200",
+      "citycode": "0714",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "大冶市",
+      "adcode": "420281",
+      "citycode": "0714",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "十堰市",
+      "adcode": "420300",
+      "citycode": "0719",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "丹江口市",
+      "adcode": "420381",
+      "citycode": "0719",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "宜昌市",
+      "adcode": "420500",
+      "citycode": "0717",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "宜都市",
+      "adcode": "420581",
+      "citycode": "0717",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "当阳市",
+      "adcode": "420582",
+      "citycode": "0717",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "枝江市",
+      "adcode": "420583",
+      "citycode": "0717",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "襄阳市",
+      "adcode": "420600",
+      "citycode": "0710",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "老河口市",
+      "adcode": "420682",
+      "citycode": "0710",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "枣阳市",
+      "adcode": "420683",
+      "citycode": "0710",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "宜城市",
+      "adcode": "420684",
+      "citycode": "0710",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "鄂州市",
+      "adcode": "420700",
+      "citycode": "0711",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "荆门市",
+      "adcode": "420800",
+      "citycode": "0724",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "钟祥市",
+      "adcode": "420881",
+      "citycode": "0724",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "京山市",
+      "adcode": "420882",
+      "citycode": "0724",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "孝感市",
+      "adcode": "420900",
+      "citycode": "0712",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "应城市",
+      "adcode": "420981",
+      "citycode": "0712",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "安陆市",
+      "adcode": "420982",
+      "citycode": "0712",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "汉川市",
+      "adcode": "420984",
+      "citycode": "0712",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "荆州市",
+      "adcode": "421000",
+      "citycode": "0716",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "石首市",
+      "adcode": "421081",
+      "citycode": "0716",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "洪湖市",
+      "adcode": "421083",
+      "citycode": "0716",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "松滋市",
+      "adcode": "421087",
+      "citycode": "0716",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "监利市",
+      "adcode": "421088",
+      "citycode": "0716",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "黄冈市",
+      "adcode": "421100",
+      "citycode": "0713",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "麻城市",
+      "adcode": "421181",
+      "citycode": "0713",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "武穴市",
+      "adcode": "421182",
+      "citycode": "0713",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "咸宁市",
+      "adcode": "421200",
+      "citycode": "0715",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "赤壁市",
+      "adcode": "421281",
+      "citycode": "0715",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "随州市",
+      "adcode": "421300",
+      "citycode": "0722",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "广水市",
+      "adcode": "421381",
+      "citycode": "0722",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "恩施土家族苗族自治州",
+      "adcode": "422800",
+      "citycode": "0718",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "恩施市",
+      "adcode": "422801",
+      "citycode": "0718",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "利川市",
+      "adcode": "422802",
+      "citycode": "0718",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "仙桃市",
+      "adcode": "429004",
+      "citycode": "0728",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "潜江市",
+      "adcode": "429005",
+      "citycode": "2728",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "天门市",
+      "adcode": "429006",
+      "citycode": "1728",
+      "province_name": "湖北省",
+      "province_adcode": "420000"
+    },
+    {
+      "official_name": "长沙市",
+      "adcode": "430100",
+      "citycode": "0731",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "浏阳市",
+      "adcode": "430181",
+      "citycode": "0731",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "宁乡市",
+      "adcode": "430182",
+      "citycode": "0731",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "株洲市",
+      "adcode": "430200",
+      "citycode": "0733",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "醴陵市",
+      "adcode": "430281",
+      "citycode": "0733",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "湘潭市",
+      "adcode": "430300",
+      "citycode": "0732",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "湘乡市",
+      "adcode": "430381",
+      "citycode": "0732",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "韶山市",
+      "adcode": "430382",
+      "citycode": "0732",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "衡阳市",
+      "adcode": "430400",
+      "citycode": "0734",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "耒阳市",
+      "adcode": "430481",
+      "citycode": "0734",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "常宁市",
+      "adcode": "430482",
+      "citycode": "0734",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "邵阳市",
+      "adcode": "430500",
+      "citycode": "0739",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "武冈市",
+      "adcode": "430581",
+      "citycode": "0739",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "邵东市",
+      "adcode": "430582",
+      "citycode": "0739",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "岳阳市",
+      "adcode": "430600",
+      "citycode": "0730",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "汨罗市",
+      "adcode": "430681",
+      "citycode": "0730",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "临湘市",
+      "adcode": "430682",
+      "citycode": "0730",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "常德市",
+      "adcode": "430700",
+      "citycode": "0736",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "津市市",
+      "adcode": "430781",
+      "citycode": "0736",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "张家界市",
+      "adcode": "430800",
+      "citycode": "0744",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "益阳市",
+      "adcode": "430900",
+      "citycode": "0737",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "沅江市",
+      "adcode": "430981",
+      "citycode": "0737",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "郴州市",
+      "adcode": "431000",
+      "citycode": "0735",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "资兴市",
+      "adcode": "431081",
+      "citycode": "0735",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "永州市",
+      "adcode": "431100",
+      "citycode": "0746",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "祁阳市",
+      "adcode": "431181",
+      "citycode": "0746",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "怀化市",
+      "adcode": "431200",
+      "citycode": "0745",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "洪江市",
+      "adcode": "431281",
+      "citycode": "0745",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "娄底市",
+      "adcode": "431300",
+      "citycode": "0738",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "冷水江市",
+      "adcode": "431381",
+      "citycode": "0738",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "涟源市",
+      "adcode": "431382",
+      "citycode": "0738",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "湘西土家族苗族自治州",
+      "adcode": "433100",
+      "citycode": "0743",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "吉首市",
+      "adcode": "433101",
+      "citycode": "0743",
+      "province_name": "湖南省",
+      "province_adcode": "430000"
+    },
+    {
+      "official_name": "广州市",
+      "adcode": "440100",
+      "citycode": "020",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "韶关市",
+      "adcode": "440200",
+      "citycode": "0751",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "乐昌市",
+      "adcode": "440281",
+      "citycode": "0751",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "南雄市",
+      "adcode": "440282",
+      "citycode": "0751",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "深圳市",
+      "adcode": "440300",
+      "citycode": "0755",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "珠海市",
+      "adcode": "440400",
+      "citycode": "0756",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "汕头市",
+      "adcode": "440500",
+      "citycode": "0754",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "佛山市",
+      "adcode": "440600",
+      "citycode": "0757",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "江门市",
+      "adcode": "440700",
+      "citycode": "0750",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "台山市",
+      "adcode": "440781",
+      "citycode": "0750",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "开平市",
+      "adcode": "440783",
+      "citycode": "0750",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "鹤山市",
+      "adcode": "440784",
+      "citycode": "0750",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "恩平市",
+      "adcode": "440785",
+      "citycode": "0750",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "湛江市",
+      "adcode": "440800",
+      "citycode": "0759",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "廉江市",
+      "adcode": "440881",
+      "citycode": "0759",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "雷州市",
+      "adcode": "440882",
+      "citycode": "0759",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "吴川市",
+      "adcode": "440883",
+      "citycode": "0759",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "茂名市",
+      "adcode": "440900",
+      "citycode": "0668",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "高州市",
+      "adcode": "440981",
+      "citycode": "0668",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "化州市",
+      "adcode": "440982",
+      "citycode": "0668",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "信宜市",
+      "adcode": "440983",
+      "citycode": "0668",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "肇庆市",
+      "adcode": "441200",
+      "citycode": "0758",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "四会市",
+      "adcode": "441284",
+      "citycode": "0758",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "惠州市",
+      "adcode": "441300",
+      "citycode": "0752",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "梅州市",
+      "adcode": "441400",
+      "citycode": "0753",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "兴宁市",
+      "adcode": "441481",
+      "citycode": "0753",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "汕尾市",
+      "adcode": "441500",
+      "citycode": "0660",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "陆丰市",
+      "adcode": "441581",
+      "citycode": "0660",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "河源市",
+      "adcode": "441600",
+      "citycode": "0762",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "阳江市",
+      "adcode": "441700",
+      "citycode": "0662",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "阳春市",
+      "adcode": "441781",
+      "citycode": "0662",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "清远市",
+      "adcode": "441800",
+      "citycode": "0763",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "英德市",
+      "adcode": "441881",
+      "citycode": "0763",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "连州市",
+      "adcode": "441882",
+      "citycode": "0763",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "东莞市",
+      "adcode": "441900",
+      "citycode": "0769",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "中山市",
+      "adcode": "442000",
+      "citycode": "0760",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "潮州市",
+      "adcode": "445100",
+      "citycode": "0768",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "揭阳市",
+      "adcode": "445200",
+      "citycode": "0663",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "普宁市",
+      "adcode": "445281",
+      "citycode": "0663",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "云浮市",
+      "adcode": "445300",
+      "citycode": "0766",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "罗定市",
+      "adcode": "445381",
+      "citycode": "0766",
+      "province_name": "广东省",
+      "province_adcode": "440000"
+    },
+    {
+      "official_name": "南宁市",
+      "adcode": "450100",
+      "citycode": "0771",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "横州市",
+      "adcode": "450181",
+      "citycode": "0771",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "柳州市",
+      "adcode": "450200",
+      "citycode": "0772",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "桂林市",
+      "adcode": "450300",
+      "citycode": "0773",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "荔浦市",
+      "adcode": "450381",
+      "citycode": "0773",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "梧州市",
+      "adcode": "450400",
+      "citycode": "0774",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "岑溪市",
+      "adcode": "450481",
+      "citycode": "0774",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "北海市",
+      "adcode": "450500",
+      "citycode": "0779",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "防城港市",
+      "adcode": "450600",
+      "citycode": "0770",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "东兴市",
+      "adcode": "450681",
+      "citycode": "0770",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "钦州市",
+      "adcode": "450700",
+      "citycode": "0777",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "贵港市",
+      "adcode": "450800",
+      "citycode": "1755",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "桂平市",
+      "adcode": "450881",
+      "citycode": "1755",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "玉林市",
+      "adcode": "450900",
+      "citycode": "0775",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "北流市",
+      "adcode": "450981",
+      "citycode": "0775",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "百色市",
+      "adcode": "451000",
+      "citycode": "0776",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "靖西市",
+      "adcode": "451081",
+      "citycode": "0776",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "平果市",
+      "adcode": "451082",
+      "citycode": "0776",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "贺州市",
+      "adcode": "451100",
+      "citycode": "1774",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "河池市",
+      "adcode": "451200",
+      "citycode": "0778",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "来宾市",
+      "adcode": "451300",
+      "citycode": "1772",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "合山市",
+      "adcode": "451381",
+      "citycode": "1772",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "崇左市",
+      "adcode": "451400",
+      "citycode": "1771",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "凭祥市",
+      "adcode": "451481",
+      "citycode": "1771",
+      "province_name": "广西壮族自治区",
+      "province_adcode": "450000"
+    },
+    {
+      "official_name": "海口市",
+      "adcode": "460100",
+      "citycode": "0898",
+      "province_name": "海南省",
+      "province_adcode": "460000"
+    },
+    {
+      "official_name": "三亚市",
+      "adcode": "460200",
+      "citycode": "0899",
+      "province_name": "海南省",
+      "province_adcode": "460000"
+    },
+    {
+      "official_name": "三沙市",
+      "adcode": "460300",
+      "citycode": "2898",
+      "province_name": "海南省",
+      "province_adcode": "460000"
+    },
+    {
+      "official_name": "儋州市",
+      "adcode": "460400",
+      "citycode": "0805",
+      "province_name": "海南省",
+      "province_adcode": "460000"
+    },
+    {
+      "official_name": "五指山市",
+      "adcode": "469001",
+      "citycode": "1897",
+      "province_name": "海南省",
+      "province_adcode": "460000"
+    },
+    {
+      "official_name": "琼海市",
+      "adcode": "469002",
+      "citycode": "1894",
+      "province_name": "海南省",
+      "province_adcode": "460000"
+    },
+    {
+      "official_name": "文昌市",
+      "adcode": "469005",
+      "citycode": "1893",
+      "province_name": "海南省",
+      "province_adcode": "460000"
+    },
+    {
+      "official_name": "万宁市",
+      "adcode": "469006",
+      "citycode": "1898",
+      "province_name": "海南省",
+      "province_adcode": "460000"
+    },
+    {
+      "official_name": "东方市",
+      "adcode": "469007",
+      "citycode": "0807",
+      "province_name": "海南省",
+      "province_adcode": "460000"
+    },
+    {
+      "official_name": "重庆市",
+      "adcode": "500000",
+      "citycode": "023",
+      "province_name": "重庆市",
+      "province_adcode": "500000"
+    },
+    {
+      "official_name": "成都市",
+      "adcode": "510100",
+      "citycode": "028",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "都江堰市",
+      "adcode": "510181",
+      "citycode": "028",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "彭州市",
+      "adcode": "510182",
+      "citycode": "028",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "邛崃市",
+      "adcode": "510183",
+      "citycode": "028",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "崇州市",
+      "adcode": "510184",
+      "citycode": "028",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "简阳市",
+      "adcode": "510185",
+      "citycode": "028",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "自贡市",
+      "adcode": "510300",
+      "citycode": "0813",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "攀枝花市",
+      "adcode": "510400",
+      "citycode": "0812",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "泸州市",
+      "adcode": "510500",
+      "citycode": "0830",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "德阳市",
+      "adcode": "510600",
+      "citycode": "0838",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "广汉市",
+      "adcode": "510681",
+      "citycode": "0838",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "什邡市",
+      "adcode": "510682",
+      "citycode": "0838",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "绵竹市",
+      "adcode": "510683",
+      "citycode": "0838",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "绵阳市",
+      "adcode": "510700",
+      "citycode": "0816",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "江油市",
+      "adcode": "510781",
+      "citycode": "0816",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "广元市",
+      "adcode": "510800",
+      "citycode": "0839",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "遂宁市",
+      "adcode": "510900",
+      "citycode": "0825",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "射洪市",
+      "adcode": "510981",
+      "citycode": "0825",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "内江市",
+      "adcode": "511000",
+      "citycode": "1832",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "隆昌市",
+      "adcode": "511083",
+      "citycode": "1832",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "乐山市",
+      "adcode": "511100",
+      "citycode": "0833",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "峨眉山市",
+      "adcode": "511181",
+      "citycode": "0833",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "南充市",
+      "adcode": "511300",
+      "citycode": "0817",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "阆中市",
+      "adcode": "511381",
+      "citycode": "0817",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "眉山市",
+      "adcode": "511400",
+      "citycode": "1833",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "宜宾市",
+      "adcode": "511500",
+      "citycode": "0831",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "广安市",
+      "adcode": "511600",
+      "citycode": "0826",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "华蓥市",
+      "adcode": "511681",
+      "citycode": "0826",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "达州市",
+      "adcode": "511700",
+      "citycode": "0818",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "万源市",
+      "adcode": "511781",
+      "citycode": "0818",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "雅安市",
+      "adcode": "511800",
+      "citycode": "0835",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "巴中市",
+      "adcode": "511900",
+      "citycode": "0827",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "资阳市",
+      "adcode": "512000",
+      "citycode": "0832",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "阿坝藏族羌族自治州",
+      "adcode": "513200",
+      "citycode": "0837",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "马尔康市",
+      "adcode": "513201",
+      "citycode": "0837",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "甘孜藏族自治州",
+      "adcode": "513300",
+      "citycode": "0836",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "康定市",
+      "adcode": "513301",
+      "citycode": "0836",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "凉山彝族自治州",
+      "adcode": "513400",
+      "citycode": "0834",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "西昌市",
+      "adcode": "513401",
+      "citycode": "0834",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "会理市",
+      "adcode": "513402",
+      "citycode": "0834",
+      "province_name": "四川省",
+      "province_adcode": "510000"
+    },
+    {
+      "official_name": "贵阳市",
+      "adcode": "520100",
+      "citycode": "0851",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "清镇市",
+      "adcode": "520181",
+      "citycode": "0851",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "六盘水市",
+      "adcode": "520200",
+      "citycode": "0858",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "盘州市",
+      "adcode": "520281",
+      "citycode": "0858",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "遵义市",
+      "adcode": "520300",
+      "citycode": "0852",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "赤水市",
+      "adcode": "520381",
+      "citycode": "0852",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "仁怀市",
+      "adcode": "520382",
+      "citycode": "0852",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "安顺市",
+      "adcode": "520400",
+      "citycode": "0853",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "毕节市",
+      "adcode": "520500",
+      "citycode": "0857",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "黔西市",
+      "adcode": "520581",
+      "citycode": "0857",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "铜仁市",
+      "adcode": "520600",
+      "citycode": "0856",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "黔西南布依族苗族自治州",
+      "adcode": "522300",
+      "citycode": "0859",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "兴义市",
+      "adcode": "522301",
+      "citycode": "0859",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "兴仁市",
+      "adcode": "522302",
+      "citycode": "0859",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "黔东南苗族侗族自治州",
+      "adcode": "522600",
+      "citycode": "0855",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "凯里市",
+      "adcode": "522601",
+      "citycode": "0855",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "黔南布依族苗族自治州",
+      "adcode": "522700",
+      "citycode": "0854",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "都匀市",
+      "adcode": "522701",
+      "citycode": "0854",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "福泉市",
+      "adcode": "522702",
+      "citycode": "0854",
+      "province_name": "贵州省",
+      "province_adcode": "520000"
+    },
+    {
+      "official_name": "昆明市",
+      "adcode": "530100",
+      "citycode": "0871",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "安宁市",
+      "adcode": "530181",
+      "citycode": "0871",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "曲靖市",
+      "adcode": "530300",
+      "citycode": "0874",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "宣威市",
+      "adcode": "530381",
+      "citycode": "0874",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "玉溪市",
+      "adcode": "530400",
+      "citycode": "0877",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "澄江市",
+      "adcode": "530481",
+      "citycode": "0877",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "保山市",
+      "adcode": "530500",
+      "citycode": "0875",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "腾冲市",
+      "adcode": "530581",
+      "citycode": "0875",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "昭通市",
+      "adcode": "530600",
+      "citycode": "0870",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "水富市",
+      "adcode": "530681",
+      "citycode": "0870",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "丽江市",
+      "adcode": "530700",
+      "citycode": "0888",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "普洱市",
+      "adcode": "530800",
+      "citycode": "0879",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "临沧市",
+      "adcode": "530900",
+      "citycode": "0883",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "楚雄彝族自治州",
+      "adcode": "532300",
+      "citycode": "0878",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "楚雄市",
+      "adcode": "532301",
+      "citycode": "0878",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "禄丰市",
+      "adcode": "532302",
+      "citycode": "0878",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "红河哈尼族彝族自治州",
+      "adcode": "532500",
+      "citycode": "0873",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "个旧市",
+      "adcode": "532501",
+      "citycode": "0873",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "开远市",
+      "adcode": "532502",
+      "citycode": "0873",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "蒙自市",
+      "adcode": "532503",
+      "citycode": "0873",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "弥勒市",
+      "adcode": "532504",
+      "citycode": "0873",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "文山壮族苗族自治州",
+      "adcode": "532600",
+      "citycode": "0876",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "文山市",
+      "adcode": "532601",
+      "citycode": "0876",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "西双版纳傣族自治州",
+      "adcode": "532800",
+      "citycode": "0691",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "景洪市",
+      "adcode": "532801",
+      "citycode": "0691",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "大理白族自治州",
+      "adcode": "532900",
+      "citycode": "0872",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "大理市",
+      "adcode": "532901",
+      "citycode": "0872",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "德宏傣族景颇族自治州",
+      "adcode": "533100",
+      "citycode": "0692",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "瑞丽市",
+      "adcode": "533102",
+      "citycode": "0692",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "芒市",
+      "adcode": "533103",
+      "citycode": "0692",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "怒江傈僳族自治州",
+      "adcode": "533300",
+      "citycode": "0886",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "泸水市",
+      "adcode": "533301",
+      "citycode": "0886",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "迪庆藏族自治州",
+      "adcode": "533400",
+      "citycode": "0887",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "香格里拉市",
+      "adcode": "533401",
+      "citycode": "0887",
+      "province_name": "云南省",
+      "province_adcode": "530000"
+    },
+    {
+      "official_name": "拉萨市",
+      "adcode": "540100",
+      "citycode": "0891",
+      "province_name": "西藏自治区",
+      "province_adcode": "540000"
+    },
+    {
+      "official_name": "日喀则市",
+      "adcode": "540200",
+      "citycode": "0892",
+      "province_name": "西藏自治区",
+      "province_adcode": "540000"
+    },
+    {
+      "official_name": "昌都市",
+      "adcode": "540300",
+      "citycode": "0895",
+      "province_name": "西藏自治区",
+      "province_adcode": "540000"
+    },
+    {
+      "official_name": "林芝市",
+      "adcode": "540400",
+      "citycode": "0894",
+      "province_name": "西藏自治区",
+      "province_adcode": "540000"
+    },
+    {
+      "official_name": "米林市",
+      "adcode": "540481",
+      "citycode": "0894",
+      "province_name": "西藏自治区",
+      "province_adcode": "540000"
+    },
+    {
+      "official_name": "山南市",
+      "adcode": "540500",
+      "citycode": "0893",
+      "province_name": "西藏自治区",
+      "province_adcode": "540000"
+    },
+    {
+      "official_name": "错那市",
+      "adcode": "540581",
+      "citycode": "0893",
+      "province_name": "西藏自治区",
+      "province_adcode": "540000"
+    },
+    {
+      "official_name": "那曲市",
+      "adcode": "540600",
+      "citycode": "0896",
+      "province_name": "西藏自治区",
+      "province_adcode": "540000"
+    },
+    {
+      "official_name": "阿里地区",
+      "adcode": "542500",
+      "citycode": "0897",
+      "province_name": "西藏自治区",
+      "province_adcode": "540000"
+    },
+    {
+      "official_name": "西安市",
+      "adcode": "610100",
+      "citycode": "029",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "铜川市",
+      "adcode": "610200",
+      "citycode": "0919",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "宝鸡市",
+      "adcode": "610300",
+      "citycode": "0917",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "咸阳市",
+      "adcode": "610400",
+      "citycode": "0910",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "兴平市",
+      "adcode": "610481",
+      "citycode": "0910",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "彬州市",
+      "adcode": "610482",
+      "citycode": "0910",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "渭南市",
+      "adcode": "610500",
+      "citycode": "0913",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "韩城市",
+      "adcode": "610581",
+      "citycode": "0913",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "华阴市",
+      "adcode": "610582",
+      "citycode": "0913",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "延安市",
+      "adcode": "610600",
+      "citycode": "0911",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "子长市",
+      "adcode": "610681",
+      "citycode": "0911",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "汉中市",
+      "adcode": "610700",
+      "citycode": "0916",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "榆林市",
+      "adcode": "610800",
+      "citycode": "0912",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "神木市",
+      "adcode": "610881",
+      "citycode": "0912",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "安康市",
+      "adcode": "610900",
+      "citycode": "0915",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "旬阳市",
+      "adcode": "610981",
+      "citycode": "0915",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "商洛市",
+      "adcode": "611000",
+      "citycode": "0914",
+      "province_name": "陕西省",
+      "province_adcode": "610000"
+    },
+    {
+      "official_name": "兰州市",
+      "adcode": "620100",
+      "citycode": "0931",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "嘉峪关市",
+      "adcode": "620200",
+      "citycode": "1937",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "金昌市",
+      "adcode": "620300",
+      "citycode": "0935",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "白银市",
+      "adcode": "620400",
+      "citycode": "0943",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "天水市",
+      "adcode": "620500",
+      "citycode": "0938",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "武威市",
+      "adcode": "620600",
+      "citycode": "1935",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "张掖市",
+      "adcode": "620700",
+      "citycode": "0936",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "平凉市",
+      "adcode": "620800",
+      "citycode": "0933",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "华亭市",
+      "adcode": "620881",
+      "citycode": "0933",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "酒泉市",
+      "adcode": "620900",
+      "citycode": "0937",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "玉门市",
+      "adcode": "620981",
+      "citycode": "0937",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "敦煌市",
+      "adcode": "620982",
+      "citycode": "0937",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "庆阳市",
+      "adcode": "621000",
+      "citycode": "0934",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "定西市",
+      "adcode": "621100",
+      "citycode": "0932",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "陇南市",
+      "adcode": "621200",
+      "citycode": "2935",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "临夏回族自治州",
+      "adcode": "622900",
+      "citycode": "0930",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "临夏市",
+      "adcode": "622901",
+      "citycode": "0930",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "甘南藏族自治州",
+      "adcode": "623000",
+      "citycode": "0941",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "合作市",
+      "adcode": "623001",
+      "citycode": "0941",
+      "province_name": "甘肃省",
+      "province_adcode": "620000"
+    },
+    {
+      "official_name": "西宁市",
+      "adcode": "630100",
+      "citycode": "0971",
+      "province_name": "青海省",
+      "province_adcode": "630000"
+    },
+    {
+      "official_name": "海东市",
+      "adcode": "630200",
+      "citycode": "0972",
+      "province_name": "青海省",
+      "province_adcode": "630000"
+    },
+    {
+      "official_name": "海北藏族自治州",
+      "adcode": "632200",
+      "citycode": "0970",
+      "province_name": "青海省",
+      "province_adcode": "630000"
+    },
+    {
+      "official_name": "黄南藏族自治州",
+      "adcode": "632300",
+      "citycode": "0973",
+      "province_name": "青海省",
+      "province_adcode": "630000"
+    },
+    {
+      "official_name": "同仁市",
+      "adcode": "632301",
+      "citycode": "0973",
+      "province_name": "青海省",
+      "province_adcode": "630000"
+    },
+    {
+      "official_name": "海南藏族自治州",
+      "adcode": "632500",
+      "citycode": "0974",
+      "province_name": "青海省",
+      "province_adcode": "630000"
+    },
+    {
+      "official_name": "果洛藏族自治州",
+      "adcode": "632600",
+      "citycode": "0975",
+      "province_name": "青海省",
+      "province_adcode": "630000"
+    },
+    {
+      "official_name": "玉树藏族自治州",
+      "adcode": "632700",
+      "citycode": "0976",
+      "province_name": "青海省",
+      "province_adcode": "630000"
+    },
+    {
+      "official_name": "玉树市",
+      "adcode": "632701",
+      "citycode": "0976",
+      "province_name": "青海省",
+      "province_adcode": "630000"
+    },
+    {
+      "official_name": "海西蒙古族藏族自治州",
+      "adcode": "632800",
+      "citycode": "0977",
+      "province_name": "青海省",
+      "province_adcode": "630000"
+    },
+    {
+      "official_name": "格尔木市",
+      "adcode": "632801",
+      "citycode": "0977",
+      "province_name": "青海省",
+      "province_adcode": "630000"
+    },
+    {
+      "official_name": "德令哈市",
+      "adcode": "632802",
+      "citycode": "0977",
+      "province_name": "青海省",
+      "province_adcode": "630000"
+    },
+    {
+      "official_name": "茫崖市",
+      "adcode": "632803",
+      "citycode": "0977",
+      "province_name": "青海省",
+      "province_adcode": "630000"
+    },
+    {
+      "official_name": "银川市",
+      "adcode": "640100",
+      "citycode": "0951",
+      "province_name": "宁夏回族自治区",
+      "province_adcode": "640000"
+    },
+    {
+      "official_name": "灵武市",
+      "adcode": "640181",
+      "citycode": "0951",
+      "province_name": "宁夏回族自治区",
+      "province_adcode": "640000"
+    },
+    {
+      "official_name": "石嘴山市",
+      "adcode": "640200",
+      "citycode": "0952",
+      "province_name": "宁夏回族自治区",
+      "province_adcode": "640000"
+    },
+    {
+      "official_name": "吴忠市",
+      "adcode": "640300",
+      "citycode": "0953",
+      "province_name": "宁夏回族自治区",
+      "province_adcode": "640000"
+    },
+    {
+      "official_name": "青铜峡市",
+      "adcode": "640381",
+      "citycode": "0953",
+      "province_name": "宁夏回族自治区",
+      "province_adcode": "640000"
+    },
+    {
+      "official_name": "固原市",
+      "adcode": "640400",
+      "citycode": "0954",
+      "province_name": "宁夏回族自治区",
+      "province_adcode": "640000"
+    },
+    {
+      "official_name": "中卫市",
+      "adcode": "640500",
+      "citycode": "1953",
+      "province_name": "宁夏回族自治区",
+      "province_adcode": "640000"
+    },
+    {
+      "official_name": "乌鲁木齐市",
+      "adcode": "650100",
+      "citycode": "0991",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "克拉玛依市",
+      "adcode": "650200",
+      "citycode": "0990",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "吐鲁番市",
+      "adcode": "650400",
+      "citycode": "0995",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "哈密市",
+      "adcode": "650500",
+      "citycode": "0902",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "昌吉回族自治州",
+      "adcode": "652300",
+      "citycode": "0994",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "昌吉市",
+      "adcode": "652301",
+      "citycode": "0994",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "阜康市",
+      "adcode": "652302",
+      "citycode": "0994",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "博尔塔拉蒙古自治州",
+      "adcode": "652700",
+      "citycode": "0909",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "博乐市",
+      "adcode": "652701",
+      "citycode": "0909",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "阿拉山口市",
+      "adcode": "652702",
+      "citycode": "0909",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "巴音郭楞蒙古自治州",
+      "adcode": "652800",
+      "citycode": "0996",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "库尔勒市",
+      "adcode": "652801",
+      "citycode": "0996",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "阿克苏地区",
+      "adcode": "652900",
+      "citycode": "0997",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "阿克苏市",
+      "adcode": "652901",
+      "citycode": "0997",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "库车市",
+      "adcode": "652902",
+      "citycode": "0997",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "克孜勒苏柯尔克孜自治州",
+      "adcode": "653000",
+      "citycode": "0908",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "阿图什市",
+      "adcode": "653001",
+      "citycode": "0908",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "喀什地区",
+      "adcode": "653100",
+      "citycode": "0998",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "喀什市",
+      "adcode": "653101",
+      "citycode": "0998",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "和田地区",
+      "adcode": "653200",
+      "citycode": "0903",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "和田市",
+      "adcode": "653201",
+      "citycode": "0903",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "伊犁哈萨克自治州",
+      "adcode": "654000",
+      "citycode": "0999",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "伊宁市",
+      "adcode": "654002",
+      "citycode": "0999",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "奎屯市",
+      "adcode": "654003",
+      "citycode": "0999",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "霍尔果斯市",
+      "adcode": "654004",
+      "citycode": "0999",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "塔城地区",
+      "adcode": "654200",
+      "citycode": "0901",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "塔城市",
+      "adcode": "654201",
+      "citycode": "0901",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "乌苏市",
+      "adcode": "654202",
+      "citycode": "0901",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "沙湾市",
+      "adcode": "654203",
+      "citycode": "0901",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "阿勒泰地区",
+      "adcode": "654300",
+      "citycode": "0906",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "阿勒泰市",
+      "adcode": "654301",
+      "citycode": "0906",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "石河子市",
+      "adcode": "659001",
+      "citycode": "0993",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "阿拉尔市",
+      "adcode": "659002",
+      "citycode": "1997",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "图木舒克市",
+      "adcode": "659003",
+      "citycode": "1998",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "五家渠市",
+      "adcode": "659004",
+      "citycode": "1994",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "北屯市",
+      "adcode": "659005",
+      "citycode": "1906",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "铁门关市",
+      "adcode": "659006",
+      "citycode": "1996",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "双河市",
+      "adcode": "659007",
+      "citycode": "1909",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "可克达拉市",
+      "adcode": "659008",
+      "citycode": "1999",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "昆玉市",
+      "adcode": "659009",
+      "citycode": "1903",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "胡杨河市",
+      "adcode": "659010",
+      "citycode": "0992",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "新星市",
+      "adcode": "659011",
+      "citycode": "2940",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    },
+    {
+      "official_name": "白杨市",
+      "adcode": "659012",
+      "citycode": "2941",
+      "province_name": "新疆维吾尔自治区",
+      "province_adcode": "650000"
+    }
+  ]
+}

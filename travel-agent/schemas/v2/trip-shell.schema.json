@@ -1,0 +1,95 @@
+{
+  "$defs": {
+    "CityCode": {
+      "enum": [
+        "beijing",
+        "nanjing"
+      ],
+      "title": "CityCode",
+      "type": "string"
+    },
+    "OwnerType": {
+      "enum": [
+        "anonymous",
+        "user"
+      ],
+      "title": "OwnerType",
+      "type": "string"
+    },
+    "TripPhase": {
+      "enum": [
+        "cold_start",
+        "city_selection",
+        "city_brief",
+        "trip_setup",
+        "interest_selection",
+        "attraction_selection",
+        "dining_selection",
+        "lodging_selection",
+        "task_reflection",
+        "planning",
+        "draft_ready",
+        "revising",
+        "confirmed"
+      ],
+      "title": "TripPhase",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/trip-shell.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "city": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CityCode"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "owner_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Owner Id",
+      "type": "string"
+    },
+    "owner_type": {
+      "$ref": "#/$defs/OwnerType"
+    },
+    "phase": {
+      "$ref": "#/$defs/TripPhase"
+    },
+    "protocol_version": {
+      "default": "v2",
+      "enum": [
+        "v2",
+        "v4"
+      ],
+      "title": "Protocol Version",
+      "type": "string"
+    },
+    "state_version": {
+      "minimum": 0,
+      "title": "State Version",
+      "type": "integer"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "trip_id",
+    "owner_type",
+    "owner_id",
+    "phase",
+    "state_version"
+  ],
+  "title": "TripShell",
+  "type": "object"
+}

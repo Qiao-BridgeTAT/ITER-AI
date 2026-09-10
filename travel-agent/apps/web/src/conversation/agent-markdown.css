@@ -1,0 +1,84 @@
+.message-bubble-agent:has(.agent-markdown) {
+  background: #fff;
+  border: 1px solid #d8e3f1;
+  box-shadow: none;
+  border-radius: 4px 16px 16px;
+  padding: 18px 20px;
+}
+
+.agent-markdown {
+  font-size: 15px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.agent-markdown :is(h1, h2, h3, h4, h5, h6) {
+  font-weight: 650;
+  line-height: 1.45;
+  margin: 1.1em 0 0.45em;
+  color: inherit;
+}
+.agent-markdown h1 {
+  font-size: 1.38em;
+}
+.agent-markdown h2 {
+  font-size: 1.23em;
+}
+.agent-markdown :is(h3, h4, h5, h6) {
+  font-size: 1.08em;
+}
+.message-bubble .agent-markdown p {
+  margin: 0 0 0.7em;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: normal;
+}
+.agent-markdown :is(ul, ol) {
+  padding-left: 1.5em;
+  margin: 0.4em 0 0.8em;
+}
+.agent-markdown li + li {
+  margin-top: 0.25em;
+}
+.agent-markdown strong {
+  font-weight: 650;
+}
+.agent-markdown a {
+  color: #245f9c;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.agent-markdown blockquote {
+  margin: 0.8em 0;
+  padding-left: 1em;
+  border-left: 3px solid #cbd7e3;
+}
+.agent-markdown pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 12px;
+  background: #f2f4f6;
+  border-radius: 8px;
+}
+.agent-markdown code {
+  font-size: 0.9em;
+}
+.agent-markdown-table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.agent-markdown table {
+  border-collapse: collapse;
+  font-size: 0.93em;
+}
+.agent-markdown :is(th, td) {
+  padding: 7px 12px;
+  border-bottom: 1px solid #dce2e8;
+  text-align: left;
+}
+.agent-markdown > :first-child {
+  margin-top: 0;
+}
+.agent-markdown > :last-child {
+  margin-bottom: 0;
+}

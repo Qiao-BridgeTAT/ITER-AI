@@ -1,0 +1,167 @@
+{
+  "registry_version": "1.1.0",
+  "cities": [
+    {
+      "city_id": "cn-110100",
+      "display_name": "北京",
+      "aliases": [
+        "北京市",
+        "Beijing",
+        "Peking"
+      ],
+      "country_name": "中国",
+      "province_name": "北京市",
+      "administrative_codes": {
+        "country": "CN",
+        "province": "110000",
+        "prefecture": "110100"
+      },
+      "timezone": "Asia/Shanghai",
+      "coordinate_system": "gcj_02",
+      "provider_codes": {
+        "amap": "110000",
+        "amap_transit": "010",
+        "baidu": "131",
+        "flyai": "北京",
+        "weather": "Beijing"
+      },
+      "enabled_provider_capabilities": [
+        "amap_places",
+        "amap_routes",
+        "amap_hours",
+        "flyai_products",
+        "weather_forecast"
+      ],
+      "content_package": null,
+      "legacy_city_code": "beijing"
+    },
+    {
+      "city_id": "cn-320100",
+      "display_name": "南京",
+      "aliases": [
+        "南京市",
+        "Nanjing",
+        "Nanking"
+      ],
+      "country_name": "中国",
+      "province_name": "江苏省",
+      "administrative_codes": {
+        "country": "CN",
+        "province": "320000",
+        "prefecture": "320100"
+      },
+      "timezone": "Asia/Shanghai",
+      "coordinate_system": "gcj_02",
+      "provider_codes": {
+        "amap": "320100",
+        "amap_transit": "025",
+        "baidu": "315",
+        "flyai": "南京",
+        "weather": "Nanjing"
+      },
+      "enabled_provider_capabilities": [
+        "amap_places",
+        "amap_routes",
+        "amap_hours",
+        "flyai_products",
+        "weather_forecast"
+      ],
+      "content_package": null,
+      "legacy_city_code": "nanjing"
+    },
+    {
+      "city_id": "cn-330100",
+      "display_name": "杭州",
+      "aliases": [
+        "杭州市",
+        "Hangzhou"
+      ],
+      "country_name": "中国",
+      "province_name": "浙江省",
+      "administrative_codes": {
+        "country": "CN",
+        "province": "330000",
+        "prefecture": "330100"
+      },
+      "timezone": "Asia/Shanghai",
+      "coordinate_system": "gcj_02",
+      "provider_codes": {
+        "amap": "330100",
+        "amap_transit": "0571",
+        "flyai": "杭州",
+        "weather": "Hangzhou"
+      },
+      "enabled_provider_capabilities": [
+        "amap_places",
+        "amap_routes",
+        "amap_hours",
+        "flyai_products",
+        "weather_forecast"
+      ],
+      "content_package": null
+    },
+    {
+      "city_id": "cn-510100",
+      "display_name": "成都",
+      "aliases": [
+        "成都市",
+        "Chengdu"
+      ],
+      "country_name": "中国",
+      "province_name": "四川省",
+      "administrative_codes": {
+        "country": "CN",
+        "province": "510000",
+        "prefecture": "510100"
+      },
+      "timezone": "Asia/Shanghai",
+      "coordinate_system": "gcj_02",
+      "provider_codes": {
+        "amap": "510100",
+        "amap_transit": "028",
+        "flyai": "成都",
+        "weather": "Chengdu"
+      },
+      "enabled_provider_capabilities": [
+        "amap_places",
+        "amap_routes",
+        "amap_hours",
+        "flyai_products",
+        "weather_forecast"
+      ],
+      "content_package": null
+    },
+    {
+      "city_id": "cn-610100",
+      "display_name": "西安",
+      "aliases": [
+        "西安市",
+        "Xi'an",
+        "Xian"
+      ],
+      "country_name": "中国",
+      "province_name": "陕西省",
+      "administrative_codes": {
+        "country": "CN",
+        "province": "610000",
+        "prefecture": "610100"
+      },
+      "timezone": "Asia/Shanghai",
+      "coordinate_system": "gcj_02",
+      "provider_codes": {
+        "amap": "610100",
+        "amap_transit": "029",
+        "flyai": "西安",
+        "weather": "西安"
+      },
+      "enabled_provider_capabilities": [
+        "amap_places",
+        "amap_routes",
+        "amap_hours",
+        "flyai_products",
+        "weather_forecast"
+      ],
+      "content_package": null
+    }
+  ]
+}

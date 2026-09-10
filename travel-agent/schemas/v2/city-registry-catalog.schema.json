@@ -1,0 +1,310 @@
+{
+  "$defs": {
+    "CityAdministrativeCodes": {
+      "additionalProperties": false,
+      "properties": {
+        "country": {
+          "pattern": "^[A-Z]{2}$",
+          "title": "Country",
+          "type": "string"
+        },
+        "prefecture": {
+          "pattern": "^[0-9]{6}$",
+          "title": "Prefecture",
+          "type": "string"
+        },
+        "province": {
+          "pattern": "^[0-9]{6}$",
+          "title": "Province",
+          "type": "string"
+        }
+      },
+      "required": [
+        "country",
+        "province",
+        "prefecture"
+      ],
+      "title": "CityAdministrativeCodes",
+      "type": "object"
+    },
+    "CityCode": {
+      "enum": [
+        "beijing",
+        "nanjing"
+      ],
+      "title": "CityCode",
+      "type": "string"
+    },
+    "CityContentCapability": {
+      "enum": [
+        "city_brief",
+        "attraction_seeds"
+      ],
+      "title": "CityContentCapability",
+      "type": "string"
+    },
+    "CityContentRegistration": {
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "items": {
+            "$ref": "#/$defs/CityContentCapability"
+          },
+          "minItems": 1,
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "content_version": {
+          "pattern": "^[1-9]\\d*\\.\\d+\\.\\d+$",
+          "title": "Content Version",
+          "type": "string"
+        },
+        "relative_path": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Relative Path",
+          "type": "string"
+        },
+        "review_status": {
+          "$ref": "#/$defs/CityContentReviewStatus"
+        }
+      },
+      "required": [
+        "content_version",
+        "relative_path",
+        "review_status",
+        "capabilities"
+      ],
+      "title": "CityContentRegistration",
+      "type": "object"
+    },
+    "CityContentReviewStatus": {
+      "enum": [
+        "unreviewed",
+        "ai_pre_reviewed",
+        "user_accepted"
+      ],
+      "title": "CityContentReviewStatus",
+      "type": "string"
+    },
+    "CityProviderCapability": {
+      "enum": [
+        "amap_places",
+        "amap_routes",
+        "amap_hours",
+        "baidu_hours",
+        "flyai_products",
+        "weather_forecast"
+      ],
+      "title": "CityProviderCapability",
+      "type": "string"
+    },
+    "CityProviderCodes": {
+      "additionalProperties": false,
+      "properties": {
+        "amap": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Amap"
+        },
+        "amap_transit": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Amap Transit"
+        },
+        "baidu": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Baidu"
+        },
+        "flyai": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Flyai"
+        },
+        "weather": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Weather"
+        }
+      },
+      "title": "CityProviderCodes",
+      "type": "object"
+    },
+    "CityRegistration": {
+      "additionalProperties": false,
+      "properties": {
+        "administrative_codes": {
+          "$ref": "#/$defs/CityAdministrativeCodes"
+        },
+        "aliases": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Aliases",
+          "type": "array"
+        },
+        "city_id": {
+          "pattern": "^[a-z]{2}-[0-9]{6}$",
+          "title": "City Id",
+          "type": "string"
+        },
+        "content_package": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CityContentRegistration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "coordinate_system": {
+          "$ref": "#/$defs/CoordinateSystem"
+        },
+        "country_name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Country Name",
+          "type": "string"
+        },
+        "display_name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Display Name",
+          "type": "string"
+        },
+        "enabled_provider_capabilities": {
+          "items": {
+            "$ref": "#/$defs/CityProviderCapability"
+          },
+          "minItems": 1,
+          "title": "Enabled Provider Capabilities",
+          "type": "array"
+        },
+        "legacy_city_code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CityCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "provider_codes": {
+          "$ref": "#/$defs/CityProviderCodes"
+        },
+        "province_name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Province Name",
+          "type": "string"
+        },
+        "timezone": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Timezone",
+          "type": "string"
+        }
+      },
+      "required": [
+        "city_id",
+        "display_name",
+        "aliases",
+        "country_name",
+        "province_name",
+        "administrative_codes",
+        "timezone",
+        "coordinate_system",
+        "provider_codes",
+        "enabled_provider_capabilities"
+      ],
+      "title": "CityRegistration",
+      "type": "object"
+    },
+    "CoordinateSystem": {
+      "enum": [
+        "gcj_02",
+        "wgs_84",
+        "bd_09"
+      ],
+      "title": "CoordinateSystem",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/city-registry-catalog.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cities": {
+      "items": {
+        "$ref": "#/$defs/CityRegistration"
+      },
+      "minItems": 1,
+      "title": "Cities",
+      "type": "array"
+    },
+    "registry_version": {
+      "pattern": "^[1-9]\\d*\\.\\d+\\.\\d+$",
+      "title": "Registry Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "registry_version",
+    "cities"
+  ],
+  "title": "CityRegistryCatalog",
+  "type": "object"
+}

@@ -1,0 +1,45 @@
+{
+  "$id": "https://travel-agent.local/schemas/v2/account-view.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "masked_phone": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Masked Phone",
+      "type": "string"
+    },
+    "nickname": {
+      "anyOf": [
+        {
+          "maxLength": 20,
+          "minLength": 1,
+          "pattern": "^[^\\r\\n]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Nickname"
+    },
+    "user_id": {
+      "format": "uuid",
+      "title": "User Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "masked_phone",
+    "created_at"
+  ],
+  "title": "AccountView",
+  "type": "object"
+}

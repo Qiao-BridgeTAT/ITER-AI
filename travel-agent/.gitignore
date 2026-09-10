@@ -1,0 +1,6 @@
+apps/web/dist/
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/tsconfig.tsbuildinfo
+.local/
+node_modules/

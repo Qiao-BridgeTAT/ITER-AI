@@ -1,0 +1,1 @@
+"""Prepare-stage discovery capabilities."""

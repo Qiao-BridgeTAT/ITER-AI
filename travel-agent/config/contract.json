@@ -1,0 +1,60 @@
+{
+  "public": {
+    "required": [
+      "VITE_PUBLIC_APP_URL",
+      "VITE_AMAP_JS_API_KEY",
+      "VITE_AMAP_JS_SECURITY_CODE"
+    ]
+  },
+  "server": {
+    "always_required": [
+      "APP_ENV",
+      "PUBLIC_APP_URL",
+      "DATABASE_URL",
+      "REDIS_URL",
+      "DEFAULT_TIMEZONE"
+    ],
+    "production_required": [
+      "QWEN_BASE_URL",
+      "QWEN_MODEL",
+      "QWEN_API_KEY",
+      "AMAP_WEB_SERVICE_KEY",
+      "FLYAI_API_KEY",
+      "SMS_PROVIDER",
+      "SESSION_SECRET",
+      "PII_ENCRYPTION_KEY",
+      "EXPORT_SIGNING_SECRET",
+      "CORS_ALLOWED_ORIGINS",
+      "SESSION_COOKIE_DOMAIN",
+      "ANONYMOUS_SESSION_TTL_SECONDS",
+      "OBJECT_STORAGE_ENDPOINT",
+      "OBJECT_STORAGE_ACCESS_KEY",
+      "OBJECT_STORAGE_SECRET_KEY"
+    ],
+    "optional": [
+      "AMAP_SEARCH_PROXY_URL",
+      "AMAP_SEARCH_PROXY_KEY",
+      "AMAP_SEARCH_PROXY_KEY_PARAMETER",
+      "BAIDU_WEB_SERVICE_AK",
+      "WEATHER_API_KEY",
+      "OPENWEATHER_API_KEY",
+      "PROVIDER_MODE",
+      "CONVERSATION_MODE",
+      "MODEL_PROVIDER",
+      "MODEL_TEMPERATURE",
+      "MODEL_TIMEOUT_SECONDS",
+      "MODEL_PROMPT_VERSION",
+      "LLM_AUDIT_ENCRYPTION_KEY",
+      "LLM_AUDIT_LOCAL_PATH",
+      "LLM_AUDIT_TTL_DAYS",
+      "V4_PLANNER_ENABLED",
+      "SMS_API_KEY",
+      "SMS_API_SECRET",
+      "SMS_APP_ID",
+      "SMS_SIGN_NAME",
+      "SMS_TEMPLATE_ID",
+      "SMS_REGION",
+      "OBJECT_STORAGE_LOCAL_PATH"
+    ]
+  }
+}

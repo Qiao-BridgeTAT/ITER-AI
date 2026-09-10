@@ -1,0 +1,41 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/conversation-history-window.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Read-only UI pagination; hashes still identify ORIGINAL committed messages.\n\nThe listed messages omit attachments in this projection only. Their complete\nimmutable content remains available from the authorized message endpoint.\nNeither this projection nor its empty attachment lists may enter Agent state.",
+  "properties": {
+    "before_state_version": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Before State Version"
+    },
+    "deferred_attachment_message_ids": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Deferred Attachment Message Ids",
+      "type": "array"
+    },
+    "through_state_version": {
+      "minimum": 0,
+      "title": "Through State Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "through_state_version"
+  ],
+  "title": "ConversationHistoryWindow",
+  "type": "object"
+}

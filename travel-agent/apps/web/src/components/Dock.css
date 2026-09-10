@@ -1,0 +1,69 @@
+.travel-dock {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid #d8e1ed;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 98%);
+  box-shadow: 0 6px 8px rgb(23 41 71 / 8%);
+}
+
+.travel-dock-item {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  place-items: center;
+  color: #425570;
+  background: #f3f6fa;
+  cursor: pointer;
+}
+
+.travel-dock-item:hover,
+.travel-dock-item:focus-visible,
+.travel-dock-item.is-active {
+  color: #1468e8;
+  background: #e9f2ff;
+  outline: none;
+}
+
+.travel-dock-item:focus-visible {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px #1468e8;
+}
+
+.travel-dock-icon,
+.travel-dock-icon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.travel-dock-label {
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 50%;
+  z-index: 1;
+  width: max-content;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: #fff;
+  background: #14223a;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  pointer-events: none;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .travel-dock-item {
+    transition: none;
+  }
+}

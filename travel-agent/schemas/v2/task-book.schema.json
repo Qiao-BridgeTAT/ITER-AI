@@ -1,0 +1,196 @@
+{
+  "$defs": {
+    "Assumption": {
+      "additionalProperties": false,
+      "properties": {
+        "assumption_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Assumption Id",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/AssumptionKind"
+        },
+        "source": {
+          "$ref": "#/$defs/EvidenceSource"
+        }
+      },
+      "required": [
+        "assumption_id",
+        "kind",
+        "description",
+        "source"
+      ],
+      "title": "Assumption",
+      "type": "object"
+    },
+    "AssumptionKind": {
+      "enum": [
+        "user_override",
+        "system_default",
+        "data_missing",
+        "planning_tradeoff"
+      ],
+      "title": "AssumptionKind",
+      "type": "string"
+    },
+    "CityCode": {
+      "enum": [
+        "beijing",
+        "nanjing"
+      ],
+      "title": "CityCode",
+      "type": "string"
+    },
+    "ConfirmationStatus": {
+      "enum": [
+        "pending",
+        "confirmed",
+        "rejected"
+      ],
+      "title": "ConfirmationStatus",
+      "type": "string"
+    },
+    "EvidenceSource": {
+      "enum": [
+        "cold_start",
+        "card",
+        "dialogue",
+        "agent_inference",
+        "system_default",
+        "provider"
+      ],
+      "title": "EvidenceSource",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/task-book.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assumptions": {
+      "items": {
+        "$ref": "#/$defs/Assumption"
+      },
+      "title": "Assumptions",
+      "type": "array"
+    },
+    "city": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CityCode"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "city_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "City Id"
+    },
+    "end_date": {
+      "format": "date",
+      "title": "End Date",
+      "type": "string"
+    },
+    "important_restaurant_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "title": "Important Restaurant Ids",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "key_constraints": {
+      "items": {
+        "maxLength": 500,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Key Constraints",
+      "type": "array"
+    },
+    "omitted_strong_desires": {
+      "items": {
+        "maxLength": 500,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Omitted Strong Desires",
+      "type": "array"
+    },
+    "preference_summary": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Preference Summary",
+      "type": "string"
+    },
+    "selected_hotel_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Selected Hotel Id"
+    },
+    "start_date": {
+      "format": "date",
+      "title": "Start Date",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ConfirmationStatus",
+      "default": "pending"
+    },
+    "strong_attraction_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "title": "Strong Attraction Ids",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "tradeoffs": {
+      "items": {
+        "maxLength": 500,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Tradeoffs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "start_date",
+    "end_date",
+    "preference_summary"
+  ],
+  "title": "TaskBook",
+  "type": "object"
+}

@@ -1,0 +1,837 @@
+{
+  "$defs": {
+    "AgentStatusEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "emitted_at": {
+          "format": "date-time",
+          "title": "Emitted At",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_type": {
+          "const": "agent.status",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "message": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Message",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 0,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "status_code": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Status Code",
+          "type": "string"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "turn_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Turn Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "event_type",
+        "trip_id",
+        "turn_id",
+        "generation_id",
+        "sequence",
+        "emitted_at",
+        "status_code",
+        "message"
+      ],
+      "title": "AgentStatusEvent",
+      "type": "object"
+    },
+    "AssistantCompletedEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "content_hash": {
+          "maxLength": 128,
+          "minLength": 16,
+          "pattern": "\\S",
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "emitted_at": {
+          "format": "date-time",
+          "title": "Emitted At",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_type": {
+          "const": "assistant.completed",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "generation_mode": {
+          "enum": [
+            "qwen",
+            "fallback"
+          ],
+          "title": "Generation Mode",
+          "type": "string"
+        },
+        "message_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Message Id",
+          "type": "string"
+        },
+        "outbox_cursor": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Outbox Cursor",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "answered",
+            "card_ready",
+            "task_book_ready",
+            "plan_ready",
+            "awaiting_user"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 0,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "state_version": {
+          "minimum": 1,
+          "title": "State Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "turn_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Turn Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "event_type",
+        "trip_id",
+        "turn_id",
+        "generation_id",
+        "sequence",
+        "emitted_at",
+        "message_id",
+        "state_version",
+        "content_hash",
+        "generation_mode",
+        "outbox_cursor",
+        "outcome"
+      ],
+      "title": "AssistantCompletedEvent",
+      "type": "object"
+    },
+    "AssistantDeltaEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "chunk_index": {
+          "minimum": 0,
+          "title": "Chunk Index",
+          "type": "integer"
+        },
+        "content_hash": {
+          "maxLength": 128,
+          "minLength": 16,
+          "pattern": "\\S",
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "delta": {
+          "minLength": 1,
+          "title": "Delta",
+          "type": "string"
+        },
+        "emitted_at": {
+          "format": "date-time",
+          "title": "Emitted At",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_type": {
+          "const": "assistant.delta",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "message_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Message Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 0,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "state_version": {
+          "minimum": 1,
+          "title": "State Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "turn_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Turn Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "event_type",
+        "trip_id",
+        "turn_id",
+        "generation_id",
+        "sequence",
+        "emitted_at",
+        "message_id",
+        "state_version",
+        "chunk_index",
+        "delta",
+        "content_hash"
+      ],
+      "title": "AssistantDeltaEvent",
+      "type": "object"
+    },
+    "AssistantStartedEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "emitted_at": {
+          "format": "date-time",
+          "title": "Emitted At",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_type": {
+          "const": "assistant.started",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "message_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Message Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 0,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "state_version": {
+          "minimum": 1,
+          "title": "State Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "turn_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Turn Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "event_type",
+        "trip_id",
+        "turn_id",
+        "generation_id",
+        "sequence",
+        "emitted_at",
+        "message_id",
+        "state_version"
+      ],
+      "title": "AssistantStartedEvent",
+      "type": "object"
+    },
+    "AttachmentReadyEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "attachment_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Attachment Id",
+          "type": "string"
+        },
+        "emitted_at": {
+          "format": "date-time",
+          "title": "Emitted At",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_type": {
+          "const": "attachment.ready",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "interaction_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Interaction Id"
+        },
+        "message_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Message Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 0,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "state_version": {
+          "minimum": 1,
+          "title": "State Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "turn_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Turn Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "event_type",
+        "trip_id",
+        "turn_id",
+        "generation_id",
+        "sequence",
+        "emitted_at",
+        "message_id",
+        "state_version",
+        "attachment_id"
+      ],
+      "title": "AttachmentReadyEvent",
+      "type": "object"
+    },
+    "StateCommittedEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "base_state_version": {
+          "minimum": 0,
+          "title": "Base State Version",
+          "type": "integer"
+        },
+        "committed_state_version": {
+          "minimum": 1,
+          "title": "Committed State Version",
+          "type": "integer"
+        },
+        "emitted_at": {
+          "format": "date-time",
+          "title": "Emitted At",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_type": {
+          "const": "state.committed",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "invalidated_interaction_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Invalidated Interaction Ids",
+          "type": "array"
+        },
+        "message_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Message Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 0,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "state_version": {
+          "minimum": 1,
+          "title": "State Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "turn_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Turn Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "event_type",
+        "trip_id",
+        "turn_id",
+        "generation_id",
+        "sequence",
+        "emitted_at",
+        "message_id",
+        "state_version",
+        "base_state_version",
+        "committed_state_version"
+      ],
+      "title": "StateCommittedEvent",
+      "type": "object"
+    },
+    "TurnAcceptedEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "base_state_version": {
+          "minimum": 0,
+          "title": "Base State Version",
+          "type": "integer"
+        },
+        "emitted_at": {
+          "format": "date-time",
+          "title": "Emitted At",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_type": {
+          "const": "turn.accepted",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 0,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "turn_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Turn Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "event_type",
+        "trip_id",
+        "turn_id",
+        "generation_id",
+        "sequence",
+        "emitted_at",
+        "base_state_version"
+      ],
+      "title": "TurnAcceptedEvent",
+      "type": "object"
+    },
+    "TurnCancelledEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "emitted_at": {
+          "format": "date-time",
+          "title": "Emitted At",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_type": {
+          "const": "turn.cancelled",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "failure_code": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Failure Code",
+          "type": "string"
+        },
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 0,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "turn_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Turn Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "event_type",
+        "trip_id",
+        "turn_id",
+        "generation_id",
+        "sequence",
+        "emitted_at",
+        "failure_code"
+      ],
+      "title": "TurnCancelledEvent",
+      "type": "object"
+    },
+    "TurnFailedEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "emitted_at": {
+          "format": "date-time",
+          "title": "Emitted At",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_type": {
+          "const": "turn.failed",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "failure_code": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Failure Code",
+          "type": "string"
+        },
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "sequence": {
+          "minimum": 0,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "turn_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Turn Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "event_type",
+        "trip_id",
+        "turn_id",
+        "generation_id",
+        "sequence",
+        "emitted_at",
+        "failure_code",
+        "retryable"
+      ],
+      "title": "TurnFailedEvent",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/conversation-event.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/TurnAcceptedEvent"
+    },
+    {
+      "$ref": "#/$defs/AgentStatusEvent"
+    },
+    {
+      "$ref": "#/$defs/StateCommittedEvent"
+    },
+    {
+      "$ref": "#/$defs/AssistantStartedEvent"
+    },
+    {
+      "$ref": "#/$defs/AssistantDeltaEvent"
+    },
+    {
+      "$ref": "#/$defs/AttachmentReadyEvent"
+    },
+    {
+      "$ref": "#/$defs/AssistantCompletedEvent"
+    },
+    {
+      "$ref": "#/$defs/TurnCancelledEvent"
+    },
+    {
+      "$ref": "#/$defs/TurnFailedEvent"
+    }
+  ],
+  "title": "ConversationEventV4",
+  "type": "object"
+}

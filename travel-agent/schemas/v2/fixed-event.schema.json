@@ -1,0 +1,123 @@
+{
+  "$defs": {
+    "FixedEventKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "hotel",
+        "activity",
+        "other"
+      ],
+      "title": "FixedEventKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/fixed-event.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "else": {
+        "properties": {
+          "end_time": {
+            "type": "null"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "start_time": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_time"
+        ]
+      },
+      "then": {
+        "properties": {
+          "end_time": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "end_time"
+        ]
+      }
+    }
+  ],
+  "properties": {
+    "end_time": {
+      "anyOf": [
+        {
+          "format": "time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "End Time"
+    },
+    "event_date": {
+      "format": "date",
+      "title": "Event Date",
+      "type": "string"
+    },
+    "event_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/FixedEventKind"
+    },
+    "place_text": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Place Text"
+    },
+    "start_time": {
+      "anyOf": [
+        {
+          "format": "time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Start Time"
+    },
+    "title": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "event_id",
+    "kind",
+    "title",
+    "event_date"
+  ],
+  "title": "FixedEvent",
+  "type": "object",
+  "x-travel-time-range": {
+    "endField": "end_time",
+    "startField": "start_time"
+  }
+}

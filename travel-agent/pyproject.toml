@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "travel-agent"
+version = "0.1.0"
+description = "ITER AI travel planning agent"
+requires-python = ">=3.11"
+dependencies = [
+    "alibabacloud_dypnsapi20170525==2.0.0",
+    "alembic==1.19.1",
+    "asyncpg==0.31.0",
+    "cryptography==50.0.1",
+    "fastapi==0.141.1",
+    "httpx==0.28.1",
+    "langgraph==1.2.11",
+    "pydantic==2.13.4",
+    "pydantic-settings==2.15.0",
+    "redis==6.4.0",
+    "rq==2.11.0",
+    "sqlalchemy[asyncio]==2.0.52",
+    "uvicorn[standard]==0.52.4",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["backend", "services"]

@@ -1,0 +1,783 @@
+{
+  "$defs": {
+    "V4CancelGenerationCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "client_sequence": {
+          "minimum": 1,
+          "title": "Client Sequence",
+          "type": "integer"
+        },
+        "expected_state_version": {
+          "minimum": 0,
+          "title": "Expected State Version",
+          "type": "integer"
+        },
+        "idempotency_key": {
+          "maxLength": 128,
+          "minLength": 8,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]+$",
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/V4CancelGenerationPayload"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "4.0.0",
+          "default": "4.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "type": {
+          "const": "cancel_generation",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "idempotency_key",
+        "expected_state_version",
+        "client_sequence",
+        "type",
+        "payload"
+      ],
+      "title": "V4CancelGenerationCommand",
+      "type": "object"
+    },
+    "V4CancelGenerationPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "generation_id": {
+          "format": "uuid",
+          "title": "Generation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generation_id"
+      ],
+      "title": "V4CancelGenerationPayload",
+      "type": "object"
+    },
+    "V4CardAnswerCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "client_sequence": {
+          "minimum": 1,
+          "title": "Client Sequence",
+          "type": "integer"
+        },
+        "expected_state_version": {
+          "minimum": 0,
+          "title": "Expected State Version",
+          "type": "integer"
+        },
+        "idempotency_key": {
+          "maxLength": 128,
+          "minLength": 8,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]+$",
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/V4CardAnswerPayload"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "4.0.0",
+          "default": "4.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "type": {
+          "const": "card_answer",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "idempotency_key",
+        "expected_state_version",
+        "client_sequence",
+        "type",
+        "payload"
+      ],
+      "title": "V4CardAnswerCommand",
+      "type": "object"
+    },
+    "V4CardAnswerPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "answer_id": {
+          "format": "uuid",
+          "title": "Answer Id",
+          "type": "string"
+        },
+        "control_action_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Control Action Id"
+        },
+        "interaction_id": {
+          "format": "uuid",
+          "title": "Interaction Id",
+          "type": "string"
+        },
+        "optional_user_text": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Optional User Text"
+        },
+        "selections": {
+          "items": {
+            "$ref": "#/$defs/V4CardSelection"
+          },
+          "maxItems": 14,
+          "title": "Selections",
+          "type": "array"
+        }
+      },
+      "required": [
+        "interaction_id",
+        "answer_id"
+      ],
+      "title": "V4CardAnswerPayload",
+      "type": "object"
+    },
+    "V4CardSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "enum": [
+            "selected",
+            "excluded",
+            "must",
+            "want",
+            "destination",
+            "if_convenient",
+            "avoid"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "option_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Option Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "option_id",
+        "disposition"
+      ],
+      "title": "V4CardSelection",
+      "type": "object"
+    },
+    "V4PlanTransportSelectionCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "client_sequence": {
+          "minimum": 1,
+          "title": "Client Sequence",
+          "type": "integer"
+        },
+        "expected_state_version": {
+          "minimum": 0,
+          "title": "Expected State Version",
+          "type": "integer"
+        },
+        "idempotency_key": {
+          "maxLength": 128,
+          "minLength": 8,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]+$",
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/V4PlanTransportSelectionPayload"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "4.0.0",
+          "default": "4.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "type": {
+          "const": "plan_transport_selection",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "idempotency_key",
+        "expected_state_version",
+        "client_sequence",
+        "type",
+        "payload"
+      ],
+      "title": "V4PlanTransportSelectionCommand",
+      "type": "object"
+    },
+    "V4PlanTransportSelectionPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_workspace_revision": {
+          "minimum": 0,
+          "title": "Expected Workspace Revision",
+          "type": "integer"
+        },
+        "generation_id": {
+          "format": "uuid",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "leg_id": {
+          "format": "uuid",
+          "title": "Leg Id",
+          "type": "string"
+        },
+        "plan_version_id": {
+          "format": "uuid",
+          "title": "Plan Version Id",
+          "type": "string"
+        },
+        "transport_mode": {
+          "enum": [
+            "taxi",
+            "public_transit",
+            "walking"
+          ],
+          "title": "Transport Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generation_id",
+        "expected_workspace_revision",
+        "plan_version_id",
+        "leg_id",
+        "transport_mode"
+      ],
+      "title": "V4PlanTransportSelectionPayload",
+      "type": "object"
+    },
+    "V4PlannerAnswerCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "client_sequence": {
+          "minimum": 1,
+          "title": "Client Sequence",
+          "type": "integer"
+        },
+        "expected_state_version": {
+          "minimum": 0,
+          "title": "Expected State Version",
+          "type": "integer"
+        },
+        "idempotency_key": {
+          "maxLength": 128,
+          "minLength": 8,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]+$",
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/V4PlannerAnswerPayload"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "4.0.0",
+          "default": "4.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "type": {
+          "const": "planner_answer",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "idempotency_key",
+        "expected_state_version",
+        "client_sequence",
+        "type",
+        "payload"
+      ],
+      "title": "V4PlannerAnswerCommand",
+      "type": "object"
+    },
+    "V4PlannerAnswerPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "answer_id": {
+          "format": "uuid",
+          "title": "Answer Id",
+          "type": "string"
+        },
+        "expected_workspace_revision": {
+          "minimum": 0,
+          "title": "Expected Workspace Revision",
+          "type": "integer"
+        },
+        "generation_id": {
+          "format": "uuid",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "interaction_id": {
+          "format": "uuid",
+          "title": "Interaction Id",
+          "type": "string"
+        },
+        "option_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Option Id",
+          "type": "string"
+        },
+        "optional_user_text": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Optional User Text"
+        },
+        "resume_token": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Resume Token",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generation_id",
+        "expected_workspace_revision",
+        "interaction_id",
+        "answer_id",
+        "resume_token",
+        "option_id"
+      ],
+      "title": "V4PlannerAnswerPayload",
+      "type": "object"
+    },
+    "V4PlannerResumeCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "client_sequence": {
+          "minimum": 1,
+          "title": "Client Sequence",
+          "type": "integer"
+        },
+        "expected_state_version": {
+          "minimum": 0,
+          "title": "Expected State Version",
+          "type": "integer"
+        },
+        "idempotency_key": {
+          "maxLength": 128,
+          "minLength": 8,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]+$",
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/V4PlannerResumePayload"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "4.0.0",
+          "default": "4.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "type": {
+          "const": "planner_resume",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "idempotency_key",
+        "expected_state_version",
+        "client_sequence",
+        "type",
+        "payload"
+      ],
+      "title": "V4PlannerResumeCommand",
+      "type": "object"
+    },
+    "V4PlannerResumePayload": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_workspace_revision": {
+          "minimum": 0,
+          "title": "Expected Workspace Revision",
+          "type": "integer"
+        },
+        "generation_id": {
+          "format": "uuid",
+          "title": "Generation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generation_id",
+        "expected_workspace_revision"
+      ],
+      "title": "V4PlannerResumePayload",
+      "type": "object"
+    },
+    "V4RetryInteractionCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "client_sequence": {
+          "minimum": 1,
+          "title": "Client Sequence",
+          "type": "integer"
+        },
+        "expected_state_version": {
+          "minimum": 0,
+          "title": "Expected State Version",
+          "type": "integer"
+        },
+        "idempotency_key": {
+          "maxLength": 128,
+          "minLength": 8,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]+$",
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/V4RetryInteractionPayload"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "4.0.0",
+          "default": "4.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "type": {
+          "const": "retry_interaction",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "idempotency_key",
+        "expected_state_version",
+        "client_sequence",
+        "type",
+        "payload"
+      ],
+      "title": "V4RetryInteractionCommand",
+      "type": "object"
+    },
+    "V4RetryInteractionPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "interaction_id": {
+          "format": "uuid",
+          "title": "Interaction Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "interaction_id"
+      ],
+      "title": "V4RetryInteractionPayload",
+      "type": "object"
+    },
+    "V4TaskBookConfirmationCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "client_sequence": {
+          "minimum": 1,
+          "title": "Client Sequence",
+          "type": "integer"
+        },
+        "expected_state_version": {
+          "minimum": 0,
+          "title": "Expected State Version",
+          "type": "integer"
+        },
+        "idempotency_key": {
+          "maxLength": 128,
+          "minLength": 8,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]+$",
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/V4TaskBookConfirmationPayload"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "4.0.0",
+          "default": "4.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "type": {
+          "const": "task_book_confirmation",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "idempotency_key",
+        "expected_state_version",
+        "client_sequence",
+        "type",
+        "payload"
+      ],
+      "title": "V4TaskBookConfirmationCommand",
+      "type": "object"
+    },
+    "V4TaskBookConfirmationPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "task_book_id": {
+          "format": "uuid",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "task_book_id",
+        "task_book_version"
+      ],
+      "title": "V4TaskBookConfirmationPayload",
+      "type": "object"
+    },
+    "V4UserMessageCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "client_sequence": {
+          "minimum": 1,
+          "title": "Client Sequence",
+          "type": "integer"
+        },
+        "expected_state_version": {
+          "minimum": 0,
+          "title": "Expected State Version",
+          "type": "integer"
+        },
+        "idempotency_key": {
+          "maxLength": 128,
+          "minLength": 8,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]+$",
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/V4UserMessagePayload"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "4.0.0",
+          "default": "4.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "type": {
+          "const": "user_message",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "idempotency_key",
+        "expected_state_version",
+        "client_sequence",
+        "type",
+        "payload"
+      ],
+      "title": "V4UserMessageCommand",
+      "type": "object"
+    },
+    "V4UserMessagePayload": {
+      "additionalProperties": false,
+      "properties": {
+        "message_id": {
+          "format": "uuid",
+          "title": "Message Id",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "message_id",
+        "text"
+      ],
+      "title": "V4UserMessagePayload",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/client-command.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Strict public union negotiated with protocol_version=v4.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/V4UserMessageCommand"
+    },
+    {
+      "$ref": "#/$defs/V4CardAnswerCommand"
+    },
+    {
+      "$ref": "#/$defs/V4RetryInteractionCommand"
+    },
+    {
+      "$ref": "#/$defs/V4TaskBookConfirmationCommand"
+    },
+    {
+      "$ref": "#/$defs/V4CancelGenerationCommand"
+    },
+    {
+      "$ref": "#/$defs/V4PlannerResumeCommand"
+    },
+    {
+      "$ref": "#/$defs/V4PlanTransportSelectionCommand"
+    },
+    {
+      "$ref": "#/$defs/V4PlannerAnswerCommand"
+    }
+  ],
+  "title": "V4ClientCommand",
+  "type": "object"
+}

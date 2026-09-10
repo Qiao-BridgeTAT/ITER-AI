@@ -1,0 +1,488 @@
+/* Published itinerary: route order, geographic context, and a larger read-only view. */
+.route-map-section:has(.itinerary-map) {
+  padding: 0;
+  overflow: visible;
+}
+
+.itinerary-map {
+  --map-line: #d8e1ed;
+  --map-text: #14223a;
+  --map-muted: #52647b;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  color: var(--map-text);
+  background: #fff;
+  font-family: var(--font-sans);
+}
+
+.itinerary-map button {
+  font: inherit;
+  cursor: pointer;
+}
+.itinerary-map button:disabled {
+  cursor: default;
+}
+.itinerary-map button:focus-visible,
+.itinerary-map summary:focus-visible {
+  outline: 2px solid var(--map-day-color);
+  outline-offset: -2px;
+}
+.itinerary-map-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 6px 18px;
+}
+.itinerary-map-header > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.itinerary-map-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+.map-icon-button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  color: var(--map-muted);
+  background: transparent;
+}
+.map-icon-button:hover {
+  background: #f0f4f8;
+  color: var(--map-text);
+}
+.itinerary-map-days {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+  padding: 0 12px 12px;
+  overflow-x: auto;
+}
+.itinerary-map-days button {
+  flex: 1 0 64px;
+  display: grid;
+  gap: 3px;
+  min-height: 48px;
+  padding: 6px 7px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--map-muted);
+  background: #f4f6f9;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.itinerary-map-days small {
+  font-size: 11px;
+}
+.itinerary-map-days button[aria-pressed="true"] {
+  color: #fff;
+  background: var(--map-day-color);
+  font-weight: 650;
+}
+.itinerary-map-layout {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  grid-template-rows: minmax(200px, 1fr);
+}
+.itinerary-map-viewport {
+  position: relative;
+  min-height: 200px;
+  background: #eef2ef;
+}
+.itinerary-map-canvas {
+  position: absolute;
+  inset: 0;
+}
+.itinerary-map-message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 18px;
+  color: var(--map-muted);
+  background: #f3f6f7;
+  text-align: center;
+}
+.itinerary-map-message strong {
+  color: var(--map-text);
+  font-size: 14px;
+}
+.itinerary-map-message > span {
+  font-size: 12px;
+}
+.itinerary-map-message button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--map-line);
+  border-radius: 8px;
+  color: var(--map-text);
+  background: #fff;
+}
+.itinerary-map-controls {
+  position: absolute;
+  z-index: 2;
+  right: 12px;
+  bottom: 34px;
+  display: grid;
+  padding: 3px;
+  border: 1px solid var(--map-line);
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(20 34 58 / 10%);
+}
+.itinerary-map-controls button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  color: var(--map-text);
+  background: none;
+}
+.itinerary-map-controls button:hover {
+  background: #eef3f9;
+}
+.amap-trip-marker.itinerary-map-pin {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.map-place-icon {
+  --map-place-color: #52647b;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--map-place-color);
+  box-shadow: 0 2px 5px rgb(20 34 58 / 24%);
+  pointer-events: none;
+  transition:
+    transform 160ms ease-out,
+    box-shadow 160ms ease-out;
+}
+.map-place-icon[data-place-kind="attraction"] {
+  --map-place-color: #237564;
+}
+.map-place-icon[data-place-kind="restaurant"] {
+  --map-place-color: #a65d27;
+}
+.map-place-icon[data-place-kind="hotel"] {
+  --map-place-color: #315ca8;
+}
+.itinerary-map-pin:hover .map-place-icon {
+  transform: scale(1.08);
+}
+.itinerary-map-pin.is-active .map-place-icon,
+.itinerary-map-pin:focus-visible .map-place-icon {
+  box-shadow:
+    0 0 0 3px var(--map-place-color),
+    0 0 0 6px #fff,
+    0 3px 8px rgb(20 34 58 / 25%);
+}
+.itinerary-map-legend {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: calc(100% - 24px);
+  margin: 0;
+  padding: 6px 9px;
+  border: 1px solid var(--map-line);
+  border-radius: 8px;
+  color: var(--map-text);
+  background: #fff;
+  list-style: none;
+}
+.itinerary-map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+.itinerary-map-legend .map-place-icon {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  color: var(--map-place-color);
+  background: color-mix(in srgb, var(--map-place-color) 10%, white);
+  box-shadow: none;
+}
+.itinerary-map-legend svg {
+  width: 17px;
+  height: 17px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-place-icon {
+    transition: none;
+  }
+}
+.itinerary-map-itinerary {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: #fff;
+}
+.itinerary-map-route-heading {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px 8px;
+  font-size: 12px;
+}
+.itinerary-map-route-heading > span {
+  color: var(--map-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.itinerary-map-stops {
+  min-height: 0;
+  margin: 0;
+  padding: 0 8px 8px;
+  overflow-y: auto;
+  list-style: none;
+  overscroll-behavior: contain;
+}
+.itinerary-map-stops button {
+  display: flex;
+  width: 100%;
+  min-height: 58px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--map-text);
+  background: none;
+  text-align: left;
+}
+.itinerary-map-stops button:hover {
+  background: #f4f7fa;
+}
+.itinerary-map-stops button[aria-pressed="true"] {
+  border-color: var(--map-day-color);
+  background: color-mix(in srgb, var(--map-day-color) 6%, white);
+}
+.map-stop-number {
+  display: grid;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid var(--map-day-color);
+  border-radius: 50%;
+  color: var(--map-day-color);
+  font-size: 11px;
+  font-weight: 700;
+}
+[aria-pressed="true"] > .map-stop-number {
+  color: #fff;
+  background: var(--map-day-color);
+}
+.map-stop-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.map-stop-copy > strong {
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.map-stop-meta {
+  display: flex;
+  gap: 8px;
+  color: var(--map-muted);
+  font-size: 11px;
+}
+.map-stop-meta time {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.map-stop-stay {
+  color: var(--map-muted);
+  font-size: 11px;
+}
+.itinerary-map-notice {
+  padding: 8px 16px;
+  color: var(--map-muted);
+  font-size: 12px;
+}
+.itinerary-map-notice summary {
+  cursor: pointer;
+}
+.itinerary-map-notice p {
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+.itinerary-map-dialog {
+  width: min(1160px, calc(100vw - 64px));
+  height: min(820px, calc(100dvh - 64px));
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #d8e1ed;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 20px 70px rgb(20 34 58 / 22%);
+}
+.itinerary-map-dialog::backdrop {
+  background: rgb(19 33 50 / 45%);
+}
+.itinerary-map.is-expanded {
+  height: 100%;
+}
+.is-expanded .itinerary-map-header {
+  padding: 14px 16px 6px 24px;
+}
+.is-expanded .itinerary-map-header h2 {
+  font-size: 20px;
+}
+.is-expanded .itinerary-map-days {
+  gap: 8px;
+  padding: 0 24px 16px;
+}
+.is-expanded .itinerary-map-days button {
+  flex: 0 0 116px;
+  grid-auto-flow: column;
+  align-items: center;
+  font-size: 14px;
+}
+.is-expanded .itinerary-map-days small {
+  font-size: 12px;
+}
+.is-expanded .itinerary-map-layout {
+  grid-template-columns: 310px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  border-top: 1px solid var(--map-line);
+}
+.is-expanded .itinerary-map-viewport {
+  grid-column: 2;
+  grid-row: 1;
+}
+.is-expanded .itinerary-map-itinerary {
+  grid-column: 1;
+  grid-row: 1;
+  border-right: 1px solid var(--map-line);
+}
+.is-expanded .itinerary-map-route-heading {
+  padding: 18px 18px 12px;
+  font-size: 14px;
+}
+.is-expanded .itinerary-map-stops {
+  padding: 0 10px 12px;
+}
+.is-expanded .itinerary-map-stops button {
+  gap: 9px;
+  min-height: 92px;
+}
+.is-expanded .map-stop-copy > strong {
+  font-size: 13px;
+}
+.is-expanded .place-photo {
+  flex: 0 0 52px;
+  width: 52px;
+  height: 64px;
+  border-radius: 6px;
+}
+.is-expanded .place-photo-empty > span {
+  display: none;
+}
+.is-expanded .itinerary-map-controls {
+  right: 20px;
+  bottom: 40px;
+}
+
+@media (max-width: 760px) {
+  .itinerary-map-layout {
+    min-height: 400px;
+  }
+  .itinerary-map-dialog {
+    width: 100vw;
+    height: 100dvh;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .is-expanded .itinerary-map-header {
+    padding: 8px 10px 4px 16px;
+  }
+  .is-expanded .itinerary-map-header h2 {
+    font-size: 17px;
+  }
+  .is-expanded .itinerary-map-days {
+    gap: 6px;
+    padding: 0 12px 10px;
+  }
+  .is-expanded .itinerary-map-days button {
+    flex: 1 0 80px;
+    font-size: 12px;
+  }
+  .is-expanded .itinerary-map-layout {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(200px, 54%) minmax(0, 1fr);
+  }
+  .is-expanded .itinerary-map-viewport {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .is-expanded .itinerary-map-itinerary {
+    grid-column: 1;
+    grid-row: 2;
+    border-right: 0;
+    border-top: 1px solid var(--map-line);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .is-expanded .itinerary-map-stops button {
+    min-height: 78px;
+  }
+  .is-expanded .place-photo {
+    flex-basis: 62px;
+    width: 62px;
+    height: 54px;
+  }
+}

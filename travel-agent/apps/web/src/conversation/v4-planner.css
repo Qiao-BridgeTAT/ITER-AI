@@ -1,0 +1,91 @@
+.v4-planner-panel {
+  width: min(100%, 680px);
+  padding: 20px;
+  border: 1px solid #d9e2ea;
+  border-radius: 12px;
+  background: #fff;
+  color: #263a4a;
+  overflow-wrap: anywhere;
+}
+
+.v4-planner-panel header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.v4-planner-panel h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.v4-planner-panel p {
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+.v4-planner-panel header span {
+  color: #536574;
+  font-size: 0.8125rem;
+}
+.v4-planner-decision label {
+  display: block;
+  margin: 16px 0 8px;
+  font-size: 0.875rem;
+}
+.v4-planner-decision textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #a6b8c7;
+  border-radius: 8px;
+  font: inherit;
+  color: inherit;
+  background: #fff;
+  resize: vertical;
+}
+.v4-planner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+.v4-planner-actions p {
+  flex-basis: 100%;
+  margin: 0;
+}
+.v4-planner-actions button {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #8ba7bb;
+  border-radius: 8px;
+  background: #f4f8fb;
+  color: #294e67;
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+.v4-planner-actions button:hover:not(:disabled) {
+  background: #e5f0f8;
+}
+.v4-planner-actions button:active:not(:disabled) {
+  background: #d8e8f3;
+}
+.v4-planner-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.v4-planner-panel :focus-visible {
+  outline: 2px solid #286b98;
+  outline-offset: 3px;
+}
+@media (max-width: 480px) {
+  .v4-planner-panel {
+    padding: 16px;
+  }
+  .v4-planner-actions button {
+    width: 100%;
+  }
+}

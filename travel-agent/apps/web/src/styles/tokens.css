@@ -1,0 +1,22 @@
+:root {
+  color-scheme: light;
+  --color-canvas: oklch(1 0 0);
+  --color-surface-warm: oklch(0.975 0.008 82);
+  --color-surface-muted: oklch(0.955 0.01 82);
+  --color-surface-green: oklch(0.96 0.018 140);
+  --color-ink: oklch(0.25 0.02 66);
+  --color-ink-soft: oklch(0.46 0.018 67);
+  --color-line: oklch(0.88 0.012 78);
+  --color-action: oklch(0.57 0.125 45);
+  --color-action-hover: oklch(0.52 0.13 43);
+  --color-trust: oklch(0.53 0.09 140);
+  --color-trust-deep: oklch(0.38 0.07 142);
+  --color-focus: oklch(0.67 0.13 235);
+  --shadow-soft: 0 18px 50px oklch(0.3 0.03 60 / 0.08);
+  --radius-small: 8px;
+  --radius-medium: 14px;
+  --content-width: 1440px;
+  --z-loading-overlay: 100;
+  --font-sans:
+    "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+}

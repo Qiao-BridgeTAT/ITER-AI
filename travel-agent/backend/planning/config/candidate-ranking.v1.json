@@ -1,0 +1,26 @@
+{
+  "config_id": "candidate-ranking-v1",
+  "ranking_version": "1.0.0",
+  "weights": {
+    "strong_desire": 30,
+    "preference_match": 25,
+    "spatial_cost": 15,
+    "time_cost": 10,
+    "fact_completeness": 10,
+    "source_trust": 10
+  },
+  "source_trust": {
+    "user_evidence": 100,
+    "city_content": 90,
+    "provider": 95
+  },
+  "deduplication": {
+    "attraction_max_distance_m": 300,
+    "branch_max_distance_m": 150,
+    "name_similarity_minimum": 0.78,
+    "coordinate_contradiction_m": 2000
+  },
+  "diversity": {
+    "maximum_same_theme_share_percent": 50
+  }
+}

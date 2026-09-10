@@ -1,0 +1,65 @@
+{
+  "$defs": {
+    "PlaceIntroduction": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "maxLength": 24,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "place_id": {
+          "format": "uuid",
+          "title": "Place Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "place_id",
+        "description"
+      ],
+      "title": "PlaceIntroduction",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/place-introduction-view.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "places": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/PlaceIntroduction"
+      },
+      "maxItems": 40,
+      "title": "Places",
+      "type": "array"
+    },
+    "scope_id": {
+      "format": "uuid",
+      "title": "Scope Id",
+      "type": "string"
+    },
+    "scope_kind": {
+      "enum": [
+        "card",
+        "plan"
+      ],
+      "title": "Scope Kind",
+      "type": "string"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "trip_id",
+    "scope_kind",
+    "scope_id"
+  ],
+  "title": "PlaceIntroductionView",
+  "type": "object"
+}

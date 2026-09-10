@@ -1,0 +1,10 @@
+provider_mode = "live"
+conversation_mode = "disabled"
+model_provider = "qwen"
+qwen_base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+qwen_model = "qwen-plus"
+model_temperature = 0.2
+model_timeout_seconds = 60
+model_prompt_version = "v2-20260824"
+strict_secrets = false
+anonymous_session_ttl_seconds = 3600

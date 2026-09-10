@@ -1,0 +1,119 @@
+{
+  "$defs": {
+    "DayReturn": {
+      "enum": [
+        "before_20",
+        "around_21",
+        "after_22",
+        "flexible"
+      ],
+      "title": "DayReturn",
+      "type": "string"
+    },
+    "DayStart": {
+      "enum": [
+        "before_07",
+        "around_08",
+        "around_09",
+        "around_10",
+        "after_11",
+        "flexible"
+      ],
+      "title": "DayStart",
+      "type": "string"
+    },
+    "MobilityTolerance": {
+      "enum": [
+        "never",
+        "within_5",
+        "around_10",
+        "15_plus"
+      ],
+      "title": "MobilityTolerance",
+      "type": "string"
+    },
+    "PriorityGoal": {
+      "enum": [
+        "must_see_places",
+        "comfortable_stay",
+        "satisfying_food",
+        "smooth_routes",
+        "good_value"
+      ],
+      "title": "PriorityGoal",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/cold-start-submission.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "bike_tolerance": {
+      "$ref": "#/$defs/MobilityTolerance"
+    },
+    "classic_niche_level": {
+      "enum": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "title": "Classic Niche Level",
+      "type": "integer"
+    },
+    "day_return": {
+      "$ref": "#/$defs/DayReturn"
+    },
+    "day_start": {
+      "$ref": "#/$defs/DayStart"
+    },
+    "pace_level": {
+      "enum": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "title": "Pace Level",
+      "type": "integer"
+    },
+    "priority_goals": {
+      "items": {
+        "$ref": "#/$defs/PriorityGoal"
+      },
+      "maxItems": 2,
+      "minItems": 1,
+      "title": "Priority Goals",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "transit_taxi_level": {
+      "enum": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "title": "Transit Taxi Level",
+      "type": "integer"
+    },
+    "walking_tolerance": {
+      "$ref": "#/$defs/MobilityTolerance"
+    }
+  },
+  "required": [
+    "day_start",
+    "day_return",
+    "pace_level",
+    "classic_niche_level",
+    "walking_tolerance",
+    "bike_tolerance",
+    "transit_taxi_level",
+    "priority_goals"
+  ],
+  "title": "ColdStartSubmission",
+  "type": "object"
+}

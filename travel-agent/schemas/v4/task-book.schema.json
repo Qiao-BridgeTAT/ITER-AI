@@ -1,0 +1,710 @@
+{
+  "$defs": {
+    "AttractionDirection": {
+      "additionalProperties": false,
+      "properties": {
+        "delegated_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DelegatedScope"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "exclusions": {
+          "items": {
+            "$ref": "#/$defs/TaskBookEntityIntent"
+          },
+          "title": "Exclusions",
+          "type": "array"
+        },
+        "if_convenient": {
+          "items": {
+            "$ref": "#/$defs/TaskBookEntityIntent"
+          },
+          "title": "If Convenient",
+          "type": "array"
+        },
+        "must_visit": {
+          "items": {
+            "$ref": "#/$defs/TaskBookEntityIntent"
+          },
+          "title": "Must Visit",
+          "type": "array"
+        },
+        "preferences": {
+          "items": {
+            "$ref": "#/$defs/EvidenceBackedText"
+          },
+          "title": "Preferences",
+          "type": "array"
+        },
+        "wanted": {
+          "items": {
+            "$ref": "#/$defs/TaskBookEntityIntent"
+          },
+          "title": "Wanted",
+          "type": "array"
+        }
+      },
+      "title": "AttractionDirection",
+      "type": "object"
+    },
+    "AttractionDisposition": {
+      "enum": [
+        "must",
+        "want",
+        "if_convenient",
+        "avoid"
+      ],
+      "title": "AttractionDisposition",
+      "type": "string"
+    },
+    "BookingReference": {
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Booking Id",
+          "type": "string"
+        },
+        "booking_kind": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Booking Kind",
+          "type": "string"
+        },
+        "canonical_entity_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Canonical Entity Id"
+        },
+        "end_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Date"
+        },
+        "source_operation_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Operation Refs",
+          "type": "array"
+        },
+        "start_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Date"
+        },
+        "user_description": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "User Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "booking_id",
+        "booking_kind",
+        "user_description",
+        "source_operation_refs"
+      ],
+      "title": "BookingReference",
+      "type": "object"
+    },
+    "DelegatedScope": {
+      "additionalProperties": false,
+      "properties": {
+        "boundary_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Boundary Refs",
+          "type": "array"
+        },
+        "delegated_targets": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Delegated Targets",
+          "type": "array"
+        },
+        "domain": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Domain",
+          "type": "string"
+        },
+        "source_operation_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Operation Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "domain",
+        "delegated_targets",
+        "source_operation_refs"
+      ],
+      "title": "DelegatedScope",
+      "type": "object"
+    },
+    "DestinationAndDates": {
+      "additionalProperties": false,
+      "properties": {
+        "destination_canonical_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Destination Canonical Id"
+        },
+        "destination_name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Destination Name",
+          "type": "string"
+        },
+        "duration_days": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Duration Days",
+          "type": "integer"
+        },
+        "end_date": {
+          "format": "date",
+          "title": "End Date",
+          "type": "string"
+        },
+        "source_evidence_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Evidence Refs",
+          "type": "array"
+        },
+        "start_date": {
+          "format": "date",
+          "title": "Start Date",
+          "type": "string"
+        }
+      },
+      "required": [
+        "destination_name",
+        "start_date",
+        "end_date",
+        "duration_days",
+        "source_evidence_refs"
+      ],
+      "title": "DestinationAndDates",
+      "type": "object"
+    },
+    "DiningDirection": {
+      "additionalProperties": false,
+      "properties": {
+        "delegated_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DelegatedScope"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "destination_restaurants": {
+          "items": {
+            "$ref": "#/$defs/TaskBookEntityIntent"
+          },
+          "title": "Destination Restaurants",
+          "type": "array"
+        },
+        "excluded_restaurants": {
+          "items": {
+            "$ref": "#/$defs/TaskBookEntityIntent"
+          },
+          "title": "Excluded Restaurants",
+          "type": "array"
+        },
+        "hard_requirements": {
+          "items": {
+            "$ref": "#/$defs/EvidenceBackedText"
+          },
+          "title": "Hard Requirements",
+          "type": "array"
+        },
+        "if_convenient_restaurants": {
+          "items": {
+            "$ref": "#/$defs/TaskBookEntityIntent"
+          },
+          "title": "If Convenient Restaurants",
+          "type": "array"
+        },
+        "preferences": {
+          "items": {
+            "$ref": "#/$defs/EvidenceBackedText"
+          },
+          "title": "Preferences",
+          "type": "array"
+        }
+      },
+      "title": "DiningDirection",
+      "type": "object"
+    },
+    "DiningDisposition": {
+      "enum": [
+        "destination",
+        "if_convenient",
+        "avoid"
+      ],
+      "title": "DiningDisposition",
+      "type": "string"
+    },
+    "EvidenceBackedText": {
+      "additionalProperties": false,
+      "properties": {
+        "source_evidence_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Evidence Refs",
+          "type": "array"
+        },
+        "value": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "source_evidence_refs"
+      ],
+      "title": "EvidenceBackedText",
+      "type": "object"
+    },
+    "LodgingDirection": {
+      "additionalProperties": false,
+      "properties": {
+        "area_preferences": {
+          "items": {
+            "$ref": "#/$defs/EvidenceBackedText"
+          },
+          "title": "Area Preferences",
+          "type": "array"
+        },
+        "delegated_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DelegatedScope"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "existing_booking": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BookingReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "facility_requirements": {
+          "items": {
+            "$ref": "#/$defs/EvidenceBackedText"
+          },
+          "title": "Facility Requirements",
+          "type": "array"
+        },
+        "hotel_quality_tier": {
+          "anyOf": [
+            {
+              "pattern": "^(economy|comfort|upscale|luxury)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hotel Quality Tier"
+        },
+        "nightly_budget": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MoneyRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "not_applicable": {
+          "default": false,
+          "title": "Not Applicable",
+          "type": "boolean"
+        },
+        "property_type_preferences": {
+          "items": {
+            "$ref": "#/$defs/EvidenceBackedText"
+          },
+          "title": "Property Type Preferences",
+          "type": "array"
+        }
+      },
+      "title": "LodgingDirection",
+      "type": "object"
+    },
+    "MoneyRange": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_minor": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum Minor"
+        },
+        "minimum_minor": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum Minor"
+        }
+      },
+      "title": "MoneyRange",
+      "type": "object"
+    },
+    "PaceAndTransport": {
+      "additionalProperties": false,
+      "properties": {
+        "pace_preferences": {
+          "items": {
+            "$ref": "#/$defs/EvidenceBackedText"
+          },
+          "title": "Pace Preferences",
+          "type": "array"
+        },
+        "transport_preferences": {
+          "items": {
+            "$ref": "#/$defs/EvidenceBackedText"
+          },
+          "title": "Transport Preferences",
+          "type": "array"
+        }
+      },
+      "title": "PaceAndTransport",
+      "type": "object"
+    },
+    "TaskBookEntityIntent": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "display_name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Display Name",
+          "type": "string"
+        },
+        "disposition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttractionDisposition"
+            },
+            {
+              "$ref": "#/$defs/DiningDisposition"
+            }
+          ],
+          "title": "Disposition"
+        },
+        "facts_to_verify": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Facts To Verify",
+          "type": "array"
+        },
+        "source_operation_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Operation Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "canonical_entity_id",
+        "display_name",
+        "disposition",
+        "source_operation_refs"
+      ],
+      "title": "TaskBookEntityIntent",
+      "type": "object"
+    },
+    "TaskBookStatus": {
+      "enum": [
+        "draft",
+        "awaiting_confirmation",
+        "confirmed",
+        "superseded"
+      ],
+      "title": "TaskBookStatus",
+      "type": "string"
+    },
+    "TravelersAndTripGoal": {
+      "additionalProperties": false,
+      "properties": {
+        "travelers": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Travelers",
+          "type": "array"
+        },
+        "trip_goals": {
+          "items": {
+            "$ref": "#/$defs/EvidenceBackedText"
+          },
+          "title": "Trip Goals",
+          "type": "array"
+        }
+      },
+      "required": [
+        "travelers",
+        "trip_goals"
+      ],
+      "title": "TravelersAndTripGoal",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/task-book.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "attraction_direction": {
+      "$ref": "#/$defs/AttractionDirection"
+    },
+    "based_on_state_version": {
+      "minimum": 0,
+      "title": "Based On State Version",
+      "type": "integer"
+    },
+    "confirmed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Confirmed At"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "destination_and_dates": {
+      "$ref": "#/$defs/DestinationAndDates"
+    },
+    "dining_direction": {
+      "$ref": "#/$defs/DiningDirection"
+    },
+    "existing_bookings": {
+      "items": {
+        "$ref": "#/$defs/BookingReference"
+      },
+      "title": "Existing Bookings",
+      "type": "array"
+    },
+    "hard_constraints": {
+      "items": {
+        "$ref": "#/$defs/EvidenceBackedText"
+      },
+      "title": "Hard Constraints",
+      "type": "array"
+    },
+    "lodging_direction": {
+      "$ref": "#/$defs/LodgingDirection"
+    },
+    "pace_and_transport": {
+      "$ref": "#/$defs/PaceAndTransport"
+    },
+    "source_evidence_refs": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Source Evidence Refs",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/TaskBookStatus"
+    },
+    "task_book_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Task Book Id",
+      "type": "string"
+    },
+    "tradeoffs_and_assumptions": {
+      "items": {
+        "$ref": "#/$defs/EvidenceBackedText"
+      },
+      "title": "Tradeoffs And Assumptions",
+      "type": "array"
+    },
+    "travelers_and_trip_goal": {
+      "$ref": "#/$defs/TravelersAndTripGoal"
+    },
+    "unresolved_non_blocking_items": {
+      "items": {
+        "$ref": "#/$defs/EvidenceBackedText"
+      },
+      "title": "Unresolved Non Blocking Items",
+      "type": "array"
+    },
+    "version": {
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "task_book_id",
+    "version",
+    "based_on_state_version",
+    "status",
+    "created_at",
+    "destination_and_dates",
+    "travelers_and_trip_goal",
+    "pace_and_transport",
+    "attraction_direction",
+    "dining_direction",
+    "lodging_direction",
+    "source_evidence_refs"
+  ],
+  "title": "TaskBookV4",
+  "type": "object"
+}
