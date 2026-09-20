@@ -1,0 +1,132 @@
+{
+  "$defs": {
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/planner-ticket-evidence.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "admission_source_ids": {
+      "default": [],
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Admission Source Ids",
+      "type": "array"
+    },
+    "admission_status": {
+      "default": "unknown",
+      "enum": [
+        "free",
+        "paid",
+        "unknown"
+      ],
+      "title": "Admission Status",
+      "type": "string"
+    },
+    "availability": {
+      "const": "unknown",
+      "default": "unknown",
+      "title": "Availability",
+      "type": "string"
+    },
+    "canonical_entity_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Canonical Entity Id",
+      "type": "string"
+    },
+    "fact_reference_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Fact Reference Id",
+      "type": "string"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "product_count": {
+      "minimum": 0,
+      "title": "Product Count",
+      "type": "integer"
+    },
+    "reason_summary": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Reason Summary",
+      "type": "string"
+    },
+    "reference_price": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CnyAmountRange"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "service_date": {
+      "format": "date",
+      "title": "Service Date",
+      "type": "string"
+    },
+    "source_offer_ids": {
+      "default": [],
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Source Offer Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "canonical_entity_id",
+    "service_date",
+    "product_count",
+    "reason_summary",
+    "observed_at",
+    "fact_reference_id"
+  ],
+  "title": "PlannerTicketEvidence",
+  "type": "object"
+}

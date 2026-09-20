@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
 
@@ -41,6 +42,10 @@ class PersistedTripProjection:
     message_cursor: UUID | None
     outbox_cursor: str | None
     requires_explicit_upgrade: bool
+    committed_at: datetime | None = None
+    owner_user_id: UUID | None = None
+    # Request-local validated value; never a cross-request state cache.
+    typed_state: V4TripStateEnvelope | None = field(default=None, repr=False, compare=False)
 
 
 @dataclass(frozen=True)
@@ -78,6 +83,7 @@ def decode_persisted_snapshot(
             message_cursor=snapshot.message_cursor,
             outbox_cursor=snapshot.outbox_cursor,
             requires_explicit_upgrade=True,
+            committed_at=snapshot.created_at,
         )
     if semantic_state is None or discovery_runtime_state is None:
         raise SnapshotCompatibilityError("V4 snapshot is missing one of its two state projections")
@@ -152,6 +158,8 @@ def decode_persisted_snapshot(
         message_cursor=snapshot.message_cursor,
         outbox_cursor=snapshot.outbox_cursor,
         requires_explicit_upgrade=False,
+        committed_at=snapshot.created_at,
+        typed_state=envelope,
     )
 
 

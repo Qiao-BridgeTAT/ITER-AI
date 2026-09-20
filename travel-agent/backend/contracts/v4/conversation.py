@@ -22,7 +22,9 @@ from backend.contracts.v4.cards import (
 )
 from backend.contracts.v4.enums import AskUserReasonCode, InteractionStatus, PlannerStatus
 from backend.contracts.v4.planner_observations import PlannerInteractionOption
+from backend.contracts.v4.planner_preview import PlannerDraftPreview
 from backend.contracts.v4.planner_publication import PlannerPublishedPlan
+from backend.contracts.v4.planner_react import AgentProgressEntry
 from backend.contracts.v4.state import PendingInteraction, V4TripStateEnvelope
 from backend.contracts.v4.task_book import TaskBookV4
 
@@ -83,10 +85,41 @@ class TurnAcceptedEvent(EventBase):
     base_state_version: int = Field(ge=0, strict=True)
 
 
+class AgentProgressEvent(EventBase):
+    event_type: Literal["agent.progress"]
+    progress: AgentProgressEntry
+
+    @model_validator(mode="after")
+    def consistent_progress_identity(self) -> AgentProgressEvent:
+        for name in ("event_id", "trip_id", "turn_id", "generation_id", "emitted_at"):
+            if getattr(self, name) != getattr(self.progress, name):
+                raise ValueError("progress envelope identity mismatch")
+        if self.sequence != 0:
+            raise ValueError("progress does not consume outbox sequence")
+        return self
+
+
 class AgentStatusEvent(EventBase):
     event_type: Literal["agent.status"]
     status_code: Identifier
     message: DisplayText
+    conversation_message: ConversationMessageV4 | None = None
+
+    @model_validator(mode="after")
+    def status_message_matches_event(self) -> AgentStatusEvent:
+        item = self.conversation_message
+        if item is not None and (
+            item.trip_id != self.trip_id
+            or item.turn_id != self.turn_id
+            or item.generation_id != self.generation_id
+            or item.text != self.message
+            or item.role != "system"
+            or item.generation_mode != "system"
+            or item.message_type != "status"
+            or item.status != "committed"
+        ):
+            raise ValueError("persisted status must match its event and system provenance")
+        return self
 
 
 class StateCommittedEvent(EventBase):
@@ -158,6 +191,7 @@ class TurnFailedEvent(EventBase):
 
 ConversationEventValue = Annotated[
     TurnAcceptedEvent
+    | AgentProgressEvent
     | AgentStatusEvent
     | StateCommittedEvent
     | AssistantStartedEvent
@@ -179,6 +213,7 @@ class PlannerInteractionPublicView(V4ContractModel):
 
     interaction_id: Identifier
     reason_code: AskUserReasonCode
+    question: str | None = Field(default=None, max_length=240)
     option_contracts: tuple[PlannerInteractionOption, ...] = Field(min_length=1)
     resume_token: Identifier
     status: InteractionStatus
@@ -197,26 +232,46 @@ class PlannerWorkspacePublicView(V4ContractModel):
             "keep_task_book",
             "revise_task_book",
             "supply_booking_detail",
+            "keep_required_candidate",
+            "omit_required_candidate",
         ]
         | None
     ) = None
     active_interaction: PlannerInteractionPublicView | None = None
     status: PlannerStatus
+    draft_preview: PlannerDraftPreview | None = None
+
+
+class TripReferenceLink(V4ContractModel):
+    title: str = Field(min_length=1, max_length=200)
+    url: str = Field(min_length=1, max_length=2048, pattern=r"^https?://")
+    source: Literal["web_search", "provider_source"]
 
 
 class ConversationSnapshotV4(V4ContractModel):
+    reference_links: tuple[TripReferenceLink, ...] = ()
     trip_state: V4TripStateEnvelope
     messages: list[ConversationMessageV4] = Field(default_factory=list)
     pending_interaction: PendingInteraction | None = None
     terminal_event: ConversationEventV4 | None = None
     last_outbox_cursor: Identifier | None = None
     active_generation_id: Identifier | None = None
+    active_generation_status: AgentStatusEvent | None = None
     planner_workspace: PlannerWorkspacePublicView | None = None
+    agent_progress: tuple[AgentProgressEntry, ...] = ()
     snapshot_at: AwareDatetime
 
     @model_validator(mode="after")
     def snapshot_is_authoritative_and_ordered(self) -> ConversationSnapshotV4:
         trip_id = self.trip_state.semantic_state.trip_id
+        if any(p.trip_id != trip_id for p in self.agent_progress):
+            raise ValueError("progress must belong to snapshot trip")
+        if self.active_generation_status is not None and (
+            self.active_generation_status.trip_id != trip_id
+            or self.active_generation_status.generation_id != self.active_generation_id
+            or self.active_generation_status.conversation_message is not None
+        ):
+            raise ValueError("active status must belong to this trip and active generation")
         if self.planner_workspace is not None:
             planner = self.planner_workspace
             book = self.trip_state.discovery_runtime_state.task_book_candidate
@@ -303,6 +358,8 @@ class ConversationView(V4ContractModel):
 
 
 V4_CONVERSATION_CONTRACTS = (
+    AgentProgressEntry,
+    PlannerDraftPreview,
     ConversationMessageV4,
     ConversationEventV4,
     PlannerInteractionPublicView,

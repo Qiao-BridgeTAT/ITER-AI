@@ -1,0 +1,494 @@
+{
+  "$defs": {
+    "CategoryCostSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "amount_per_person": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "category": {
+          "$ref": "#/$defs/CostCategory"
+        },
+        "missing_item_count": {
+          "minimum": 0,
+          "title": "Missing Item Count",
+          "type": "integer"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "priced_item_count": {
+          "minimum": 0,
+          "title": "Priced Item Count",
+          "type": "integer"
+        },
+        "source_reference_ids": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Reference Ids",
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/CostCoverageStatus"
+        }
+      },
+      "required": [
+        "category",
+        "status",
+        "priced_item_count",
+        "missing_item_count"
+      ],
+      "title": "CategoryCostSummary",
+      "type": "object"
+    },
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    },
+    "CostCategory": {
+      "enum": [
+        "lodging",
+        "dining",
+        "attraction_tickets",
+        "local_transport"
+      ],
+      "title": "CostCategory",
+      "type": "string"
+    },
+    "CostCoverageStatus": {
+      "enum": [
+        "available",
+        "partial",
+        "missing",
+        "not_applicable"
+      ],
+      "title": "CostCoverageStatus",
+      "type": "string"
+    },
+    "CostEstimateLine": {
+      "additionalProperties": false,
+      "properties": {
+        "amount_per_person": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "availability": {
+          "$ref": "#/$defs/DataAvailability"
+        },
+        "basis": {
+          "$ref": "#/$defs/CostPriceBasis"
+        },
+        "category": {
+          "$ref": "#/$defs/CostCategory"
+        },
+        "exchange_rate_fetched_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Rate Fetched At"
+        },
+        "exchange_rate_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Rate Id"
+        },
+        "fetched_at": {
+          "format": "date-time",
+          "title": "Fetched At",
+          "type": "string"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "original_amount": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OriginalMoneyRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "price_fact_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Price Fact Id",
+          "type": "string"
+        },
+        "service_date": {
+          "format": "date",
+          "title": "Service Date",
+          "type": "string"
+        },
+        "share_divisor": {
+          "minimum": 1,
+          "title": "Share Divisor",
+          "type": "integer"
+        },
+        "source_reference_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Reference Ids",
+          "type": "array"
+        },
+        "subject_id": {
+          "format": "uuid",
+          "title": "Subject Id",
+          "type": "string"
+        },
+        "subject_kind": {
+          "$ref": "#/$defs/CostSubjectKind"
+        }
+      },
+      "required": [
+        "price_fact_id",
+        "subject_kind",
+        "subject_id",
+        "service_date",
+        "category",
+        "basis",
+        "share_divisor",
+        "availability",
+        "source_reference_ids",
+        "fetched_at"
+      ],
+      "title": "CostEstimateLine",
+      "type": "object"
+    },
+    "CostPriceBasis": {
+      "enum": [
+        "per_person",
+        "per_vehicle",
+        "per_room_night"
+      ],
+      "title": "CostPriceBasis",
+      "type": "string"
+    },
+    "CostSubjectKind": {
+      "enum": [
+        "activity",
+        "transport_leg",
+        "hotel_night"
+      ],
+      "title": "CostSubjectKind",
+      "type": "string"
+    },
+    "DailyCostEstimate": {
+      "additionalProperties": false,
+      "properties": {
+        "categories": {
+          "items": {
+            "$ref": "#/$defs/CategoryCostSummary"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Categories",
+          "type": "array"
+        },
+        "known_subtotal_per_person": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "lines": {
+          "items": {
+            "$ref": "#/$defs/CostEstimateLine"
+          },
+          "title": "Lines",
+          "type": "array"
+        },
+        "service_date": {
+          "format": "date",
+          "title": "Service Date",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_date",
+        "lines",
+        "categories"
+      ],
+      "title": "DailyCostEstimate",
+      "type": "object"
+    },
+    "DataAvailability": {
+      "enum": [
+        "available",
+        "partial",
+        "missing"
+      ],
+      "title": "DataAvailability",
+      "type": "string"
+    },
+    "ExcludedCostKind": {
+      "enum": [
+        "airfare",
+        "rail",
+        "intercity_transport"
+      ],
+      "title": "ExcludedCostKind",
+      "type": "string"
+    },
+    "OriginalMoneyRange": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_minor": {
+          "minimum": 0,
+          "title": "Maximum Minor",
+          "type": "integer"
+        },
+        "minimum_minor": {
+          "minimum": 0,
+          "title": "Minimum Minor",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "currency",
+        "minimum_minor",
+        "maximum_minor"
+      ],
+      "title": "OriginalMoneyRange",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/trip-cost-estimate.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "algorithm_version": {
+      "pattern": "^[1-9]\\d*\\.\\d+\\.\\d+$",
+      "title": "Algorithm Version",
+      "type": "string"
+    },
+    "categories": {
+      "items": {
+        "$ref": "#/$defs/CategoryCostSummary"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Categories",
+      "type": "array"
+    },
+    "currency": {
+      "default": "CNY",
+      "pattern": "^CNY$",
+      "title": "Currency",
+      "type": "string"
+    },
+    "days": {
+      "items": {
+        "$ref": "#/$defs/DailyCostEstimate"
+      },
+      "maxItems": 5,
+      "minItems": 1,
+      "title": "Days",
+      "type": "array"
+    },
+    "end_date": {
+      "format": "date",
+      "title": "End Date",
+      "type": "string"
+    },
+    "excluded_costs": {
+      "items": {
+        "$ref": "#/$defs/ExcludedCostKind"
+      },
+      "title": "Excluded Costs",
+      "type": "array"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "input_state_version": {
+      "minimum": 0,
+      "title": "Input State Version",
+      "type": "integer"
+    },
+    "known_total_per_person": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CnyAmountRange"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "lodging_share_divisor": {
+      "const": 2,
+      "default": 2,
+      "title": "Lodging Share Divisor",
+      "type": "integer"
+    },
+    "party_size": {
+      "maximum": 20,
+      "minimum": 1,
+      "title": "Party Size",
+      "type": "integer"
+    },
+    "per_person": {
+      "const": true,
+      "default": true,
+      "title": "Per Person",
+      "type": "boolean"
+    },
+    "pricing_note": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Pricing Note",
+      "type": "string"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "schedule_request_id": {
+      "format": "uuid",
+      "title": "Schedule Request Id",
+      "type": "string"
+    },
+    "start_date": {
+      "format": "date",
+      "title": "Start Date",
+      "type": "string"
+    },
+    "task_book_id": {
+      "format": "uuid",
+      "title": "Task Book Id",
+      "type": "string"
+    },
+    "task_book_revision": {
+      "minimum": 1,
+      "title": "Task Book Revision",
+      "type": "integer"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "algorithm_version",
+    "request_id",
+    "schedule_request_id",
+    "trip_id",
+    "input_state_version",
+    "task_book_id",
+    "task_book_revision",
+    "start_date",
+    "end_date",
+    "party_size",
+    "days",
+    "categories",
+    "excluded_costs",
+    "pricing_note",
+    "generated_at"
+  ],
+  "title": "TripCostEstimate",
+  "type": "object",
+  "x-travel-trip-cost-estimate": true
+}

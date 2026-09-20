@@ -1,0 +1,85 @@
+{
+  "$defs": {
+    "FeedbackSource": {
+      "enum": [
+        "card",
+        "dialogue",
+        "system_default"
+      ],
+      "title": "FeedbackSource",
+      "type": "string"
+    },
+    "RestaurantFeedback": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source": {
+                "const": "system_default"
+              }
+            },
+            "required": [
+              "source"
+            ]
+          },
+          "then": {
+            "properties": {
+              "intent": {
+                "const": "if_convenient",
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "intent": {
+          "$ref": "#/$defs/RestaurantIntent",
+          "default": "if_convenient"
+        },
+        "place_id": {
+          "format": "uuid",
+          "title": "Place Id",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/FeedbackSource",
+          "default": "system_default"
+        }
+      },
+      "required": [
+        "place_id"
+      ],
+      "title": "RestaurantFeedback",
+      "type": "object"
+    },
+    "RestaurantIntent": {
+      "enum": [
+        "destination",
+        "if_convenient",
+        "avoid"
+      ],
+      "title": "RestaurantIntent",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/restaurant-feedback-submission.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "feedback": {
+      "items": {
+        "$ref": "#/$defs/RestaurantFeedback"
+      },
+      "title": "Feedback",
+      "type": "array"
+    }
+  },
+  "title": "RestaurantFeedbackSubmission",
+  "type": "object",
+  "x-travel-unique-by": {
+    "arrayField": "feedback",
+    "itemField": "place_id"
+  }
+}

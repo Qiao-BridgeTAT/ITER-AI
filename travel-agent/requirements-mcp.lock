@@ -1,0 +1,7 @@
+# Install after the project and requirements-agent.lock.
+# Official SDK 1.x retains compatibility with the existing httpx transport.
+mcp==1.30.0
+httpx-sse==0.4.3
+PyJWT==2.14.0
+python-multipart==0.0.32
+sse-starlette==3.4.11

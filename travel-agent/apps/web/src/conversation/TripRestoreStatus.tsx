@@ -4,7 +4,7 @@ export function TripRestoreStatus({
   failed,
   errorCode,
   onRetry,
-  onCancel,
+  onCancel
 }: {
   failed: boolean;
   errorCode: string | null;

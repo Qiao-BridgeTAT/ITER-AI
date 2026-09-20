@@ -1,4 +1,3 @@
-import { gsap } from "gsap";
 import {
   CSSProperties,
   KeyboardEvent,
@@ -6,12 +5,13 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
-  useState,
+  useState
 } from "react";
+import { gsap } from "gsap";
 
 import { AttractionFeedbackPanel } from "./AttractionFeedbackPanel";
-import { PlaceImage } from "./PlaceImage";
 import { RecommendationImagePlaceholder } from "./RecommendationImagePlaceholder";
+import { PlaceImage } from "./PlaceImage";
 
 export type AttractionIntent = "must" | "want" | "if_convenient" | "avoid";
 
@@ -48,6 +48,7 @@ type AttractionAccordionAttachmentProps = {
   confirmDisabled?: boolean;
   onChange: (itemId: string, intent: RecommendationIntent) => void;
   onConfirm: () => void;
+  onFocusItem?: (id: string) => void;
 };
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -62,9 +63,14 @@ export function AttractionAccordionAttachment({
   confirmDisabled = false,
   onChange,
   onConfirm,
+  onFocusItem
 }: AttractionAccordionAttachmentProps) {
   const defaultIndex = Math.floor(items.length / 2);
   const [activeIndex, setActiveIndex] = useState(defaultIndex);
+  const activeItemId = items[activeIndex]?.id;
+  useEffect(() => {
+    if (activeItemId) onFocusItem?.(activeItemId);
+  }, [activeItemId, onFocusItem]);
   const rootRef = useRef<HTMLDivElement>(null);
   const panelRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const imageRefs = useRef<Array<HTMLImageElement | null>>([]);
@@ -95,13 +101,13 @@ export function AttractionAccordionAttachment({
           ? 0.24
           : 0.46;
     const panels = panelRefs.current.filter(
-      (panel): panel is HTMLButtonElement => panel !== null,
+      (panel): panel is HTMLButtonElement => panel !== null
     );
     const images = imageRefs.current.filter(
-      (image): image is HTMLImageElement => image !== null,
+      (image): image is HTMLImageElement => image !== null
     );
     const dims = dimRefs.current.filter(
-      (dim): dim is HTMLSpanElement => dim !== null,
+      (dim): dim is HTMLSpanElement => dim !== null
     );
 
     gsap.killTweensOf([...panels, ...images, ...dims]);
@@ -110,8 +116,8 @@ export function AttractionAccordionAttachment({
       defaults: {
         duration,
         ease: "power4.out",
-        overwrite: "auto",
-      },
+        overwrite: "auto"
+      }
     });
 
     panels.forEach((panel, index) => {
@@ -125,9 +131,9 @@ export function AttractionAccordionAttachment({
         image,
         {
           xPercent: index === activeIndex ? 0 : index < activeIndex ? -4 : 4,
-          scale: index === activeIndex ? 1.035 : 1.085,
+          scale: index === activeIndex ? 1.035 : 1.085
         },
-        0,
+        0
       );
     });
     dims.forEach((dim, index) => {
@@ -142,7 +148,7 @@ export function AttractionAccordionAttachment({
 
   useEffect(() => {
     const panels = panelRefs.current.filter(
-      (panel): panel is HTMLButtonElement => panel !== null,
+      (panel): panel is HTMLButtonElement => panel !== null
     );
     tiltControllers.current = panelRefs.current.map((panel) => {
       if (!panel) {
@@ -151,12 +157,12 @@ export function AttractionAccordionAttachment({
       return {
         rotationX: gsap.quickTo(panel, "rotationX", {
           duration: 0.24,
-          ease: "power3.out",
+          ease: "power3.out"
         }),
         rotationY: gsap.quickTo(panel, "rotationY", {
           duration: 0.24,
-          ease: "power3.out",
-        }),
+          ease: "power3.out"
+        })
       };
     });
 
@@ -188,13 +194,13 @@ export function AttractionAccordionAttachment({
     event.stopPropagation();
     navigateBy(
       event.key === "ArrowRight" ? 1 : -1,
-      Boolean(target.closest(".attraction-accordion-gallery")),
+      Boolean(target.closest(".attraction-accordion-gallery"))
     );
   };
 
   const handlePointerMove = (
     event: PointerEvent<HTMLButtonElement>,
-    index: number,
+    index: number
   ) => {
     if (
       index !== activeIndex ||
@@ -206,7 +212,7 @@ export function AttractionAccordionAttachment({
       panel: event.currentTarget,
       index,
       clientX: event.clientX,
-      clientY: event.clientY,
+      clientY: event.clientY
     };
     if (pointerFrame.current !== null) {
       return;
@@ -248,7 +254,9 @@ export function AttractionAccordionAttachment({
       onKeyDownCapture={handleAttachmentKeyDown}
     >
       <div className="attraction-accordion-heading">
-        <span>{label}</span>
+        <span className={activeItem.compact ? "visually-hidden" : undefined}>
+          {label}
+        </span>
         <span
           className={activeItem.compact ? "visually-hidden" : undefined}
           aria-live="polite"
@@ -337,6 +345,7 @@ export function AttractionAccordionAttachment({
         confirmDisabled={confirmDisabled}
         onChange={(intent) => onChange(activeItem.id, intent)}
         onConfirm={onConfirm}
+        autoAdvance={itemNoun === "景点"}
         onNext={() => navigateBy(1)}
         nextItemName={items[(activeIndex + 1) % items.length]?.name}
       />

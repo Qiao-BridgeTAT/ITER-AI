@@ -14,6 +14,7 @@ from backend.contracts.base import ContractModel
 from backend.contracts.common import CnyAmountRange, NonEmptyText, ShortText
 from backend.contracts.enums import DataAvailability, PlaceCategory, ProviderCode
 from backend.contracts.places import Gcj02Coordinates
+from backend.contracts.v4.attraction_search import AttractionSearchHints
 
 RECALL_ATTEMPT_SCHEMA_RULE: dict[str, Any] = {
     "allOf": [
@@ -203,6 +204,7 @@ class DiscoveryPreferenceDirection(ImmutableRecallModel):
     description: NonEmptyText | None = None
     tags: tuple[NonEmptyText, ...] = ()
     search_query: NonEmptyText | None = None
+    attraction_search_hints: AttractionSearchHints | None = None
     selected: bool
     source_reference_ids: tuple[NonEmptyText, ...] = ()
 

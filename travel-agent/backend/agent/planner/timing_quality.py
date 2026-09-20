@@ -25,6 +25,7 @@ from backend.contracts.v4.task_book import TaskBookV4
 
 # Short transitions are acceptable, not missing activities or repair requests.
 MAX_ACCEPTABLE_SCHEDULE_GAP_MINUTES = 15
+REACT_MAX_ACCEPTABLE_SCHEDULE_GAP_MINUTES = 30
 
 # Broad start windows, not reservations. Meal goals must be checked even after
 # a concrete restaurant has been selected.
@@ -40,9 +41,88 @@ PREFERRED_MEAL_START_WINDOWS = {
     "dinner": (18 * 60, 20 * 60),
 }
 
+# ReAct's confirmed meal policy; legacy checkpoint calculations keep their
+# original windows. These are start times, not meal completion deadlines.
+REACT_MEAL_START_WINDOWS = {
+    **MEAL_START_WINDOWS,
+    "lunch": (11 * 60, 13 * 60 + 30),
+    "dinner": (17 * 60 + 30, 20 * 60),
+}
+REACT_PREFERRED_MEAL_START_WINDOWS = {
+    **REACT_MEAL_START_WINDOWS,
+    "lunch": (11 * 60 + 30, 12 * 60 + 30),
+    "dinner": (18 * 60, 19 * 60),
+}
+
+
+def meal_start_windows(
+    *, react: bool = False, preferred: bool = False
+) -> dict[str, tuple[int, int]]:
+    if react:
+        return REACT_PREFERRED_MEAL_START_WINDOWS if preferred else REACT_MEAL_START_WINDOWS
+    return PREFERRED_MEAL_START_WINDOWS if preferred else MEAL_START_WINDOWS
+
+
+def pre_dinner_window(
+    day: WorkingItineraryDay, scheduled: DraftScheduledDay, *, react: bool = False
+) -> dict[str, object] | None:
+    """Project policy headroom, not a promise of route/opening feasibility.
+
+    Do not turn the materializer's earliest possible dinner into a deadline.
+    Explicit meal windows and immutable meals remain bounded in this projection.
+    """
+    source = next((item for item in day.ordered_items if item.meal_slot == "dinner"), None)
+    if source is None:
+        return None
+    dinner = next(
+        (
+            item
+            for item in scheduled.activities
+            if str(item.activity_id)
+            == server_id(source.draft_item_id, day.service_date, "activity")
+        ),
+        None,
+    )
+    if dinner is None:
+        return None
+    preceding = [item for item in scheduled.activities if item.end_time <= dinner.start_time]
+    if not preceding:
+        return None
+    previous = max(preceding, key=lambda item: item.end_time)
+    lower, upper = meal_start_windows(react=react)["dinner"]
+    preferred_lower, preferred_upper = meal_start_windows(react=react, preferred=True)["dinner"]
+    if source.expected_window.earliest is not None:
+        lower = max(lower, minutes(source.expected_window.earliest))
+    if source.expected_window.latest is not None:
+        upper = min(upper, minutes(source.expected_window.latest))
+    if source.commitment_level == "immutable":
+        lower = upper = minutes(dinner.start_time)
+    preferred_upper = min(upper, preferred_upper)
+    preferred = preferred_upper if preferred_upper >= max(lower, preferred_lower) else None
+    start = minutes(previous.end_time)
+
+    def clock(value: int) -> str:
+        return f"{value // 60:02d}:{value % 60:02d}"
+
+    return {
+        "from": previous.end_time.strftime("%H:%M"),
+        "current_dinner_start": dinner.start_time.strftime("%H:%M"),
+        "latest_preferred_dinner_start": clock(preferred) if preferred is not None else None,
+        "latest_allowed_dinner_start": clock(upper),
+        "total_minutes": {
+            "until_current_dinner": max(0, minutes(dinner.start_time) - start),
+            "until_preferred_latest": max(0, preferred - start) if preferred is not None else None,
+            "until_allowed_latest": max(0, upper - start),
+        },
+    }
+
 
 def meal_time_violations(
-    day: WorkingItineraryDay, scheduled: DraftScheduledDay, *, preferred: bool = False
+    day: WorkingItineraryDay,
+    scheduled: DraftScheduledDay,
+    *,
+    preferred: bool = False,
+    react: bool = False,
 ) -> list[dict[str, object]]:
     activities = {str(item.activity_id): item for item in scheduled.activities}
     result: list[dict[str, object]] = []
@@ -52,7 +132,7 @@ def meal_time_violations(
         activity = activities.get(server_id(item.draft_item_id, day.service_date, "activity"))
         if activity is None:
             continue
-        windows = PREFERRED_MEAL_START_WINDOWS if preferred else MEAL_START_WINDOWS
+        windows = meal_start_windows(react=react, preferred=preferred)
         earliest, latest = windows[item.meal_slot]
         actual = minutes(activity.start_time)
         outside = max(earliest - actual, actual - latest, 0)
@@ -79,9 +159,7 @@ def meal_time_violations(
         pause = pauses.get(server_id(item.draft_item_id, day.service_date, "onsite-lunch"))
         if pause is None:
             continue
-        earliest, latest = (PREFERRED_MEAL_START_WINDOWS if preferred else MEAL_START_WINDOWS)[
-            "lunch"
-        ]
+        earliest, latest = meal_start_windows(react=react, preferred=preferred)["lunch"]
         outside = max(earliest - minutes(pause.start_time), minutes(pause.start_time) - latest, 0)
         if outside:
             result.append(
@@ -111,7 +189,12 @@ def schedule_meal_issues(
     return [
         issue
         for day in workspace.materialized_schedule.days
-        for issue in meal_time_violations(days[day.service_date], day, preferred=preferred)
+        for issue in meal_time_violations(
+            days[day.service_date],
+            day,
+            preferred=preferred,
+            react=workspace.react_state is not None,
+        )
     ]
 
 
@@ -241,14 +324,20 @@ def clock_overflow_minutes(day: DraftScheduledDay) -> int:
 
 
 def day_timing_penalty(
-    day: WorkingItineraryDay, scheduled: DraftScheduledDay, end: time | None
+    day: WorkingItineraryDay,
+    scheduled: DraftScheduledDay,
+    end: time | None,
+    *,
+    react: bool = False,
 ) -> int:
+    end = day.end_time or end
     meal_penalty = sum(
-        int(str(item["outside_minutes"])) for item in meal_time_violations(day, scheduled)
+        int(str(item["outside_minutes"]))
+        for item in meal_time_violations(day, scheduled, react=react)
     )
     comfortable_meal_penalty = sum(
         int(str(item["outside_minutes"]))
-        for item in meal_time_violations(day, scheduled, preferred=True)
+        for item in meal_time_violations(day, scheduled, preferred=True, react=react)
     )
     return (
         meal_penalty * 100
@@ -383,13 +472,18 @@ def has_snack_interest(book: TaskBookV4 | None) -> bool:
 def schedule_quality_gaps(
     workspace: PlannerWorkspaceState, book: TaskBookV4 | None = None
 ) -> list[ScheduleQualityGap]:
-    """Report gaps over 15 minutes; transit, transfer buffers and meals count.
+    """Report gaps over the engine's soft target; transit, buffers and meals count.
 
     Fixed reservations/opening windows may explain a gap. Report that context to
     the Planner rather than deleting or shifting these facts deterministically.
     """
     if workspace.materialized_schedule is None or workspace.working_itinerary is None:
         return []
+    threshold = (
+        REACT_MAX_ACCEPTABLE_SCHEDULE_GAP_MINUTES
+        if workspace.react_state is not None
+        else MAX_ACCEPTABLE_SCHEDULE_GAP_MINUTES
+    )
     output: list[ScheduleQualityGap] = []
     semantic_days = {day.service_date: day for day in workspace.working_itinerary.days}
     for day in workspace.materialized_schedule.days:
@@ -442,7 +536,7 @@ def schedule_quality_gaps(
         cursor = time(lower // 60, lower % 60)
         for start, end, label in intervals:
             gap = min(minutes(start), upper) - minutes(cursor)
-            if gap > MAX_ACCEPTABLE_SCHEDULE_GAP_MINUTES:
+            if gap > threshold:
                 output.append(
                     {
                         "date": day.service_date.isoformat(),
@@ -456,7 +550,7 @@ def schedule_quality_gaps(
                 )
             cursor = max(cursor, end)
         # Include any actual uncovered tail before the recorded return/end.
-        if upper - minutes(cursor) > MAX_ACCEPTABLE_SCHEDULE_GAP_MINUTES:
+        if upper - minutes(cursor) > threshold:
             output.append(
                 {
                     "date": day.service_date.isoformat(),
@@ -580,7 +674,13 @@ def schedule_coverage_issues(
             "morning": (lower, minutes(lunch.start_time) if lunch else 12 * 60 + 30),
             "afternoon": (
                 minutes(lunch.end_time) if lunch else 13 * 60 + 30,
-                max(19 * 60, minutes(dinner.start_time)) if dinner else 19 * 60,
+                (
+                    minutes(dinner.start_time)
+                    if workspace.react_state is not None
+                    else max(19 * 60, minutes(dinner.start_time))
+                )
+                if dinner
+                else 19 * 60,
             ),
         }
         groups: dict[str, list[DraftScheduledActivity]] = {}
@@ -880,28 +980,12 @@ def protected_time_quality_candidates(workspace: PlannerWorkspaceState) -> set[s
     }
 
 
-class DiningCommuteIssue(TypedDict):
-    date: str
-    path: str
-    name: str
-    meal: str | None
-    incoming_minutes: int
-    incoming_meters: float
-    outgoing_minutes: int
-    combined_minutes: int
-    commitment: str
-    draft_item_id: str
-    fact_reference_ids: tuple[str, ...]
-    candidate_id: str
-    suggestion: str
-
-
-def dining_commute_issues(workspace: PlannerWorkspaceState) -> list[DiningCommuteIssue]:
+def dining_commute_issues(workspace: PlannerWorkspaceState) -> list[dict[str, object]]:
     """A strong preference is not a reservation or an exemption from route review."""
     if workspace.working_itinerary is None or workspace.materialized_schedule is None:
         return []
     days = {day.service_date: day for day in workspace.working_itinerary.days}
-    result: list[DiningCommuteIssue] = []
+    result: list[dict[str, object]] = []
     for day in workspace.materialized_schedule.days:
         semantic = days[day.service_date]
         restaurants = {

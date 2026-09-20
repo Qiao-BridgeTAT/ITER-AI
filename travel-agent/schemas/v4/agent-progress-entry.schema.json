@@ -1,0 +1,73 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/agent-progress-entry.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "emitted_at": {
+      "format": "date-time",
+      "title": "Emitted At",
+      "type": "string"
+    },
+    "event_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "generation_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Generation Id",
+      "type": "string"
+    },
+    "progress_index": {
+      "minimum": 1,
+      "title": "Progress Index",
+      "type": "integer"
+    },
+    "source": {
+      "enum": [
+        "planner",
+        "reviewer",
+        "tool",
+        "runtime"
+      ],
+      "title": "Source",
+      "type": "string"
+    },
+    "text": {
+      "maxLength": 1000,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "trip_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Trip Id",
+      "type": "string"
+    },
+    "turn_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Turn Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "event_id",
+    "trip_id",
+    "turn_id",
+    "generation_id",
+    "progress_index",
+    "source",
+    "text",
+    "emitted_at"
+  ],
+  "title": "AgentProgressEntry",
+  "type": "object"
+}

@@ -2,8 +2,7 @@
   "public": {
     "required": [
       "VITE_PUBLIC_APP_URL",
-      "VITE_AMAP_JS_API_KEY",
-      "VITE_AMAP_JS_SECURITY_CODE"
+      "VITE_AMAP_JS_API_KEY"
     ]
   },
   "server": {
@@ -32,9 +31,16 @@
       "OBJECT_STORAGE_SECRET_KEY"
     ],
     "optional": [
+      "TAVILY_MCP_ENABLED",
+      "TAVILY_MCP_AUTH_MODE",
+      "TAVILY_API_KEY",
+      "AMAP_SEARCH_MCP_URL",
       "AMAP_SEARCH_PROXY_URL",
       "AMAP_SEARCH_PROXY_KEY",
       "AMAP_SEARCH_PROXY_KEY_PARAMETER",
+      "AMAP_POLYGON_PROXY_URL",
+      "AMAP_POLYGON_PROXY_KEY",
+      "AMAP_POLYGON_PROXY_KEY_PARAMETER",
       "BAIDU_WEB_SERVICE_AK",
       "WEATHER_API_KEY",
       "OPENWEATHER_API_KEY",
@@ -48,13 +54,17 @@
       "LLM_AUDIT_LOCAL_PATH",
       "LLM_AUDIT_TTL_DAYS",
       "V4_PLANNER_ENABLED",
+      "V4_PLANNER_ENGINE",
+      "V4_PLANNER_TIME_LIMIT_ENABLED",
+      "V4_PLANNER_MAX_DECISIONS",
       "SMS_API_KEY",
       "SMS_API_SECRET",
       "SMS_APP_ID",
       "SMS_SIGN_NAME",
       "SMS_TEMPLATE_ID",
       "SMS_REGION",
-      "OBJECT_STORAGE_LOCAL_PATH"
+      "OBJECT_STORAGE_LOCAL_PATH",
+      "AMAP_JS_SECURITY_CODE"
     ]
   }
 }

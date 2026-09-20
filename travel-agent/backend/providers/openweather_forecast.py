@@ -24,6 +24,7 @@ from backend.providers.contracts import (
 )
 from backend.providers.interfaces import PlaceProvider
 from backend.providers.place_matching import coordinates_to_wgs84
+from backend.providers.request_budget import budgeted_external_request
 
 OPENWEATHER_DAILY_URL = "https://api.openweathermap.org/data/4.0/onecall/timeline/1day"
 OPENWEATHER_SOURCE = "OpenWeather One Call 4.0"
@@ -89,6 +90,7 @@ class OpenWeatherForecastProvider:
         if self._owns_client:
             await self._client.aclose()
 
+    @budgeted_external_request
     async def _request(self, parameters: dict[str, str]) -> dict[str, Any]:
         try:
             response = await self._client.get(

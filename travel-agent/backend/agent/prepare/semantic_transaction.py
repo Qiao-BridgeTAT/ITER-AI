@@ -133,12 +133,12 @@ def bind_selection(
 def partition_pending_entities(
     decision: PrepareDecision,
     proposals: list[SemanticOperationProposal],
-    known_entities: set[str],
 ) -> tuple[list[SemanticOperationProposal], list[dict[str, object]]]:
     """A named intent waiting for this decision's query is not a database write.
 
-    Retain the semantic choice, discard its provisional identity. Unknown refs
-    without an exact, grounded resolve request still reach the strict merge guard.
+    Retain the semantic choice, discard its provisional identity even if the
+    model reused an unrelated known ID. The requested lookup has not run yet.
+    Other refs still reach the strict merge guard.
     """
     queries = {
         request.query
@@ -152,7 +152,6 @@ def partition_pending_entities(
         operation = wrapped.root
         if (
             operation.operation_type in {"select_concrete_entity", "exclude_concrete_entity"}
-            and getattr(operation, "canonical_entity_id", None) not in known_entities
             and getattr(operation, "display_name", None) in queries
         ):
             data = operation.model_dump(mode="json")

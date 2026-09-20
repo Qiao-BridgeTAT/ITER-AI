@@ -1,0 +1,865 @@
+{
+  "$defs": {
+    "AttractionDiscoveryContext": {
+      "additionalProperties": false,
+      "description": "Optional V4 semantic context; V3 callers retain their existing policy.",
+      "properties": {
+        "city_target": {
+          "maximum": 12,
+          "minimum": 0,
+          "title": "City Target",
+          "type": "integer"
+        },
+        "cold_start_defaults": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Cold Start Defaults",
+          "type": "array"
+        },
+        "destination_name": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Destination Name"
+        },
+        "directions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DiscoveryPreferenceDirection"
+          },
+          "title": "Directions",
+          "type": "array"
+        },
+        "explicit_place_intents": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Explicit Place Intents",
+          "type": "array"
+        },
+        "maximum_target": {
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Maximum Target",
+          "type": "integer"
+        },
+        "minimum_target": {
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Minimum Target",
+          "type": "integer"
+        },
+        "pace_preferences": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Pace Preferences",
+          "type": "array"
+        },
+        "personalized_target": {
+          "maximum": 12,
+          "minimum": 0,
+          "title": "Personalized Target",
+          "type": "integer"
+        },
+        "screening_feedback": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 40,
+          "title": "Screening Feedback",
+          "type": "array"
+        },
+        "strategy_version": {
+          "const": "attraction-v2",
+          "default": "attraction-v2",
+          "title": "Strategy Version",
+          "type": "string"
+        },
+        "transport_preferences": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Transport Preferences",
+          "type": "array"
+        },
+        "travelers": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Travelers",
+          "type": "array"
+        },
+        "trip_goals": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Trip Goals",
+          "type": "array"
+        }
+      },
+      "required": [
+        "minimum_target",
+        "maximum_target",
+        "city_target",
+        "personalized_target"
+      ],
+      "title": "AttractionDiscoveryContext",
+      "type": "object"
+    },
+    "AttractionSearchHints": {
+      "additionalProperties": false,
+      "properties": {
+        "representative_places": {
+          "items": {
+            "$ref": "#/$defs/AttractionSearchPlace"
+          },
+          "maxItems": 4,
+          "title": "Representative Places",
+          "type": "array"
+        },
+        "search_queries": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Search Queries",
+          "type": "array"
+        }
+      },
+      "title": "AttractionSearchHints",
+      "type": "object"
+    },
+    "AttractionSearchPlace": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "subcategory": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Subcategory",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "subcategory"
+      ],
+      "title": "AttractionSearchPlace",
+      "type": "object"
+    },
+    "CandidateCompositionFeedback": {
+      "additionalProperties": false,
+      "description": "Server-observed shortfall for the one bounded discovery supplement.",
+      "properties": {
+        "domain": {
+          "$ref": "#/$defs/CandidateDomain"
+        },
+        "excluded_restaurant_brands": {
+          "default": [],
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 40,
+          "title": "Excluded Restaurant Brands",
+          "type": "array"
+        },
+        "failed_named_queries": {
+          "default": [],
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Failed Named Queries",
+          "type": "array"
+        },
+        "frozen_top_names": {
+          "default": [],
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 14,
+          "title": "Frozen Top Names",
+          "type": "array"
+        },
+        "missing_personalized_count": {
+          "maximum": 14,
+          "minimum": 0,
+          "title": "Missing Personalized Count",
+          "type": "integer"
+        },
+        "missing_representative_count": {
+          "maximum": 12,
+          "minimum": 0,
+          "title": "Missing Representative Count",
+          "type": "integer"
+        },
+        "observed_alternative_names": {
+          "default": [],
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 40,
+          "title": "Observed Alternative Names",
+          "type": "array"
+        }
+      },
+      "required": [
+        "domain",
+        "missing_personalized_count",
+        "missing_representative_count"
+      ],
+      "title": "CandidateCompositionFeedback",
+      "type": "object"
+    },
+    "CandidateDomain": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "hotel"
+      ],
+      "title": "CandidateDomain",
+      "type": "string"
+    },
+    "CandidateRecallBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "domains": {
+          "items": {
+            "$ref": "#/$defs/DomainRecallBudget"
+          },
+          "maxItems": 3,
+          "minItems": 1,
+          "title": "Domains",
+          "type": "array"
+        },
+        "max_total_candidates": {
+          "maximum": 60,
+          "minimum": 1,
+          "title": "Max Total Candidates",
+          "type": "integer"
+        },
+        "max_total_provider_calls": {
+          "maximum": 12,
+          "minimum": 0,
+          "title": "Max Total Provider Calls",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_total_candidates",
+        "max_total_provider_calls",
+        "domains"
+      ],
+      "title": "CandidateRecallBudget",
+      "type": "object"
+    },
+    "DiscoveryPreferenceDirection": {
+      "additionalProperties": false,
+      "properties": {
+        "attraction_search_hints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttractionSearchHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "description": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "direction_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Direction Id",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "search_query": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Search Query"
+        },
+        "selected": {
+          "title": "Selected",
+          "type": "boolean"
+        },
+        "source_reference_ids": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Reference Ids",
+          "type": "array"
+        },
+        "tags": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        }
+      },
+      "required": [
+        "direction_id",
+        "label",
+        "selected"
+      ],
+      "title": "DiscoveryPreferenceDirection",
+      "type": "object"
+    },
+    "DomainRecallBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "$ref": "#/$defs/CandidateDomain"
+        },
+        "max_candidates": {
+          "maximum": 60,
+          "minimum": 1,
+          "title": "Max Candidates",
+          "type": "integer"
+        },
+        "max_provider_calls": {
+          "maximum": 12,
+          "minimum": 0,
+          "title": "Max Provider Calls",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "domain",
+        "max_candidates",
+        "max_provider_calls"
+      ],
+      "title": "DomainRecallBudget",
+      "type": "object"
+    },
+    "ExcludedPlaceClue": {
+      "additionalProperties": false,
+      "properties": {
+        "clue_id": {
+          "format": "uuid",
+          "title": "Clue Id",
+          "type": "string"
+        },
+        "domain": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CandidateDomain"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "known_place_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Known Place Id"
+        },
+        "name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "source_message_id": {
+          "format": "uuid",
+          "title": "Source Message Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "clue_id",
+        "name",
+        "source_message_id"
+      ],
+      "title": "ExcludedPlaceClue",
+      "type": "object"
+    },
+    "Gcj02Coordinates": {
+      "additionalProperties": false,
+      "description": "Canonical coordinates used by every internal planning contract.",
+      "properties": {
+        "coord_system": {
+          "const": "gcj_02",
+          "title": "Coord System",
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Gcj02Coordinates",
+      "type": "object"
+    },
+    "LandmarkRecallPolicy": {
+      "enum": [
+        "include",
+        "neutral",
+        "exclude"
+      ],
+      "title": "LandmarkRecallPolicy",
+      "type": "string"
+    },
+    "NamedPlaceClue": {
+      "additionalProperties": false,
+      "properties": {
+        "clue_id": {
+          "format": "uuid",
+          "title": "Clue Id",
+          "type": "string"
+        },
+        "domain": {
+          "$ref": "#/$defs/CandidateDomain"
+        },
+        "known_place_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Known Place Id"
+        },
+        "name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "priority": {
+          "$ref": "#/$defs/NamedPlacePriority"
+        },
+        "source_message_id": {
+          "format": "uuid",
+          "title": "Source Message Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "clue_id",
+        "name",
+        "domain",
+        "priority",
+        "source_message_id"
+      ],
+      "title": "NamedPlaceClue",
+      "type": "object"
+    },
+    "NamedPlacePriority": {
+      "enum": [
+        "must",
+        "want",
+        "mentioned"
+      ],
+      "title": "NamedPlacePriority",
+      "type": "string"
+    },
+    "RecallAnchor": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor_id": {
+          "format": "uuid",
+          "title": "Anchor Id",
+          "type": "string"
+        },
+        "coordinates": {
+          "$ref": "#/$defs/Gcj02Coordinates"
+        },
+        "domain": {
+          "$ref": "#/$defs/CandidateDomain"
+        },
+        "name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "anchor_id",
+        "name",
+        "domain",
+        "coordinates"
+      ],
+      "title": "RecallAnchor",
+      "type": "object"
+    },
+    "RecallThemeInput": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/RecallThemeSource"
+        },
+        "source_reference_ids": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Reference Ids",
+          "type": "array"
+        },
+        "theme_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Theme Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "theme_id",
+        "label",
+        "source"
+      ],
+      "title": "RecallThemeInput",
+      "type": "object"
+    },
+    "RecallThemeMode": {
+      "enum": [
+        "selected",
+        "open_to_any",
+        "unspecified"
+      ],
+      "title": "RecallThemeMode",
+      "type": "string"
+    },
+    "RecallThemeSource": {
+      "enum": [
+        "city_content",
+        "current_trip",
+        "personal_default",
+        "generic"
+      ],
+      "title": "RecallThemeSource",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/candidate-recall-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "anchors": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/RecallAnchor"
+      },
+      "title": "Anchors",
+      "type": "array"
+    },
+    "attraction_discovery": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AttractionDiscoveryContext"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "budget": {
+      "$ref": "#/$defs/CandidateRecallBudget"
+    },
+    "city_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "City Id",
+      "type": "string"
+    },
+    "composition_feedback": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CandidateCompositionFeedback"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "dining_city_target": {
+      "anyOf": [
+        {
+          "maximum": 6,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dining City Target"
+    },
+    "duration_days": {
+      "anyOf": [
+        {
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Duration Days"
+    },
+    "end_date": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "End Date"
+    },
+    "excluded_places": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ExcludedPlaceClue"
+      },
+      "title": "Excluded Places",
+      "type": "array"
+    },
+    "free_text_clues": {
+      "default": [],
+      "items": {
+        "maxLength": 500,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Free Text Clues",
+      "type": "array"
+    },
+    "landmark_policy": {
+      "$ref": "#/$defs/LandmarkRecallPolicy",
+      "default": "neutral"
+    },
+    "named_places": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/NamedPlaceClue"
+      },
+      "title": "Named Places",
+      "type": "array"
+    },
+    "personal_preference_clues": {
+      "default": [],
+      "items": {
+        "maxLength": 500,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Personal Preference Clues",
+      "type": "array"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "semantic_state_version": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Semantic State Version",
+      "type": "integer"
+    },
+    "special_constraints": {
+      "default": [],
+      "items": {
+        "maxLength": 500,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Special Constraints",
+      "type": "array"
+    },
+    "start_date": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Start Date"
+    },
+    "task_book_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Task Book Id"
+    },
+    "task_book_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Task Book Revision"
+    },
+    "theme_mode": {
+      "$ref": "#/$defs/RecallThemeMode",
+      "default": "unspecified"
+    },
+    "themes": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/RecallThemeInput"
+      },
+      "title": "Themes",
+      "type": "array"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "trip_id",
+    "city_id",
+    "budget"
+  ],
+  "title": "CandidateRecallRequest",
+  "type": "object"
+}

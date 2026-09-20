@@ -1,0 +1,168 @@
+{
+  "$defs": {
+    "PrepareToolCapability": {
+      "enum": [
+        "resolve_place",
+        "place_facts",
+        "opening_hours",
+        "ticket_availability",
+        "weather_forecast",
+        "spatial_routes",
+        "hotel_booking_facts",
+        "place_products"
+      ],
+      "title": "PrepareToolCapability",
+      "type": "string"
+    },
+    "ToolFact": {
+      "additionalProperties": false,
+      "properties": {
+        "expires_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expires At"
+        },
+        "fact_kind": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Fact Kind",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "source_reference_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Reference Ids",
+          "type": "array"
+        },
+        "subject_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Subject Ref",
+          "type": "string"
+        },
+        "value_summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Value Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fact_kind",
+        "subject_ref",
+        "value_summary",
+        "source_reference_ids",
+        "observed_at"
+      ],
+      "title": "ToolFact",
+      "type": "object"
+    },
+    "ToolObservationStatus": {
+      "enum": [
+        "success",
+        "partial",
+        "unavailable",
+        "invalid_request"
+      ],
+      "title": "ToolObservationStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/tool-observation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "capability": {
+      "$ref": "#/$defs/PrepareToolCapability"
+    },
+    "entity_refs": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Entity Refs",
+      "type": "array"
+    },
+    "facts": {
+      "items": {
+        "$ref": "#/$defs/ToolFact"
+      },
+      "title": "Facts",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "safe_summary": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Safe Summary",
+      "type": "string"
+    },
+    "source_refs": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Source Refs",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/ToolObservationStatus"
+    }
+  },
+  "required": [
+    "request_id",
+    "capability",
+    "status",
+    "observed_at",
+    "safe_summary"
+  ],
+  "title": "ToolObservation",
+  "type": "object"
+}

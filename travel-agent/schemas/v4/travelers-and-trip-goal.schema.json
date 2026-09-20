@@ -1,0 +1,61 @@
+{
+  "$defs": {
+    "EvidenceBackedText": {
+      "additionalProperties": false,
+      "properties": {
+        "source_evidence_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Evidence Refs",
+          "type": "array"
+        },
+        "value": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "source_evidence_refs"
+      ],
+      "title": "EvidenceBackedText",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/travelers-and-trip-goal.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "travelers": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Travelers",
+      "type": "array"
+    },
+    "trip_goals": {
+      "items": {
+        "$ref": "#/$defs/EvidenceBackedText"
+      },
+      "title": "Trip Goals",
+      "type": "array"
+    }
+  },
+  "required": [
+    "travelers",
+    "trip_goals"
+  ],
+  "title": "TravelersAndTripGoal",
+  "type": "object"
+}

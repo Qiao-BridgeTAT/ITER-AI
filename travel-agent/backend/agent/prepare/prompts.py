@@ -17,14 +17,14 @@ from backend.contracts.v4.conversation import ConversationMessageV4
 from backend.contracts.v4.enums import DiscoverySection
 from backend.contracts.v4.prepare import ToolObservation
 from backend.contracts.v4.state import DiscoveryRuntimeState, TripSemanticState
-from backend.domain.discovery.cold_start import cold_start_default_notes
+from backend.domain.discovery.cold_start import saved_preference_notes
 
 PREPARE_DECISION_PROMPT_VERSION = "prepare-decision-v4-05-13"
 PREPARE_RESPONSE_PROMPT_VERSION = "prepare-response-v4-05-9"
 PLACE_REFERENCE_PROMPT_VERSION = "prepare-place-reference-v4-02-1"
 TRIP_BASICS_ASSESSMENT_PROMPT_VERSION = "prepare-trip-basics-assessment-v4-05-8"
 COMPOUND_TRIP_INTAKE_PROMPT_VERSION = "prepare-compound-trip-intake-v4-04-1"
-FINAL_SUPPLEMENT_ASSESSMENT_PROMPT_VERSION = "prepare-final-supplement-assessment-v4-05-2"
+FINAL_SUPPLEMENT_ASSESSMENT_PROMPT_VERSION = "prepare-final-supplement-assessment-v4-05-1"
 PACE_MODIFICATION_ASSESSMENT_PROMPT_VERSION = "prepare-pace-modification-assessment-v4-03-1"
 PACE_REQUIREMENT_EXTRACTION_PROMPT_VERSION = "prepare-pace-requirement-extraction-v4-04-1"
 CARD_TEXT_ASSESSMENT_PROMPT_VERSION = "prepare-card-text-coverage-v4-03-2"
@@ -140,6 +140,9 @@ _DECISION_SYSTEM = """
 27. 用户明确表达住宿档次、住宿类型或精确每晚预算时，使用
     set_lodging_class_preference；金额使用人民币最小单位分，不得把精确预算改写为模糊条件。
     用户没有给出上下限时不得自行推测金额。
+    多个可接受档次用 hotel_quality_tiers 完整保存，不能取最后一个；
+    酒店和民宿用 property_types。
+    住宿双卡已收集完毕后直接进入最终偏好补充，后台酒店检索不作为等待条件。
 28. 用户明确说明目的地、具体起止日期、旅行天数、同行人或旅行目标时，使用 set_trip_basics，
     只写用户实际表达或已由 date_range_resolution 标为 ready 的字段；不得从常识推测日期、天数、
     同行人和目标。只有天数时只写 duration_days；一个明确开始日期加 1～5 天明确时长只可形成
@@ -408,12 +411,11 @@ _COMPOUND_TRIP_INTAKE_SYSTEM = """
 """.strip()
 
 _FINAL_SUPPLEMENT_ASSESSMENT_SYSTEM = """
-你是 Prepare Agent 的补充结束核验器。current_question 表示当前是可选偏好追问还是最终补充。
-只判断当前 user_text 是否明确表示本次旅行需求已经补充完毕，
+你是 Prepare Agent 的最终补充核验器。只判断当前 user_text 是否明确表示本次旅行需求已经补充完毕，
 并输出 FinalSupplementAssessment，不输出解释或思维过程。
 
 判断边界：
-1. “没有了、没别的、以上就是全部、没有其他要求了请生成任务书”等明确收束表达，
+1. “没有了、没别的、以上就是全部、可以生成任务书”等明确收束表达，
    记为 explicitly_no_more_requirements=true；含糊的“先这样、以后再说”不能算；
 2. 用户同一句还提出新的偏好、限制、修改、事实问题或其他待处理事项时，
    has_additional_request=true；单纯请求生成任务书不算额外事项；
@@ -421,9 +423,6 @@ _FINAL_SUPPLEMENT_ASSESSMENT_SYSTEM = """
 3. 必须由当前 user_text 明确表达收束；可对照 recorded_requirements 识别原样重申的已有要求，
    不得仅因 State 已完整就推测用户没有补充。原样重申不是新增要求；实际改变仍算额外事项；
 4. 问候、无意义输入、只说“生成任务书”但没有表达需求已结束时，不能擅自判定无更多要求。
-5. 对可选追问说“没有其他要求”只表示本轮不增加要求，不代表清空已有偏好、
-   无需住宿或重新委托。“不用订酒店，住朋友家”等实际取消住宿属于新增修改，
-   即使同时说“没有别的”也必须记为 has_additional_request=true。
 """.strip()
 
 _PACE_MODIFICATION_ASSESSMENT_SYSTEM = """
@@ -821,14 +820,10 @@ def build_compound_trip_intake_request(
 
 
 def build_final_supplement_assessment_request(
-    *,
-    user_text: str,
-    semantic_state: TripSemanticState | None = None,
-    current_question: str = "final_supplement",
+    *, user_text: str, semantic_state: TripSemanticState | None = None
 ) -> ModelRequest:
     payload = {
         "prompt_version": FINAL_SUPPLEMENT_ASSESSMENT_PROMPT_VERSION,
-        "current_question": current_question,
         "user_text": user_text,
         "recorded_requirements": _semantic_excerpt(semantic_state) if semantic_state else None,
     }
@@ -1018,8 +1013,9 @@ def _semantic_excerpt(state: TripSemanticState) -> dict[str, Any]:
             if state.cold_start_profile_snapshot is not None
             else None
         ),
-        "cold_start_readable_defaults": [
-            item.value for item in cold_start_default_notes(state.cold_start_profile_snapshot)
+        "cold_start_readable_defaults": [item.value for item in saved_preference_notes(state)],
+        "long_term_memory_snapshot": [
+            m.model_dump(mode="json") for m in state.long_term_memory_snapshot or ()
         ],
         "trip_basics": state.trip_basics.model_dump(mode="json"),
         "attractions": state.attractions.model_dump(mode="json"),

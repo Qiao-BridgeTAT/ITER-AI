@@ -1,0 +1,426 @@
+{
+  "$defs": {
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    },
+    "DataAvailability": {
+      "enum": [
+        "available",
+        "partial",
+        "missing"
+      ],
+      "title": "DataAvailability",
+      "type": "string"
+    },
+    "JsonValue": {},
+    "ProviderCode": {
+      "enum": [
+        "amap",
+        "baidu",
+        "flyai",
+        "weather",
+        "city_content",
+        "official",
+        "manual"
+      ],
+      "title": "ProviderCode",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/hotel-offer.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "availability": {
+            "const": "available"
+          }
+        },
+        "required": [
+          "availability"
+        ]
+      },
+      "then": {
+        "properties": {
+          "missing_fields": {
+            "maxItems": 0,
+            "type": "array"
+          },
+          "missing_reason": {
+            "type": "null"
+          },
+          "room_price": {
+            "not": {
+              "type": "null"
+            }
+          }
+        },
+        "required": [
+          "room_price"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "availability": {
+            "const": "partial"
+          }
+        },
+        "required": [
+          "availability"
+        ]
+      },
+      "then": {
+        "anyOf": [
+          {
+            "properties": {
+              "room_price": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "room_price"
+            ]
+          },
+          {
+            "properties": {
+              "rating": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "rating"
+            ]
+          },
+          {
+            "properties": {
+              "image_urls": {
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "image_urls"
+            ]
+          },
+          {
+            "properties": {
+              "detail_url": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "detail_url"
+            ]
+          }
+        ],
+        "properties": {
+          "missing_fields": {
+            "minItems": 1,
+            "type": "array"
+          },
+          "missing_reason": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          }
+        },
+        "required": [
+          "missing_fields",
+          "missing_reason"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "availability": {
+            "const": "missing"
+          }
+        },
+        "required": [
+          "availability"
+        ]
+      },
+      "then": {
+        "properties": {
+          "missing_reason": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "room_price": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "missing_reason"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "missing_fields": {
+            "contains": {
+              "const": "room_price"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "missing_fields"
+        ]
+      },
+      "then": {
+        "properties": {
+          "room_price": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "missing_fields": {
+            "contains": {
+              "const": "rating"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "missing_fields"
+        ]
+      },
+      "then": {
+        "properties": {
+          "rating": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "missing_fields": {
+            "contains": {
+              "const": "image_urls"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "missing_fields"
+        ]
+      },
+      "then": {
+        "properties": {
+          "image_urls": {
+            "maxItems": 0,
+            "type": "array"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "missing_fields": {
+            "contains": {
+              "const": "detail_url"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "missing_fields"
+        ]
+      },
+      "then": {
+        "properties": {
+          "detail_url": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "availability": {
+      "$ref": "#/$defs/DataAvailability"
+    },
+    "check_in": {
+      "format": "date",
+      "title": "Check In",
+      "type": "string"
+    },
+    "check_out": {
+      "format": "date",
+      "title": "Check Out",
+      "type": "string"
+    },
+    "detail_url": {
+      "anyOf": [
+        {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Detail Url"
+    },
+    "fetched_at": {
+      "format": "date-time",
+      "title": "Fetched At",
+      "type": "string"
+    },
+    "hotel_place_id": {
+      "format": "uuid",
+      "title": "Hotel Place Id",
+      "type": "string"
+    },
+    "image_urls": {
+      "items": {
+        "format": "uri",
+        "maxLength": 2083,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Image Urls",
+      "type": "array"
+    },
+    "missing_fields": {
+      "items": {
+        "enum": [
+          "room_price",
+          "rating",
+          "image_urls",
+          "detail_url"
+        ],
+        "type": "string"
+      },
+      "title": "Missing Fields",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "missing_reason": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Missing Reason"
+    },
+    "offer_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Offer Id",
+      "type": "string"
+    },
+    "provider": {
+      "$ref": "#/$defs/ProviderCode"
+    },
+    "rating": {
+      "anyOf": [
+        {
+          "maximum": 5,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Rating"
+    },
+    "raw_price": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/JsonValue"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "room_price": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CnyAmountRange"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "source_offer_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Source Offer Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "offer_id",
+    "hotel_place_id",
+    "provider",
+    "source_offer_id",
+    "check_in",
+    "check_out",
+    "availability",
+    "fetched_at"
+  ],
+  "title": "HotelOffer",
+  "type": "object"
+}

@@ -60,6 +60,21 @@ from backend.agent.planner.dining_repair import (
     dining_replacement_options,
     dining_replacement_request,
 )
+from backend.agent.planner.dining_slot_search import (
+    MAX_SLOT_CHOICES,
+    MAX_SLOT_PAGES,
+    slot_choice_id,
+    supplement_dining_slot,
+)
+from backend.agent.planner.dining_slots import (
+    DiningSlot,
+    ModelDiningSlotChoice,
+    admit_dining_place,
+    dining_slot_is_resolved,
+    dining_slot_request,
+    dining_slots,
+    restore_dining_slot_order,
+)
 from backend.agent.planner.evidence import (
     PlannerEvidenceBackend,
     selected_itinerary_route_requests,
@@ -1415,7 +1430,7 @@ class PlannerAgentGraph:
             ]
             # At most one actual interval per issue, and no more than three in a call.
             options = list({str(gap["date"]): gap for gap in reversed(options)}.values())[:3]
-            needs_discovery = family in {"meal", "dining_route"} or not options
+            needs_discovery = family in {"coverage", "gap", "evening"} and not options
             if (
                 needs_discovery
                 and family != "hard_time"
@@ -1501,20 +1516,28 @@ class PlannerAgentGraph:
             feedback_start = len(feedback)
             try:
                 async with asyncio.timeout(max(0.1, context.call_remaining_seconds())):
-                    current = await self._try_time_quality(
-                        current,
-                        context,
-                        seen,
-                        feedback,
-                        compact_infill=family in {"coverage", "gap", "evening"}
-                        and not day_fallback,
-                        dining_only=family == "dining_route",
-                        missing_meals_only=family == "meal",
-                        long_visit_meal=family == "hard_time"
-                        and long_visit_meal_options(current, allowed_dates=dates) is not None,
-                        selected_gap_options=options,
-                        repair_dates=dates,
+                    meal_targets = dining_slots(
+                        current, context.book, allowed_dates=dates, mode=family
                     )
+                    if meal_targets and isinstance(self.evidence, PlannerEvidenceBackend):
+                        current = await self._repair_dining_slots(
+                            current, context, seen, feedback, dates=dates, mode=family
+                        )
+                    else:
+                        current = await self._try_time_quality(
+                            current,
+                            context,
+                            seen,
+                            feedback,
+                            compact_infill=family in {"coverage", "gap", "evening"}
+                            and not day_fallback,
+                            dining_only=family == "dining_route",
+                            missing_meals_only=family == "meal",
+                            long_visit_meal=family == "hard_time"
+                            and long_visit_meal_options(current, allowed_dates=dates) is not None,
+                            selected_gap_options=options,
+                            repair_dates=dates,
+                        )
             except TimeoutError:
                 # The enclosing recovery callback retains the last verified checkpoint.
                 raise
@@ -1600,6 +1623,238 @@ class PlannerAgentGraph:
         except TimeoutError:
             return refresh_repair_state(latest_valid, context.book, stop_reason="budget_exhausted")
 
+    async def _repair_dining_slots(
+        self,
+        workspace: PlannerWorkspaceState,
+        context: PlannerGraphContext,
+        attempted_intents: set[str],
+        feedback: list[dict[str, Any]],
+        *,
+        dates: frozenset[date],
+        mode: str,
+    ) -> PlannerWorkspaceState:
+        """Each meal commits independently; rejected proposals cannot roll back siblings."""
+        assert isinstance(self.evidence, PlannerEvidenceBackend)
+        current = workspace
+        targets = dining_slots(current, context.book, allowed_dates=dates, mode=mode)
+        for original in targets:
+            # Recompute endpoints after every accepted meal, never reuse a stale route.
+            slot = next(
+                (
+                    item
+                    for item in dining_slots(current, context.book, allowed_dates=dates, mode=mode)
+                    if item.slot_key == original.slot_key
+                ),
+                None,
+            )
+            if slot is None:
+                continue
+            failures: list[str] = [
+                item.code
+                for item in current.guard_observations
+                if item.observation_id
+                in {
+                    slot_choice_id(current, slot.slot_key, number)
+                    for number in range(1, MAX_SLOT_CHOICES + 1)
+                }
+            ]
+            observed_ids: set[str] = set()
+            for page in range(1, MAX_SLOT_PAGES + 1):
+                if (
+                    min(context.call_remaining_seconds(), execution_remaining(current, calls=True))
+                    <= 8
+                ):
+                    return current
+                markers = {item.observation_id for item in current.guard_observations}
+                attempt = next(
+                    (
+                        number
+                        for number in range(1, MAX_SLOT_CHOICES + 1)
+                        if slot_choice_id(current, slot.slot_key, number) not in markers
+                    ),
+                    None,
+                )
+                if attempt is None:
+                    break
+                assert current.working_itinerary is not None
+                selected = {
+                    item.object_ref.canonical_entity_id
+                    for day in current.working_itinerary.days
+                    for item in day.ordered_items
+                    if isinstance(item.object_ref, CandidateRef)
+                }
+
+                async def search_checkpoint(value: PlannerWorkspaceState) -> None:
+                    nonlocal current
+                    current = value
+                    await context.checkpoint(value)
+
+                try:
+                    async with asyncio.timeout(min(15, context.call_remaining_seconds())):
+                        searched = await supplement_dining_slot(
+                            self.evidence,
+                            current,
+                            context.book,
+                            context.cancellation,
+                            slot_key=slot.slot_key,
+                            service_date=slot.service_date,
+                            before=slot.before,
+                            after=slot.after,
+                            page=page,
+                            excluded_ids=selected | observed_ids,
+                            checkpoint=search_checkpoint,
+                        )
+                except TimeoutError:
+                    # A slow individual page consumes that page, not other meals'
+                    # already committed improvements or their remaining budget.
+                    failures.append("provider_timeout")
+                    feedback.append({"failure_code": "planner_dining_provider_timeout"})
+                    continue
+                current = searched.workspace
+                await context.checkpoint(current)
+                if searched.failure_code:
+                    failures.append(searched.failure_code)
+                if searched.terminal:
+                    feedback.append({"failure_code": f"planner_dining_{searched.failure_code}"})
+                    break
+                if not searched.candidates:
+                    continue
+                observed_ids.update(place.canonical_entity_id for place in searched.candidates)
+                if (
+                    min(context.call_remaining_seconds(), execution_remaining(current, calls=True))
+                    <= 8
+                ):
+                    return current
+                marker = slot_choice_id(current, slot.slot_key, attempt)
+                current = advance(
+                    current,
+                    guard_observations=(
+                        *current.guard_observations,
+                        PlannerGuardObservation(
+                            observation_id=marker,
+                            attempted_action="dining_slot_choice",
+                            code="planner_dining_choice_started",
+                            message=slot.slot_key,
+                            based_on_workspace_revision=current.workspace_revision,
+                        ),
+                    ),
+                )
+                await context.checkpoint(current)
+                try:
+                    remaining = min(
+                        context.call_remaining_seconds(), execution_remaining(current, calls=True)
+                    )
+                    if remaining <= 0:
+                        return current
+                    async with asyncio.timeout(min(18, remaining)):
+                        # Never wrap this request with date-bearing local-change/repair prompts.
+                        choice = await self.gateway.generate_structured(
+                            dining_slot_request(
+                                slot,
+                                searched.candidates,
+                                current,
+                                context.book,
+                                feedback=tuple(failures),
+                            ),
+                            ModelDiningSlotChoice,
+                            cancellation=context.cancellation,
+                        )
+                    if choice.value.candidate_key is None:
+                        failures.append("no_suitable_candidate_in_previous_batch")
+                        current = advance(
+                            current,
+                            guard_observations=tuple(
+                                item.model_copy(update={"code": "planner_dining_choice_null"})
+                                if item.observation_id == marker
+                                else item
+                                for item in current.guard_observations
+                            ),
+                        )
+                        await context.checkpoint(current)
+                        continue
+                    selected_index = int(choice.value.candidate_key[1:]) - 1
+                    if not 0 <= selected_index < len(searched.candidates):
+                        raise PlannerGuardError("planner_dining_choice_outside_batch")
+                    place = searched.candidates[selected_index]
+                    tentative = admit_dining_place(current, context.book, place, self.clock())
+                    tentative = await self._remeasure_time_quality(tentative, context)
+
+                    selected_slot = slot
+
+                    async def verified_checkpoint(
+                        value: PlannerWorkspaceState,
+                        current_slot: DiningSlot = selected_slot,
+                        identity: str = place.canonical_entity_id,
+                    ) -> None:
+                        if dining_slot_is_resolved(value, current_slot, identity):
+                            await context.checkpoint(value)
+
+                    trial_feedback: list[dict[str, Any]] = []
+                    candidate = await self._try_time_quality(
+                        tentative,
+                        replace(context, checkpoint=verified_checkpoint),
+                        attempted_intents,
+                        trial_feedback,
+                        repair_dates=frozenset((slot.service_date,)),
+                        resolved_dining_choice=(
+                            slot,
+                            place.canonical_entity_id,
+                            choice.audit_call_id,
+                        ),
+                    )
+                    if dining_slot_is_resolved(candidate, slot, place.canonical_entity_id):
+                        current = candidate
+                        feedback.extend(trial_feedback)
+                        await context.checkpoint(current)
+                        break
+                    reason = (
+                        str(trial_feedback[-1].get("failure_code", "meal_not_resolved"))
+                        if trial_feedback
+                        else "meal_not_resolved"
+                    )
+                    failures.append(reason.split(":", 1)[0])
+                    current = advance(
+                        current,
+                        guard_observations=(
+                            *current.guard_observations,
+                            PlannerGuardObservation(
+                                observation_id=server_id(
+                                    marker, "rejected", place.canonical_entity_id
+                                ),
+                                attempted_action="dining_slot_choice",
+                                code="planner_dining_candidate_rejected",
+                                message=json.dumps(
+                                    {
+                                        "slot_key": slot.slot_key,
+                                        "candidate_id": place.canonical_entity_id,
+                                        "failure_code": failures[-1],
+                                    }
+                                ),
+                                based_on_workspace_revision=current.workspace_revision,
+                            ),
+                        ),
+                    )
+                    feedback.append({"failure_code": failures[-1]})
+                    await context.checkpoint(current)
+                except ModelGatewayError as error:
+                    if error.code in {
+                        ModelFailureCode.CANCELLED,
+                        ModelFailureCode.AUDIT_UNAVAILABLE,
+                    }:
+                        raise
+                    failures.append(error.code.value)
+                    feedback.append({"failure_code": f"planner_dining_{error.code.value}"})
+                except TimeoutError:
+                    failures.append("choice_timeout")
+                    feedback.append({"failure_code": "planner_dining_choice_timeout"})
+                except (PlannerGuardError, ValidationError, ValueError, KeyError) as error:
+                    code = (
+                        error.code if isinstance(error, PlannerGuardError) else type(error).__name__
+                    )
+                    failures.append(code.split(":", 1)[0])
+                    feedback.append({"failure_code": failures[-1]})
+        return current
+
     async def _try_time_quality(
         self,
         workspace: PlannerWorkspaceState,
@@ -1614,6 +1869,7 @@ class PlannerAgentGraph:
         selected_gap_options: list[dict[str, Any]] | None = None,
         repair_dates: frozenset[date] | None = None,
         resolved_gap_choices: tuple[ModelGapVisits, list[dict[str, Any]], str | None] | None = None,
+        resolved_dining_choice: tuple[DiningSlot, str, str | None] | None = None,
     ) -> PlannerWorkspaceState:
         """Adopt only an evidence-validated improvement; retain precise rejection feedback."""
         previous = advance(workspace, timing_optimization_pending=False)
@@ -1764,7 +2020,44 @@ class PlannerAgentGraph:
                 )
 
         try:
-            if long_visit_meal:
+            if resolved_dining_choice is not None:
+                slot, chosen_identity, call_id = resolved_dining_choice
+                chosen_key = candidate_keys[chosen_identity]
+                if slot.old_identity is not None:
+                    old_key = candidate_keys[slot.old_identity]
+                    old_entry = catalog.candidates[old_key]
+                    if old_entry.commitment_level.value in {"strong", "soft", "immutable"}:
+                        if old_key not in omission_allowed:
+                            raise PlannerGuardError("planner_dining_replacement_not_authorized")
+                        omitted_keys = (old_key,)
+                    proposed_intent = apply_dining_replacement(
+                        ModelDiningReplacement(candidate_key=chosen_key),
+                        {
+                            "day_index": slot.day_index,
+                            "old_candidate_key": old_key,
+                            "options": [{"candidate_key": chosen_key}],
+                        },
+                        plan,
+                    )
+                else:
+                    proposed_intent = apply_missing_meals(
+                        ModelMissingMeals.model_validate(
+                            {"choices": [{"meal_key": "m1", "candidate_key": chosen_key}]}
+                        ),
+                        [
+                            {
+                                "meal_key": "m1",
+                                "day_index": slot.day_index,
+                                "meal": slot.meal,
+                                "insert_before_candidate_key": candidate_keys.get(
+                                    slot.insert_before_identity or ""
+                                ),
+                                "options": [{"candidate_key": chosen_key}],
+                            }
+                        ],
+                        plan,
+                    )
+            elif long_visit_meal:
                 long_options = long_visit_meal_options(previous, allowed_dates=repair_dates)
                 if long_options is None:
                     raise PlannerGuardError("planner_long_visit_meal_no_eligible_conflict")
@@ -2132,6 +2425,13 @@ class PlannerAgentGraph:
             preserved_appointments = preserved_appointments.model_copy(
                 update={"content_digest": planning_projection_digest(preserved_appointments)}
             )
+            if resolved_dining_choice is not None:
+                preserved_appointments = restore_dining_slot_order(
+                    preserved_appointments,
+                    previous.working_itinerary,
+                    resolved_dining_choice[0],
+                    resolved_dining_choice[1],
+                )
             payload = payload.model_copy(update={"proposed_working_draft": preserved_appointments})
             decision = decision.model_copy(update={"payload": payload})
 
@@ -2245,6 +2545,10 @@ class PlannerAgentGraph:
                 validation_observation=validated.observation,
             )
             infill_verified = True
+            if resolved_dining_choice is not None:
+                infill_verified = dining_slot_is_resolved(
+                    candidate, resolved_dining_choice[0], resolved_dining_choice[1]
+                )
             if compact_infill:
                 blocking = [i for i in validated.observation.issues if i.severity != "warning"]
                 failed_dates = {str(day) for issue in blocking for day in issue.affected_dates}
@@ -3033,11 +3337,13 @@ class PlannerAgentGraph:
         cancellation: ModelCancellation,
         *,
         change_request: PlanChangeRequest | None = None,
+        gateway: ModelGateway | None = None,
     ) -> str:
+        gateway = gateway or self.gateway
         chunks: list[str] = []
         call_id: str | None = None
         try:
-            async for chunk in self.gateway.stream_text(
+            async for chunk in gateway.stream_text(
                 build_planner_response_request(
                     workspace,
                     book,
@@ -3061,6 +3367,12 @@ class PlannerAgentGraph:
                 text,
             ):
                 raise PlannerGuardError("planner_response_unfilled_time_claim")
+            if (
+                workspace.react_state is not None
+                and workspace.status is PlannerStatus.READY_TO_PUBLISH
+                and re.search(r"草稿|待确认|未形成正式行程|未产出正式行程", text)
+            ):
+                raise PlannerGuardError("planner_response_result_must_not_be_draft")
             if workspace.status is PlannerStatus.READY_TO_PUBLISH and "正式行程" not in text:
                 text = f"正式行程已生成。\n\n{text}"
             if book.lodging_direction.not_applicable and re.search(
@@ -3076,7 +3388,7 @@ class PlannerAgentGraph:
                     raise PlannerGuardError("planner_response_cannot_claim_publication_or_booking")
         except PlannerGuardError as error:
             await record_model_call_annotation(
-                self.gateway,
+                gateway,
                 call_id,
                 "llm_business_guard",
                 {
@@ -3093,7 +3405,7 @@ class PlannerAgentGraph:
             )
             raise
         await record_model_call_annotation(
-            self.gateway,
+            gateway,
             call_id,
             "llm_business_guard",
             {
@@ -3140,6 +3452,8 @@ def _guard_local_day_changes(
         return [
             {
                 "date": day.service_date,
+                "start_time": day.start_time,
+                "end_time": day.end_time,
                 "items": [
                     {
                         "identity": (

@@ -3,16 +3,19 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import re
 from collections.abc import Awaitable, Callable
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
+from time import perf_counter
 from typing import Any, Literal, Protocol, cast
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
+from redis.exceptions import RedisError
 
 from backend.agent.model_audit import (
     ModelAuditError,
@@ -29,12 +32,20 @@ from backend.agent.model_gateway import (
     ModelGatewayError,
 )
 from backend.agent.prepare.graph import PrepareAgentGraph, PrepareGraphResult, PrepareTurnInput
+from backend.agent.prepare.progress import (
+    PROGRESS_COPY,
+    AttractionProgress,
+    DiningProgress,
+    DiscoveryProgress,
+    discovery_progress_emitter,
+)
 from backend.agent.state_merge import initial_semantic_state
-from backend.persistence.legacy_agent_checkpoint import StableAgentCheckpoint
+from backend.application.agent_journey_service import StableAgentCheckpoint
 from backend.application.v4_owner_resolver import (
     V4OwnerResolutionError,
     user_only_v4_owner,
 )
+from backend.contracts.city_registry import CityRegistration
 from backend.contracts.state import TripState
 from backend.contracts.v4.cards import (
     AttractionPreferenceCard,
@@ -51,6 +62,7 @@ from backend.contracts.v4.commands import (
     V4ClientCommand,
     V4RetryInteractionCommand,
     V4TaskBookConfirmationCommand,
+    V4TripSetupCommand,
     V4UserMessageCommand,
 )
 from backend.contracts.v4.conversation import (
@@ -84,6 +96,7 @@ from backend.contracts.v4.semantic_operations import (
     SetLodgingClassPreferenceOperation,
     SetNoPreferenceOperation,
     SetNotApplicableOperation,
+    SetTripBasicsOperation,
 )
 from backend.contracts.v4.state import (
     DiscoveryRuntimeState,
@@ -91,6 +104,7 @@ from backend.contracts.v4.state import (
     V4TripStateEnvelope,
 )
 from backend.discovery.cards.service import CardAttachment, PrepareCardService
+from backend.discovery.planning_candidates import PreparedPlanningPoolService
 from backend.discovery.tools.registry import PrepareToolExecutor
 from backend.domain.authorization import RequestActor
 from backend.domain.discovery.compatibility import preview_legacy_upgrade
@@ -113,6 +127,8 @@ from backend.persistence.turn_repository import (
     TurnResultWrite,
     UserMessageWrite,
 )
+from backend.persistence.user_memory_repository import UserMemoryRepository
+from backend.planning.city_registry import UnknownCityError, default_city_registry
 
 
 class PrepareJourneyError(RuntimeError):
@@ -140,7 +156,9 @@ class _LoadedPrepareContext:
 
 @dataclass(frozen=True, slots=True)
 class _PreparedCommand:
-    user_event_kind: Literal["text", "card_answer", "retry_interaction", "task_book_confirmation"]
+    user_event_kind: Literal[
+        "text", "trip_setup", "card_answer", "retry_interaction", "task_book_confirmation"
+    ]
     user_text: str
     prevalidated_operations: tuple[SemanticOperationProposal, ...] = ()
     signed_source_refs: tuple[str, ...] = ()
@@ -153,6 +171,7 @@ class _PreparedCommand:
 
 PrepareCommitCommand = (
     V4UserMessageCommand
+    | V4TripSetupCommand
     | V4CardAnswerCommand
     | V4RetryInteractionCommand
     | V4TaskBookConfirmationCommand
@@ -197,6 +216,7 @@ class PrepareJourneyService:
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         owner_resolver: V4OwnerResolverCallable = user_only_v4_owner,
         model_audit: ModelAuditRecorder | None = None,
+        planning_pool: PreparedPlanningPoolService | None = None,
     ) -> None:
         self._graph = graph
         self._turns = turns
@@ -209,6 +229,7 @@ class PrepareJourneyService:
         self._clock = clock
         self._owner_resolver = owner_resolver
         self._model_audit = model_audit or NoopModelAuditRecorder()
+        self._planning_pool = planning_pool
         self._cancellations: dict[UUID, ModelCancellation] = {}
         self._generation_turns: dict[UUID, UUID] = {}
         self._terminal_generations: set[UUID] = set()
@@ -220,19 +241,32 @@ class PrepareJourneyService:
         trip_id: UUID,
     ) -> ConversationSnapshotV4:
         owner_id = await self.resolve_owner(actor, trip_id)
-        projection = await self._turns.load_latest_snapshot(owner_id, trip_id)
-        active_generation_id = await self._temporary.get_active_generation(trip_id)
+        projection, active_generation_id = await asyncio.gather(
+            self._turns.load_latest_snapshot(owner_id, trip_id),
+            self._temporary.get_active_generation(trip_id),
+        )
         if projection.kind == "v4":
-            snapshot = await self._turns.load_conversation_snapshot(owner_id, trip_id)
-            return snapshot.model_copy(update={"active_generation_id": active_generation_id})
+            snapshot, status = await asyncio.gather(
+                self._turns.load_conversation_snapshot(owner_id, trip_id, projection=projection),
+                self._load_generation_status(trip_id, active_generation_id),
+            )
+            return snapshot.model_copy(
+                update={
+                    "active_generation_id": active_generation_id,
+                    "active_generation_status": status,
+                }
+            )
         loaded = await self._load_prepare_context(owner_id, trip_id)
         return ConversationSnapshotV4(
             trip_state=loaded.state,
-            messages=[],
+            messages=await self._turns.load_setup_feedback(owner_id, trip_id),
             pending_interaction=loaded.state.discovery_runtime_state.pending_interaction,
             terminal_event=None,
             last_outbox_cursor=None,
             active_generation_id=active_generation_id,
+            active_generation_status=await self._load_generation_status(
+                trip_id, active_generation_id
+            ),
             snapshot_at=self._clock(),
         )
 
@@ -247,11 +281,20 @@ class PrepareJourneyService:
                     through_state_version=snapshot.trip_state.semantic_state.state_version,
                 ),
             )
-        view = await self._turns.load_conversation_view(owner, trip_id)
-        active = await self._temporary.get_active_generation(trip_id)
+        view, active = await asyncio.gather(
+            self._turns.load_conversation_view(owner, trip_id, projection=projection),
+            self._temporary.get_active_generation(trip_id),
+        )
         return view.model_copy(
             update={
-                "snapshot": view.snapshot.model_copy(update={"active_generation_id": active}),
+                "snapshot": view.snapshot.model_copy(
+                    update={
+                        "active_generation_id": active,
+                        "active_generation_status": await self._load_generation_status(
+                            trip_id, active
+                        ),
+                    }
+                ),
             }
         )
 
@@ -305,6 +348,7 @@ class PrepareJourneyService:
             command,
             (
                 V4UserMessageCommand,
+                V4TripSetupCommand,
                 V4CardAnswerCommand,
                 V4RetryInteractionCommand,
                 V4TaskBookConfirmationCommand,
@@ -326,6 +370,14 @@ class PrepareJourneyService:
             user_message=admitted_message,
             generation_id=generation_id,
         )
+        if (
+            not accepted.idempotent_replay
+            and isinstance(command, V4UserMessageCommand)
+            and actor.owner_type.value == "user"
+        ):
+            await UserMemoryRepository(self._turns._session_factory).capture_explicit_message(
+                owner_id, trip_id, admitted_message.message_id, command.payload.text
+            )
         effective_generation_id = accepted.generation_id or generation_id
         audit_context = ModelAuditExecutionContext(
             trace_id=str(command.request_id),
@@ -398,43 +450,113 @@ class PrepareJourneyService:
                     ),
                 },
             )
-            await self._emit_status(
-                trip_id,
-                accepted.turn_id,
-                generation_id,
-                emit,
-                code="deciding",
-                message="正在理解你的这轮需求并决定下一步。",
-            )
+            if not isinstance(command, V4TripSetupCommand):
+                await self._emit_status(
+                    trip_id,
+                    accepted.turn_id,
+                    generation_id,
+                    emit,
+                    code="deciding",
+                    message="正在理解你的这轮需求并决定下一步。",
+                )
+            context_started = perf_counter()
             loaded = await self._load_prepare_context(owner_id, trip_id)
+            context_load_ms = (perf_counter() - context_started) * 1000
             prepared_command = self._prepare_command(command, loaded)
-            result = await self._graph.invoke(
-                PrepareTurnInput(
-                    turn_id=accepted.turn_id,
-                    trip_id=trip_id,
-                    generation_id=generation_id,
-                    assistant_message_id=uuid4(),
-                    expected_state_version=command.expected_state_version,
-                    user_event_kind=prepared_command.user_event_kind,
-                    user_text=prepared_command.user_text,
-                    user_message_ref=user_message_ref,
-                    semantic_state=loaded.state.semantic_state,
-                    runtime_state=loaded.state.discovery_runtime_state,
-                    recent_conversation=loaded.recent_conversation,
-                    business_date=self._clock().astimezone(self._timezone).date(),
-                    published_plan=loaded.state.published_plan,
-                    prevalidated_operations=prepared_command.prevalidated_operations,
-                    signed_source_refs=prepared_command.signed_source_refs,
-                    signed_entity_refs=prepared_command.signed_entity_refs,
-                    required_card_section=prepared_command.required_card_section,
-                    card_text_section=prepared_command.card_text_section,
-                ),
-                cancellation=cancellation,
-                tool_executor=self._tool_executor_factory(
-                    self._clock().astimezone(self._timezone).date()
-                ),
-                card_service=self._card_service,
+            last_progress: DiscoveryProgress | None = None
+
+            async def progress(phase: DiscoveryProgress) -> None:
+                nonlocal last_progress
+                if cancellation.is_cancelled or phase == last_progress:
+                    return
+                last_progress = phase
+                await self._publish_generation_status(
+                    trip_id, accepted.turn_id, generation_id, phase, emit
+                )
+
+            section = (
+                prepared_command.required_card_section
+                or loaded.state.discovery_runtime_state.current_section
             )
+            if (
+                isinstance(command, V4TripSetupCommand)
+                or prepared_command.required_card_section is DiscoverySection.ATTRACTION_PREFERENCE
+            ):
+                await progress(AttractionProgress.PREFERENCE_DISCOVERY)
+            elif section is DiscoverySection.ATTRACTION_PREFERENCE or (
+                prepared_command.required_card_section is DiscoverySection.ATTRACTION_SPECIFIC
+            ):
+                await progress(AttractionProgress.SPECIFIC_SEARCH)
+            elif prepared_command.required_card_section is DiscoverySection.DINING_PREFERENCE or (
+                section is DiscoverySection.ATTRACTION_SPECIFIC
+                and isinstance(command, V4CardAnswerCommand)
+            ):
+                await progress(DiningProgress.PREFERENCE_DISCOVERY)
+            elif prepared_command.required_card_section is DiscoverySection.DINING_SPECIFIC or (
+                section is DiscoverySection.DINING_PREFERENCE
+                and isinstance(command, V4CardAnswerCommand)
+            ):
+                await progress(DiningProgress.SPECIFIC_SEARCH)
+            feedback_task: asyncio.Task[None] | None = None
+            if isinstance(command, V4TripSetupCommand):
+                city = _trip_setup_city(command)
+                if self._card_service is not None:
+                    self._card_service.start_attraction_prefetch(str(trip_id), city.city_id)
+                start, end = command.payload.start_date, command.payload.end_date
+                await self._emit_setup_feedback(
+                    owner_id,
+                    trip_id,
+                    accepted.turn_id,
+                    generation_id,
+                    emit,
+                    ordinal=0,
+                    message=(
+                        f"ITER AI已经记录您的目的地是：{city.display_name}，"
+                        f"日期为{start.month}月{start.day}日到{end.month}月{end.day}日。"
+                    ),
+                )
+                feedback_task = asyncio.create_task(
+                    self._emit_trip_setup_waiting(
+                        owner_id, trip_id, accepted.turn_id, generation_id, emit, cancellation
+                    )
+                )
+            progress_token = discovery_progress_emitter.set(progress)
+            try:
+                result = await self._graph.invoke(
+                    PrepareTurnInput(
+                        turn_id=accepted.turn_id,
+                        trip_id=trip_id,
+                        generation_id=generation_id,
+                        assistant_message_id=uuid4(),
+                        expected_state_version=command.expected_state_version,
+                        user_event_kind=prepared_command.user_event_kind,
+                        user_text=prepared_command.user_text,
+                        user_message_ref=user_message_ref,
+                        semantic_state=loaded.state.semantic_state,
+                        runtime_state=loaded.state.discovery_runtime_state,
+                        recent_conversation=loaded.recent_conversation,
+                        business_date=self._clock().astimezone(self._timezone).date(),
+                        published_plan=loaded.state.published_plan,
+                        prevalidated_operations=prepared_command.prevalidated_operations,
+                        signed_source_refs=prepared_command.signed_source_refs,
+                        signed_entity_refs=prepared_command.signed_entity_refs,
+                        required_card_section=prepared_command.required_card_section,
+                        card_text_section=prepared_command.card_text_section,
+                    ),
+                    cancellation=cancellation,
+                    tool_executor=self._tool_executor_factory(
+                        self._clock().astimezone(self._timezone).date()
+                    ),
+                    card_service=self._card_service,
+                )
+                if feedback_task is not None:
+                    await feedback_task
+            finally:
+                discovery_progress_emitter.reset(progress_token)
+                if feedback_task is not None:
+                    feedback_task.cancel()
+                    with suppress(asyncio.CancelledError):
+                        await feedback_task
             cancellation.raise_if_cancelled("prepare_commit_barrier")
             if await self._temporary.get_active_generation(trip_id) != str(generation_id):
                 raise ModelGatewayError(
@@ -486,12 +608,25 @@ class PrepareJourneyService:
                     write,
                 )
                 cancellation.raise_if_cancelled("prepare_result_transformer")
+            commit_started = perf_counter()
             committed = await self._turns.commit_turn_result(
                 owner_id,
                 accepted.turn_id,
                 write,
             )
+            commit_ms = (perf_counter() - commit_started) * 1000
             result_committed = True
+            if self._card_service is not None:
+                self._card_service.start_lodging_prefetch(result.candidate.semantic_state)
+            if self._planning_pool is not None:
+                try:
+                    await self._planning_pool.on_commit(owner_id, trip_id, committed.state_version)
+                except Exception as error:
+                    # A committed conversation must still be delivered. Handoff will
+                    # recheck the durable pool instead of silently claiming readiness.
+                    logging.getLogger(__name__).warning(
+                        "prepare pool scheduling failed: %s", type(error).__name__
+                    )
             await record_execution_event(
                 audit_context,
                 "conversation_output_committed",
@@ -515,6 +650,10 @@ class PrepareJourneyService:
                     "terminal_event_ref": f"outbox:{committed.outbox_id}:assistant.completed",
                     "failure_code": write.failure_code,
                     "result_transform": write.decision_audit.get("result_transform"),
+                    "program_timing_ms": {
+                        "context_load": context_load_ms,
+                        "result_commit": commit_ms,
+                    },
                 },
             )
             # The model/tool transaction is complete once the authoritative
@@ -523,7 +662,9 @@ class PrepareJourneyService:
             # also makes a terminal-triggered snapshot recovery observe a
             # cleared active generation instead of resurrecting stale UI state.
             await self._temporary.clear_active_generation_if_matches(trip_id, generation_id)
-            await self.dispatch_committed(committed.outbox_cursor, emit, replay=False)
+            delivery_timing = await self.dispatch_committed(
+                committed.outbox_cursor, emit, replay=False
+            )
             await record_execution_event(
                 audit_context,
                 "conversation_output_dispatched",
@@ -532,6 +673,7 @@ class PrepareJourneyService:
                     "outbox_ref": committed.outbox_cursor,
                     "terminal_event_ref": f"outbox:{committed.outbox_id}:assistant.completed",
                     "browser_terminal_status": "delivered",
+                    "program_timing_ms": delivery_timing,
                 },
             )
         except asyncio.CancelledError:
@@ -706,12 +848,25 @@ class PrepareJourneyService:
         owner_id: UUID,
         trip_id: UUID,
     ) -> _LoadedPrepareContext:
-        projection = await self._turns.load_latest_snapshot(owner_id, trip_id)
-        phase = await self._turns.load_trip_phase(owner_id, trip_id)
+        projection, phase = await asyncio.gather(
+            self._turns.load_latest_snapshot(owner_id, trip_id),
+            self._turns.load_trip_phase(owner_id, trip_id),
+        )
         if projection.kind == "v4":
-            snapshot = await self._turns.load_conversation_snapshot(owner_id, trip_id)
+            snapshot = await self._turns.load_conversation_snapshot(
+                owner_id, trip_id, projection=projection
+            )
+            semantic = snapshot.trip_state.semantic_state
+            if (
+                semantic.long_term_memory_snapshot is None
+                and semantic.confirmed_task_book_ref is None
+            ):
+                memories = await UserMemoryRepository(self._turns._session_factory).list(owner_id)
+                semantic = semantic.model_copy(
+                    update={"long_term_memory_snapshot": memories.memories}
+                )
             return _LoadedPrepareContext(
-                state=snapshot.trip_state,
+                state=snapshot.trip_state.model_copy(update={"semantic_state": semantic}),
                 recent_conversation=tuple(snapshot.messages[-6:]),
                 phase=phase,
                 active_attachment=_active_attachment(snapshot),
@@ -741,6 +896,14 @@ class PrepareJourneyService:
                 profile = await self._turns.load_initial_cold_start_profile(owner_id, trip_id)
                 if profile is not None:
                     semantic = semantic.model_copy(update={"cold_start_profile_snapshot": profile})
+            if (
+                semantic.long_term_memory_snapshot is None
+                and semantic.confirmed_task_book_ref is None
+            ):
+                memories = await UserMemoryRepository(self._turns._session_factory).list(owner_id)
+                semantic = semantic.model_copy(
+                    update={"long_term_memory_snapshot": memories.memories}
+                )
             envelope = V4TripStateEnvelope(
                 semantic_state=semantic,
                 discovery_runtime_state=preview.discovery_runtime_state,
@@ -757,12 +920,53 @@ class PrepareJourneyService:
         self,
         command: (
             V4UserMessageCommand
+            | V4TripSetupCommand
             | V4CardAnswerCommand
             | V4RetryInteractionCommand
             | V4TaskBookConfirmationCommand
         ),
         loaded: _LoadedPrepareContext,
     ) -> _PreparedCommand:
+        if isinstance(command, V4TripSetupCommand):
+            basics = loaded.state.semantic_state.trip_basics
+            runtime = loaded.state.discovery_runtime_state
+            if (
+                basics.destination_canonical_id
+                or basics.destination_name
+                or basics.start_date
+                or runtime.current_section is not DiscoverySection.OTHER
+                or runtime.pending_interaction is not None
+                or any(message.role != "system" for message in loaded.recent_conversation)
+                or loaded.state.published_plan is not None
+            ):
+                raise PrepareJourneyError("trip_setup_requires_empty_conversation")
+            payload = command.payload
+            if payload.start_date < self._clock().astimezone(self._timezone).date():
+                raise PrepareJourneyError("trip_setup_date_in_past")
+            city = _trip_setup_city(command)
+            operation = SemanticOperationProposal(
+                root=SetTripBasicsOperation(
+                    operation_type="set_trip_basics",
+                    local_operation_key=str(
+                        uuid5(NAMESPACE_URL, f"trip-setup:{command.request_id}")
+                    ),
+                    target=SemanticTargetV4.TRIP_BASICS,
+                    domain=SemanticDomainV4.GENERAL,
+                    confidence=ConfidenceLevel.HIGH,
+                    source_refs=[f"message:{payload.message_id}"],
+                    destination_name=city.display_name,
+                    destination_canonical_id=city.city_id,
+                    start_date=payload.start_date,
+                    end_date=payload.end_date,
+                    duration_days=(payload.end_date - payload.start_date).days + 1,
+                )
+            )
+            return _PreparedCommand(
+                user_event_kind="trip_setup",
+                user_text=_trip_setup_summary(command),
+                prevalidated_operations=(operation,),
+                signed_entity_refs=(city.city_id,),
+            )
         if isinstance(command, V4UserMessageCommand):
             return _PreparedCommand(
                 user_event_kind="text",
@@ -850,41 +1054,65 @@ class PrepareJourneyService:
         emit: PrepareEventEmitter,
         *,
         replay: bool,
-    ) -> None:
+    ) -> dict[str, float]:
+        started = perf_counter()
+        metrics: dict[str, float] = {"send": 0.0, "ack": 0.0, "frames": 0.0}
         if replay:
             bundle = await self._outbox.load_by_cursor(cursor)
             if bundle is None:
                 raise PrepareJourneyError("committed_outbox_missing")
-            frames = stable_delivery_frames(bundle)
-            for frame in frames:
+            for frame in stable_delivery_frames(bundle):
                 if not await emit(frame.payload):
-                    return
-            return
+                    break
+            metrics["delivery_total"] = (perf_counter() - started) * 1000
+            return metrics
 
         worker_id = f"prepare:{uuid4()}"
         bundle = await self._outbox.claim_by_cursor(cursor, worker_id=worker_id)
+        metrics["claim"] = (perf_counter() - started) * 1000
         if bundle is None:
             raise PrepareJourneyError("committed_outbox_unavailable", retryable=True)
-        try:
-            for frame in pending_delivery_frames(bundle):
-                if not await emit(frame.payload):
-                    await self._outbox.mark_retry(
-                        bundle.outbox_id,
-                        worker_id=worker_id,
-                        error_code="websocket_delivery_failed",
-                        next_attempt_at=self._clock() + timedelta(seconds=5),
-                        max_attempts=5,
-                    )
-                    return
+        # Sending stays ordered; an independent single writer persists every
+        # contiguous acknowledgement. A bounded window prevents unlimited drift.
+        acknowledgements: asyncio.Queue[tuple[int, datetime] | None] = asyncio.Queue(maxsize=8)
+
+        async def persist_acknowledgements() -> None:
+            while (ack := await acknowledgements.get()) is not None:
+                tick = perf_counter()
                 await self._outbox.mark_frame_delivered(
                     bundle.outbox_id,
                     worker_id=worker_id,
-                    sequence=frame.sequence,
-                    delivered_at=self._clock(),
+                    sequence=ack[0],
+                    delivered_at=ack[1],
+                )
+                metrics["ack"] += (perf_counter() - tick) * 1000
+
+        delivered = True
+        try:
+            async with asyncio.TaskGroup() as group:
+                group.create_task(persist_acknowledgements())
+                for frame in pending_delivery_frames(bundle):
+                    tick = perf_counter()
+                    delivered = await emit(frame.payload)
+                    metrics["send"] += (perf_counter() - tick) * 1000
+                    if not delivered:
+                        break
+                    metrics["frames"] += 1
+                    if frame.event_type == "assistant.completed":
+                        metrics["terminal_sent"] = (perf_counter() - started) * 1000
+                    await acknowledgements.put((frame.sequence, self._clock()))
+                await acknowledgements.put(None)
+            if not delivered:
+                await self._outbox.mark_retry(
+                    bundle.outbox_id,
+                    worker_id=worker_id,
+                    error_code="websocket_delivery_failed",
+                    next_attempt_at=self._clock() + timedelta(seconds=5),
+                    max_attempts=5,
                 )
         except (asyncio.CancelledError, Exception):
-            # Release only our lease. A committed reply remains recoverable;
-            # never reset its saved text or contiguous delivery acknowledgements.
+            # An interrupted ack may replay a stable event, never an uncommitted
+            # result. Keep the durable prefix; client event IDs provide deduplication.
             with suppress(OutboxLeaseConflictError):
                 await self._outbox.mark_retry(
                     bundle.outbox_id,
@@ -894,6 +1122,127 @@ class PrepareJourneyService:
                     max_attempts=5,
                 )
             raise
+        metrics["delivery_total"] = (perf_counter() - started) * 1000
+        return metrics
+
+    async def _emit_trip_setup_waiting(
+        self,
+        owner_id: UUID,
+        trip_id: UUID,
+        turn_id: UUID,
+        generation_id: UUID,
+        emit: PrepareEventEmitter,
+        cancellation: ModelCancellation,
+    ) -> None:
+        # This timer runs alongside card generation, never before it.
+        await asyncio.sleep(1)
+        if cancellation.is_cancelled:
+            return
+        if await self._temporary.get_active_generation(trip_id) != str(generation_id):
+            return
+        await self._emit_setup_feedback(
+            owner_id,
+            trip_id,
+            turn_id,
+            generation_id,
+            emit,
+            ordinal=1,
+            message="ITER AI正在为您量身定做景点偏好卡，请稍等。",
+        )
+
+    async def _emit_setup_feedback(
+        self,
+        owner_id: UUID,
+        trip_id: UUID,
+        turn_id: UUID,
+        generation_id: UUID,
+        emit: PrepareEventEmitter,
+        *,
+        ordinal: int,
+        message: str,
+    ) -> None:
+        saved = await self._turns.append_setup_feedback(
+            owner_id,
+            trip_id,
+            turn_id,
+            generation_id,
+            ordinal=ordinal,
+            text=message,
+            created_at=self._clock(),
+        )
+        if saved is None:
+            return
+        await self._emit_status(
+            trip_id,
+            turn_id,
+            generation_id,
+            emit,
+            code="trip_setup_recorded" if ordinal == 0 else "trip_setup_generating",
+            message=message,
+            conversation_message=saved,
+        )
+
+    async def _load_generation_status(
+        self, trip_id: UUID, generation_id: str | None
+    ) -> AgentStatusEvent | None:
+        if generation_id is None:
+            return None
+        try:
+            raw = await self._temporary.get_cache(
+                "attraction-progress",
+                "v1",
+                {
+                    "trip_id": str(trip_id),
+                    "generation_id": generation_id,
+                },
+            )
+            if raw is None:
+                return None
+            event = AgentStatusEvent.model_validate(raw)
+            if (
+                event.trip_id == str(trip_id)
+                and event.generation_id == generation_id
+                and event.conversation_message is None
+            ):
+                return event
+        except (RedisError, ValidationError):
+            pass  # Optional progress must never prevent authoritative state recovery.
+        return None
+
+    async def _publish_generation_status(
+        self,
+        trip_id: UUID,
+        turn_id: UUID,
+        generation_id: UUID,
+        phase: DiscoveryProgress,
+        emit: PrepareEventEmitter,
+    ) -> None:
+        event = AgentStatusEvent(
+            event_id=str(uuid4()),
+            event_type="agent.status",
+            trip_id=str(trip_id),
+            turn_id=str(turn_id),
+            generation_id=str(generation_id),
+            sequence=0,
+            emitted_at=self._clock(),
+            status_code=phase.value,
+            message=PROGRESS_COPY[phase],
+        ).model_dump(mode="json")
+
+        async def save() -> None:
+            with suppress(RedisError):
+                await self._temporary.put_cache(
+                    "attraction-progress",
+                    "v1",
+                    {
+                        "trip_id": str(trip_id),
+                        "generation_id": str(generation_id),
+                    },
+                    event,
+                    self._generation_ttl_seconds,
+                )
+
+        await asyncio.gather(save(), emit(event))
 
     async def _emit_status(
         self,
@@ -904,6 +1253,7 @@ class PrepareJourneyService:
         *,
         code: str,
         message: str,
+        conversation_message: ConversationMessageV4 | None = None,
     ) -> None:
         await emit(
             AgentStatusEvent(
@@ -916,6 +1266,7 @@ class PrepareJourneyService:
                 emitted_at=self._clock(),
                 status_code=code,
                 message=message,
+                conversation_message=conversation_message,
             ).model_dump(mode="json")
         )
 
@@ -998,15 +1349,39 @@ class PrepareJourneyService:
             return
 
 
+def _trip_setup_city(command: V4TripSetupCommand) -> CityRegistration:
+    try:
+        city = default_city_registry().resolve(command.payload.city_id)
+    except UnknownCityError as error:
+        raise PrepareJourneyError("trip_setup_unknown_city") from error
+    if city.city_id != command.payload.city_id:
+        raise PrepareJourneyError("trip_setup_unknown_city")
+    return city
+
+
+def _trip_setup_summary(command: V4TripSetupCommand) -> str:
+    city = _trip_setup_city(command)
+    payload = command.payload
+    days = (payload.end_date - payload.start_date).days + 1
+    return (
+        f"目的地：{city.province_name}-{city.display_name}；"
+        f"日期：{payload.start_date} 至 {payload.end_date}，{days}天{days - 1}晚。"
+    )
+
+
 def _command_user_message(
     command: (
         V4UserMessageCommand
+        | V4TripSetupCommand
         | V4CardAnswerCommand
         | V4RetryInteractionCommand
         | V4TaskBookConfirmationCommand
     ),
 ) -> UserMessageWrite:
-    if isinstance(command, V4UserMessageCommand):
+    if isinstance(command, V4TripSetupCommand):
+        message_id = command.payload.message_id
+        text = _trip_setup_summary(command)
+    elif isinstance(command, V4UserMessageCommand):
         message_id = command.payload.message_id
         text = command.payload.text
     else:
@@ -1128,6 +1503,42 @@ def _prepare_card_answer(
     required_card_section: DiscoverySection | None = None
     user_text = command.payload.optional_user_text or "我已经完成这张卡片的选择。"
 
+    quality_multiselect = (
+        card.section is DiscoverySection.LODGING_CLASS_PREFERENCE
+        and card.generation_metadata.strategy_version == "lodging-v2"
+    )
+    if quality_multiselect and command.payload.selections:
+        if any(item.option_id not in options for item in command.payload.selections):
+            raise PrepareJourneyError("v4_card_option_not_issued")
+        chosen = [options[item.option_id] for item in command.payload.selections]
+        values = [item.semantic_value.root for item in chosen]
+        tiers = [
+            value.hotel_quality_tier
+            for value in values
+            if isinstance(value, DirectionSemanticValue) and value.hotel_quality_tier is not None
+        ]
+        types = [
+            cast(Literal["酒店", "民宿"], value.property_type)
+            for value in values
+            if isinstance(value, DirectionSemanticValue) and value.property_type in {"酒店", "民宿"}
+        ]
+        if not tiers or not types:
+            raise PrepareJourneyError("v4_lodging_quality_groups_required")
+        operations.append(
+            SemanticOperationProposal(
+                root=SetLodgingClassPreferenceOperation(
+                    operation_type="set_lodging_class_preference",
+                    local_operation_key=f"{pending.interaction_id}:quality",
+                    target=SemanticTargetV4.LODGING_CLASS,
+                    source_refs=[interaction_ref, *[item.signed_operation_ref for item in chosen]],
+                    confidence=ConfidenceLevel.HIGH,
+                    domain=SemanticDomainV4.LODGING,
+                    hotel_quality_tiers=tiers,
+                    property_types=types,
+                )
+            )
+        )
+
     for selection in command.payload.selections:
         option = options.get(selection.option_id)
         if option is None or option.option_id not in pending.option_refs:
@@ -1195,6 +1606,8 @@ def _prepare_card_answer(
         if card.section is DiscoverySection.LODGING_CLASS_PREFERENCE:
             if selection.disposition != "selected":
                 raise PrepareJourneyError("v4_lodging_class_requires_selection")
+            if quality_multiselect:
+                continue
             operations.append(
                 SemanticOperationProposal(
                     root=SetLodgingClassPreferenceOperation(
@@ -1220,6 +1633,11 @@ def _prepare_card_answer(
                 SemanticOperationProposal(
                     root=SelectPreferenceDirectionOperation(
                         operation_type="select_preference_direction",
+                        replace_lodging_area_choices=(
+                            card.section is DiscoverySection.LODGING_AREA_PREFERENCE
+                            and card.generation_metadata.strategy_version == "lodging-v2"
+                            and not operations
+                        ),
                         local_operation_key=option.signed_operation_ref,
                         target=direction_target,
                         source_refs=source_refs,
@@ -1230,6 +1648,9 @@ def _prepare_card_answer(
                         description=option.description,
                         tags=semantic.tags,
                         search_query=semantic.search_query,
+                        attraction_search_hints=semantic.attraction_search_hints,
+                        dining_search_hints=semantic.dining_search_hints,
+                        lodging_examples=semantic.lodging_examples,
                     )
                 )
             )
@@ -1238,6 +1659,11 @@ def _prepare_card_answer(
                 SemanticOperationProposal(
                     root=ExcludePreferenceDirectionOperation(
                         operation_type="exclude_preference_direction",
+                        replace_lodging_area_choices=(
+                            card.section is DiscoverySection.LODGING_AREA_PREFERENCE
+                            and card.generation_metadata.strategy_version == "lodging-v2"
+                            and not operations
+                        ),
                         local_operation_key=option.signed_operation_ref,
                         target=direction_target,
                         source_refs=source_refs,
@@ -1248,6 +1674,9 @@ def _prepare_card_answer(
                         description=option.description,
                         tags=semantic.tags,
                         search_query=semantic.search_query,
+                        attraction_search_hints=semantic.attraction_search_hints,
+                        dining_search_hints=semantic.dining_search_hints,
+                        lodging_examples=semantic.lodging_examples,
                     )
                 )
             )

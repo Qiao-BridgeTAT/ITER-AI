@@ -25,7 +25,7 @@ const DECK_WIDTH = 610;
 function getCardPosition(
   index: number,
   count: number,
-  expandedIndex: number,
+  expandedIndex: number
 ): WeatherCardPosition {
   const hasExpandedCard = expandedIndex >= 0;
   const expandedDelta = hasExpandedCard
@@ -45,7 +45,7 @@ function getCardPosition(
     }px`,
     "--weather-card-x": `${
       start + index * (COMPACT_CARD_WIDTH + CARD_GAP) + precedingExpansion
-    }px`,
+    }px`
   };
 }
 
@@ -53,7 +53,7 @@ export function WeatherDeck({
   days,
   ariaLabel = "旅行期间天气",
   forceReducedMotion = false,
-  simulateIconFailureForIds = [],
+  simulateIconFailureForIds = []
 }: WeatherDeckProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const expandedIndex = days.findIndex((weather) => weather.id === expandedId);

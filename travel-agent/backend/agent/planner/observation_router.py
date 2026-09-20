@@ -169,9 +169,9 @@ def _rebind_calendar_only_spatial(
         key for key, fact in facts.items() if fact.expires_at is not None and fact.expires_at > now
     }
     available_edges = [edge for edge in spatial.route_edges if edge.status == "available"]
-    if not available_edges or any(
-        ref not in fresh_facts for edge in available_edges for ref in edge.fact_reference_ids
-    ):
+    # ReAct may check a draft's hours before querying any routes. Geometry is
+    # still valid in that case: a calendar update must not erase its clusters.
+    if any(ref not in fresh_facts for edge in available_edges for ref in edge.fact_reference_ids):
         return current
     entries = current.candidate_pool.candidate_by_id()
     if entries.keys() != previous.candidate_pool.candidate_by_id().keys():

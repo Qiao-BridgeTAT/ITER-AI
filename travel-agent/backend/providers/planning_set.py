@@ -1,7 +1,11 @@
 from dataclasses import dataclass
 
 from backend.providers.interfaces import (
-    HoursProvider, PlaceProvider, RouteProvider, TravelProductProvider, WeatherProvider,
+    HoursProvider,
+    PlaceProvider,
+    RouteProvider,
+    TravelProductProvider,
+    WeatherProvider,
 )
 
 

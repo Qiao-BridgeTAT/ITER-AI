@@ -1,0 +1,970 @@
+{
+  "$defs": {
+    "AttractionSearchHints": {
+      "additionalProperties": false,
+      "properties": {
+        "representative_places": {
+          "items": {
+            "$ref": "#/$defs/AttractionSearchPlace"
+          },
+          "maxItems": 4,
+          "title": "Representative Places",
+          "type": "array"
+        },
+        "search_queries": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Search Queries",
+          "type": "array"
+        }
+      },
+      "title": "AttractionSearchHints",
+      "type": "object"
+    },
+    "AttractionSearchPlace": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "subcategory": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Subcategory",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "subcategory"
+      ],
+      "title": "AttractionSearchPlace",
+      "type": "object"
+    },
+    "CardControlAction": {
+      "additionalProperties": false,
+      "properties": {
+        "control_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Control Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "no_preference",
+            "delegate",
+            "existing_booking",
+            "not_applicable",
+            "refresh",
+            "free_text"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "signed_operation_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Signed Operation Ref"
+        }
+      },
+      "required": [
+        "control_id",
+        "kind",
+        "label"
+      ],
+      "title": "CardControlAction",
+      "type": "object"
+    },
+    "CardEntityRef": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "entity_kind": {
+          "enum": [
+            "attraction",
+            "restaurant",
+            "area",
+            "transit_node"
+          ],
+          "title": "Entity Kind",
+          "type": "string"
+        },
+        "provider_entity_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Provider Entity Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "canonical_entity_id",
+        "entity_kind",
+        "provider_entity_refs"
+      ],
+      "title": "CardEntityRef",
+      "type": "object"
+    },
+    "CardGenerationMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        },
+        "generation_mode": {
+          "enum": [
+            "qwen",
+            "safe_seed_fallback",
+            "provider_composed",
+            "static"
+          ],
+          "title": "Generation Mode",
+          "type": "string"
+        },
+        "model_plan_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model Plan Id"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "strategy_version": {
+          "default": "legacy",
+          "enum": [
+            "legacy",
+            "attraction-v2",
+            "attraction-v3",
+            "dining-v2",
+            "dining-v3",
+            "lodging-v2"
+          ],
+          "title": "Strategy Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generated_at",
+        "generation_mode"
+      ],
+      "title": "CardGenerationMetadata",
+      "type": "object"
+    },
+    "CardOption": {
+      "additionalProperties": false,
+      "properties": {
+        "composition_role": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CompositionRole"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "coordinates": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Gcj02Coordinates"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "dining_details": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiningDisplayFacts"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "entity_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CardEntityRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "image_source_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image Source Ref"
+        },
+        "image_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image Url"
+        },
+        "label": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "lodging_area_copy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LodgingAreaCopy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "observed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed At"
+        },
+        "option_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Option Id",
+          "type": "string"
+        },
+        "selection_group": {
+          "anyOf": [
+            {
+              "enum": [
+                "quality",
+                "property_type"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selection Group"
+        },
+        "selection_state": {
+          "$ref": "#/$defs/SelectionState",
+          "default": "available"
+        },
+        "semantic_value": {
+          "$ref": "#/$defs/CardSemanticValue"
+        },
+        "signed_operation_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Signed Operation Ref",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "suggested_visit_duration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VisitDurationRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "模型估计的基本到深度游览分钟范围，不含交通、排队和用餐，不是营业事实。"
+        }
+      },
+      "required": [
+        "option_id",
+        "label",
+        "semantic_value",
+        "signed_operation_ref"
+      ],
+      "title": "CardOption",
+      "type": "object"
+    },
+    "CardSemanticValue": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/DirectionSemanticValue"
+        },
+        {
+          "$ref": "#/$defs/EntitySemanticValue"
+        }
+      ],
+      "title": "CardSemanticValue",
+      "type": "object"
+    },
+    "CardStatus": {
+      "enum": [
+        "active",
+        "completed",
+        "superseded",
+        "partial_availability"
+      ],
+      "title": "CardStatus",
+      "type": "string"
+    },
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    },
+    "CompositionRole": {
+      "enum": [
+        "personalized_top",
+        "representative_extra"
+      ],
+      "title": "CompositionRole",
+      "type": "string"
+    },
+    "DiningDisplayFacts": {
+      "additionalProperties": false,
+      "properties": {
+        "average_cost": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cuisine": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cuisine"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "rating": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 5,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rating"
+        },
+        "source_name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source Name",
+          "type": "string"
+        },
+        "source_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_ref",
+        "source_name",
+        "observed_at"
+      ],
+      "title": "DiningDisplayFacts",
+      "type": "object"
+    },
+    "DiningSearchHints": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "local_specialty",
+            "regular"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "representative_restaurants": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 1,
+          "title": "Representative Restaurants",
+          "type": "array"
+        },
+        "search_keywords": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 1,
+          "title": "Search Keywords",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "DiningSearchHints",
+      "type": "object"
+    },
+    "DirectionSemanticValue": {
+      "additionalProperties": false,
+      "properties": {
+        "attraction_search_hints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttractionSearchHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "dining_search_hints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiningSearchHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "direction_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Direction Id",
+          "type": "string"
+        },
+        "direction_kind": {
+          "enum": [
+            "local_representative",
+            "personalized",
+            "hybrid",
+            "area_strategy",
+            "hotel_class"
+          ],
+          "title": "Direction Kind",
+          "type": "string"
+        },
+        "hotel_quality_tier": {
+          "anyOf": [
+            {
+              "enum": [
+                "economy",
+                "comfort",
+                "upscale",
+                "luxury"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hotel Quality Tier"
+        },
+        "kind": {
+          "const": "direction",
+          "title": "Kind",
+          "type": "string"
+        },
+        "lodging_examples": {
+          "items": {
+            "$ref": "#/$defs/LodgingExample"
+          },
+          "maxItems": 3,
+          "title": "Lodging Examples",
+          "type": "array"
+        },
+        "nightly_budget_maximum_minor": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nightly Budget Maximum Minor"
+        },
+        "nightly_budget_minimum_minor": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nightly Budget Minimum Minor"
+        },
+        "property_type": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Property Type"
+        },
+        "search_query": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Search Query"
+        },
+        "tags": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "direction_id",
+        "direction_kind"
+      ],
+      "title": "DirectionSemanticValue",
+      "type": "object"
+    },
+    "EntitySemanticValue": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_dispositions": {
+          "items": {
+            "enum": [
+              "must",
+              "want",
+              "destination",
+              "if_convenient",
+              "avoid"
+            ],
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Allowed Dispositions",
+          "type": "array"
+        },
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "entity_disposition",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "canonical_entity_id",
+        "allowed_dispositions"
+      ],
+      "title": "EntitySemanticValue",
+      "type": "object"
+    },
+    "Gcj02Coordinates": {
+      "additionalProperties": false,
+      "description": "Canonical coordinates used by every internal planning contract.",
+      "properties": {
+        "coord_system": {
+          "const": "gcj_02",
+          "title": "Coord System",
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Gcj02Coordinates",
+      "type": "object"
+    },
+    "LodgingAreaCopy": {
+      "additionalProperties": false,
+      "properties": {
+        "advantage": {
+          "maxLength": 50,
+          "minLength": 2,
+          "title": "Advantage",
+          "type": "string"
+        },
+        "examples": {
+          "items": {
+            "$ref": "#/$defs/LodgingExample"
+          },
+          "maxItems": 3,
+          "minItems": 1,
+          "title": "Examples",
+          "type": "array"
+        },
+        "tradeoff": {
+          "maxLength": 50,
+          "minLength": 2,
+          "title": "Tradeoff",
+          "type": "string"
+        }
+      },
+      "required": [
+        "examples",
+        "advantage",
+        "tradeoff"
+      ],
+      "title": "LodgingAreaCopy",
+      "type": "object"
+    },
+    "LodgingExample": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 80,
+          "minLength": 2,
+          "title": "Name",
+          "type": "string"
+        },
+        "search_keyword": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Search Keyword",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "search_keyword"
+      ],
+      "title": "LodgingExample",
+      "type": "object"
+    },
+    "SelectionState": {
+      "enum": [
+        "available",
+        "selected",
+        "excluded",
+        "unavailable"
+      ],
+      "title": "SelectionState",
+      "type": "string"
+    },
+    "VisitDurationRange": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum_minutes": {
+          "maximum": 600,
+          "minimum": 15,
+          "title": "Maximum Minutes",
+          "type": "integer"
+        },
+        "minimum_minutes": {
+          "maximum": 600,
+          "minimum": 15,
+          "title": "Minimum Minutes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_minutes",
+        "maximum_minutes"
+      ],
+      "title": "VisitDurationRange",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/lodging-class-preference-card.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "attachment_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Attachment Id",
+      "type": "string"
+    },
+    "based_on_state_version": {
+      "minimum": 0,
+      "title": "Based On State Version",
+      "type": "integer"
+    },
+    "control_actions": {
+      "items": {
+        "$ref": "#/$defs/CardControlAction"
+      },
+      "title": "Control Actions",
+      "type": "array"
+    },
+    "dependency_fingerprint": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Dependency Fingerprint",
+      "type": "string"
+    },
+    "domain": {
+      "const": "lodging_class",
+      "default": "lodging_class",
+      "title": "Domain",
+      "type": "string"
+    },
+    "generation_metadata": {
+      "$ref": "#/$defs/CardGenerationMetadata"
+    },
+    "interaction_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Interaction Id",
+      "type": "string"
+    },
+    "kind": {
+      "const": "preference_card",
+      "default": "preference_card",
+      "title": "Kind",
+      "type": "string"
+    },
+    "options": {
+      "items": {
+        "$ref": "#/$defs/CardOption"
+      },
+      "maxItems": 6,
+      "minItems": 5,
+      "title": "Options",
+      "type": "array"
+    },
+    "prompt": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Prompt",
+      "type": "string"
+    },
+    "section": {
+      "const": "lodging_class_preference",
+      "default": "lodging_class_preference",
+      "title": "Section",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/CardStatus"
+    }
+  },
+  "required": [
+    "attachment_id",
+    "interaction_id",
+    "based_on_state_version",
+    "dependency_fingerprint",
+    "status",
+    "options",
+    "generation_metadata",
+    "prompt"
+  ],
+  "title": "LodgingClassPreferenceCard",
+  "type": "object"
+}

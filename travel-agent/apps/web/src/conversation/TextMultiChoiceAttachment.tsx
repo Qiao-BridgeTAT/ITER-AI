@@ -21,7 +21,7 @@ export function TextMultiChoiceAttachment({
   exclusiveOptionId,
   disabled = false,
   onToggle,
-  onConfirm,
+  onConfirm
 }: TextMultiChoiceAttachmentProps) {
   return (
     <div className="text-multi-choice-attachment">

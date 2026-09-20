@@ -1,0 +1,25 @@
+{
+  "$defs": {
+    "CityCode": {
+      "enum": [
+        "beijing",
+        "nanjing"
+      ],
+      "title": "CityCode",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/city-selection.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "city": {
+      "$ref": "#/$defs/CityCode"
+    }
+  },
+  "required": [
+    "city"
+  ],
+  "title": "CitySelection",
+  "type": "object"
+}

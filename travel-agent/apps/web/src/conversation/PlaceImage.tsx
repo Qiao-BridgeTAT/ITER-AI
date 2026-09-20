@@ -2,11 +2,11 @@ import {
   type ComponentPropsWithoutRef,
   type ReactNode,
   forwardRef,
-  useState,
+  useState
 } from "react";
 
-import "./placeImage.css";
 import { placePhotoDisplayUrl } from "./placePhotoSource";
+import "./placeImage.css";
 
 type PlaceImageProps = Omit<
   ComponentPropsWithoutRef<"img">,
@@ -29,7 +29,7 @@ export const PlaceImage = forwardRef<HTMLImageElement, PlaceImageProps>(
       onError,
       ...props
     },
-    ref,
+    ref
   ) {
     const displaySrc = src ? placePhotoDisplayUrl(src) : undefined;
     const [failedSrc, setFailedSrc] = useState<string>();
@@ -54,5 +54,5 @@ export const PlaceImage = forwardRef<HTMLImageElement, PlaceImageProps>(
         }}
       />
     );
-  },
+  }
 );

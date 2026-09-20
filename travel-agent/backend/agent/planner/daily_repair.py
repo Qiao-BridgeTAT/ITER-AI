@@ -34,6 +34,8 @@ FINALIZE_SECONDS = 20
 def bind_execution_budget(
     workspace: PlannerWorkspaceState, turn_id: str, started_at: datetime
 ) -> PlannerWorkspaceState:
+    if workspace.react_state is not None:
+        return workspace
     state = workspace.schedule_repair_state or PlannerScheduleRepairState()
     if state.turn_id == turn_id and state.deadline_at is not None:
         return workspace
@@ -49,6 +51,11 @@ def bind_execution_budget(
 
 
 def execution_remaining(workspace: PlannerWorkspaceState, *, calls: bool = False) -> float:
+    if workspace.react_state is not None:
+        if workspace.react_state.time_limit_disabled:
+            return float("inf")
+        react_end = workspace.react_state.deadline_at - timedelta(seconds=2 if calls else 0)
+        return max(0.0, (react_end - datetime.now(UTC)).total_seconds())
     state = workspace.schedule_repair_state
     end = (state.call_cutoff_at if calls else state.deadline_at) if state else None
     return max(0.0, (end - datetime.now(UTC)).total_seconds()) if end else float("inf")
@@ -140,8 +147,8 @@ def measure_repair_issues(
         add("gap", 3, dict(gap))
     for gap in afternoon_activity_opportunities(workspace, book):
         add("gap", 3, dict(gap), "afternoon_capacity")
-    for detour in dining_commute_issues(workspace):
-        add("dining_route", 4, dict(detour), str(detour["draft_item_id"]))
+    for value in dining_commute_issues(workspace):
+        add("dining_route", 4, value, str(value["draft_item_id"]))
     for gap in evening_activity_opportunities(workspace, book):
         add("evening", 4, dict(gap), "optional_evening")
     return tuple(issues.values())

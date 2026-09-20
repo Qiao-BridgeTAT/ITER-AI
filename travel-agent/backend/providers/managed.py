@@ -16,6 +16,7 @@ from backend.providers.contracts import (
     KeywordPlaceSearchRequest,
     NearbyPlaceSearchRequest,
     PlaceDetailRequest,
+    PolygonPlaceSearchRequest,
     ProductSearchRequest,
     ProviderError,
     ProviderFailureDetail,
@@ -83,6 +84,18 @@ class ManagedPlaceProvider:
             cache_ttl_seconds=POI_CACHE_TTL_SECONDS,
             decode=ProviderResponse[ProviderPlace].model_validate,
             call=lambda: self._delegate.search_nearby(request),
+        )
+
+    async def search_polygon(
+        self, request: PolygonPlaceSearchRequest
+    ) -> ProviderResponse[ProviderPlace]:
+        return await self._runtime.execute(
+            operation="search_polygon",
+            semantic_version="place-polygon-normalized-v1-business-navi",
+            parameters=_parameters(request),
+            cache_ttl_seconds=POI_CACHE_TTL_SECONDS,
+            decode=ProviderResponse[ProviderPlace].model_validate,
+            call=lambda: self._delegate.search_polygon(request),
         )
 
     async def get_place(self, request: PlaceDetailRequest) -> ProviderResponse[ProviderPlace]:
@@ -208,7 +221,7 @@ class ManagedTravelProductProvider:
     ) -> ProviderResponse[ProviderHotelOffer]:
         return await self._runtime.execute(
             operation="search_hotels",
-            semantic_version="hotel-offers-normalized-v1",
+            semantic_version="hotel-offers-normalized-v2-structured-filters",
             parameters=_parameters(request),
             cache_ttl_seconds=HOTEL_PRICE_CACHE_TTL_SECONDS,
             decode=ProviderResponse[ProviderHotelOffer].model_validate,

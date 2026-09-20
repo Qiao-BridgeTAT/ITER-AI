@@ -20,6 +20,7 @@ from backend.contracts.v4.base import (
 from backend.contracts.v4.enums import CandidateEntityKind, PlannerCapability
 from backend.contracts.v4.planner_observations import RouteComparisonInput, SpatialRouteEdge
 from backend.contracts.v4.planner_refs import CandidateRef, PlannerScope
+from backend.contracts.v4.visit_duration import VisitDurationRange
 from backend.providers.contracts import ProviderDateHours
 
 
@@ -31,6 +32,15 @@ class PlannerCandidateOrigin(V4ContractModel):
     provider_entity_id: Identifier
     source_message_id: Identifier
     source_option_id: Identifier
+    display_name: DisplayText | None = Field(default=None, exclude_if=lambda v: v is None)
+    inherit_as_neutral: bool = Field(default=False, exclude_if=lambda v: not v)
+    entity_kind: CandidateEntityKind = CandidateEntityKind.RESTAURANT
+    source_kind: Literal["card", "prepare_pool"] = "card"
+    source_attachment_id: Identifier | None = Field(default=None, exclude_if=lambda v: v is None)
+    dependency_fingerprint: Identifier | None = Field(default=None, exclude_if=lambda v: v is None)
+    suggested_visit_duration: VisitDurationRange | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="after")
     def source_identity_matches_canonical_id(self) -> PlannerCandidateOrigin:
@@ -38,6 +48,10 @@ class PlannerCandidateOrigin(V4ContractModel):
             raise ValueError(
                 "candidate origin cannot transfer a Provider identity to another entity"
             )
+        if self.inherit_as_neutral and not (
+            self.display_name and self.source_attachment_id and self.dependency_fingerprint
+        ):
+            raise ValueError("neutral candidate origin requires its committed source provenance")
         return self
 
 
@@ -56,6 +70,7 @@ class PlannerPlaceEvidence(V4ContractModel):
     address: DisplayText | None = None
     rating: float | None = Field(default=None, ge=0, le=5, exclude_if=lambda v: v is None)
     average_cost: CnyAmountRange | None = Field(default=None, exclude_if=lambda v: v is None)
+    cuisine: DisplayText | None = Field(default=None, exclude_if=lambda v: v is None)
     business_fact_reference_id: Identifier | None = Field(
         default=None, exclude_if=lambda v: v is None
     )
@@ -86,20 +101,15 @@ class PlannerHoursEvidence(V4ContractModel):
         return self
 
 
-class PlannerVisitDurationEstimate(V4ContractModel):
+class PlannerVisitDurationEstimate(VisitDurationRange):
     """Advisory duration, deliberately not a verified opening-hours fact."""
 
     canonical_entity_id: Identifier
-    minimum_minutes: int = Field(ge=15, le=600, strict=True)
-    maximum_minutes: int = Field(ge=15, le=600, strict=True)
     source: Literal["llm_estimate", "category_estimate"]
     context_fingerprint: Digest
-
-    @model_validator(mode="after")
-    def range_is_ordered(self) -> PlannerVisitDurationEstimate:
-        if self.maximum_minutes < self.minimum_minutes:
-            raise ValueError("visit duration maximum must not precede minimum")
-        return self
+    source_reference_ids: tuple[Identifier, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
 
 
 class PlannerWeatherEvidence(V4ContractModel):
@@ -246,7 +256,14 @@ class PlannerInteractionAnswer(V4ContractModel):
     answer_id: Identifier
     interaction_id: Identifier
     option_id: Identifier
-    semantic_action: Literal["keep_task_book", "revise_task_book", "supply_booking_detail"]
+    semantic_action: Literal[
+        "keep_task_book",
+        "revise_task_book",
+        "supply_booking_detail",
+        "keep_required_candidate",
+        "omit_required_candidate",
+    ]
+    affected_refs: tuple[Identifier, ...] = ()
     user_text: DisplayText | None = None
     source_turn_id: Identifier
 

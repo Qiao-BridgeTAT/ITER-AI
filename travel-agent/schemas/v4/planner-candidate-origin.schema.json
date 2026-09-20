@@ -1,0 +1,158 @@
+{
+  "$defs": {
+    "CandidateEntityKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "activity"
+      ],
+      "title": "CandidateEntityKind",
+      "type": "string"
+    },
+    "VisitDurationRange": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum_minutes": {
+          "maximum": 600,
+          "minimum": 15,
+          "title": "Maximum Minutes",
+          "type": "integer"
+        },
+        "minimum_minutes": {
+          "maximum": 600,
+          "minimum": 15,
+          "title": "Minimum Minutes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_minutes",
+        "maximum_minutes"
+      ],
+      "title": "VisitDurationRange",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/planner-candidate-origin.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Identity lookup only; committed cards never substitute for fresh place facts.",
+  "properties": {
+    "canonical_entity_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Canonical Entity Id",
+      "type": "string"
+    },
+    "dependency_fingerprint": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dependency Fingerprint"
+    },
+    "display_name": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Display Name"
+    },
+    "entity_kind": {
+      "$ref": "#/$defs/CandidateEntityKind",
+      "default": "restaurant"
+    },
+    "inherit_as_neutral": {
+      "default": false,
+      "title": "Inherit As Neutral",
+      "type": "boolean"
+    },
+    "provider": {
+      "const": "amap",
+      "default": "amap",
+      "title": "Provider",
+      "type": "string"
+    },
+    "provider_entity_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Provider Entity Id",
+      "type": "string"
+    },
+    "source_attachment_id": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Attachment Id"
+    },
+    "source_kind": {
+      "default": "card",
+      "enum": [
+        "card",
+        "prepare_pool"
+      ],
+      "title": "Source Kind",
+      "type": "string"
+    },
+    "source_message_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Source Message Id",
+      "type": "string"
+    },
+    "source_option_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Source Option Id",
+      "type": "string"
+    },
+    "suggested_visit_duration": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/VisitDurationRange"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "canonical_entity_id",
+    "provider_entity_id",
+    "source_message_id",
+    "source_option_id"
+  ],
+  "title": "PlannerCandidateOrigin",
+  "type": "object"
+}

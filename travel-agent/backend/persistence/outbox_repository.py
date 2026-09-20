@@ -10,7 +10,7 @@ from typing import Any
 from uuid import UUID, uuid5
 
 from pydantic import ValidationError
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, case, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from backend.contracts.v4.conversation import (
@@ -445,6 +445,32 @@ class OutboxRepository:
             raise ValueError("sequence must be greater than zero")
         completed_at = delivered_at or datetime.now(UTC)
         async with self._session_factory() as session, session.begin():
+            # One compare-and-swap statement replaces SELECT FOR UPDATE + flush.
+            # The frozen terminal sequence is validated when the bundle is read.
+            terminal_sequence = OutboxEvent.terminal_event["sequence"].as_integer()
+            is_terminal = terminal_sequence == sequence
+            status = await session.scalar(
+                update(OutboxEvent)
+                .where(
+                    OutboxEvent.id == outbox_id,
+                    OutboxEvent.delivery_status == "leased",
+                    OutboxEvent.leased_by == worker_id,
+                    OutboxEvent.delivered_sequence == sequence - 1,
+                    terminal_sequence >= sequence,
+                )
+                .values(
+                    delivered_sequence=sequence,
+                    delivery_status=case((is_terminal, "delivered"), else_="leased"),
+                    delivered_at=case((is_terminal, completed_at), else_=OutboxEvent.delivered_at),
+                    leased_by=case((is_terminal, None), else_=OutboxEvent.leased_by),
+                    lease_expires_at=case((is_terminal, None), else_=OutboxEvent.lease_expires_at),
+                    last_error_code=case((is_terminal, None), else_=OutboxEvent.last_error_code),
+                )
+                .returning(OutboxEvent.delivery_status)
+                .execution_options(synchronize_session=False)
+            )
+            if status is not None:
+                return str(status)
             row = await session.scalar(
                 select(OutboxEvent).where(OutboxEvent.id == outbox_id).with_for_update()
             )
@@ -454,18 +480,10 @@ class OutboxRepository:
                 return row.delivery_status
             if sequence != row.delivered_sequence + 1:
                 raise OutboxLeaseConflictError("outbox frames must be acknowledged contiguously")
-            terminal_sequence = _row_terminal_sequence(row)
-            if sequence > terminal_sequence:
+            final_sequence = _row_terminal_sequence(row)
+            if sequence > final_sequence:
                 raise OutboxLeaseConflictError("outbox sequence exceeds the terminal frame")
-            row.delivered_sequence = sequence
-            if sequence == terminal_sequence:
-                row.delivery_status = "delivered"
-                row.delivered_at = completed_at
-                row.leased_by = None
-                row.lease_expires_at = None
-                row.last_error_code = None
-            await session.flush()
-            return row.delivery_status
+            raise OutboxPersistenceError("outbox terminal sequence is inconsistent")
 
     async def mark_retry(
         self,

@@ -1,0 +1,25 @@
+{
+  "$id": "https://travel-agent.local/schemas/v1/mutation-request-meta.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "idempotency_key": {
+      "maxLength": 128,
+      "minLength": 8,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]+$",
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "idempotency_key"
+  ],
+  "title": "MutationRequestMeta",
+  "type": "object"
+}

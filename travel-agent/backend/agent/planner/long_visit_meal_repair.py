@@ -2,7 +2,7 @@
 
 import json
 from datetime import date
-from typing import Any
+from typing import Any, cast
 
 from backend.agent.model_gateway import ModelAuditMetadata, ModelMessage, ModelRequest, ModelRole
 from backend.agent.planner.decision_contracts import ModelPlanIntent
@@ -67,32 +67,25 @@ def long_visit_meal_options(
         ):
             continue
         visit = long_visits[0]
-        # The guard above proves that every item refers to a candidate. Keep
-        # that narrowing explicit across the comprehensions below.
-        refs = {
-            item.draft_item_id: item.object_ref
-            for item in day.ordered_items
-            if isinstance(item.object_ref, CandidateRef)
-        }
-        visit_entity_id = refs[visit.draft_item_id].canonical_entity_id
+        visit_ref = cast(CandidateRef, visit.object_ref)
         omitted_visits = [x for x in visits if x is not visit]
+        omitted_refs = [cast(CandidateRef, x.object_ref) for x in omitted_visits]
+        meal_refs = [cast(CandidateRef, x.object_ref) for x in meals]
         if any(
-            (str(day.service_date), refs[x.draft_item_id].canonical_entity_id) not in closed_visits
-            for x in omitted_visits
+            (str(day.service_date), ref.canonical_entity_id) not in closed_visits
+            for ref in omitted_refs
         ):
             continue
-        estimate = estimates.get(visit_entity_id)
+        estimate = estimates.get(visit_ref.canonical_entity_id)
         if visit.onsite_lunch or estimate is None or estimate.maximum_minutes < 300:
             continue
         return {
             "day_index": index,
             "date": str(day.service_date),
-            "visit_key": keys[visit_entity_id],
-            "venue": catalog.candidates[keys[visit_entity_id]].display_name,
-            "meal_keys": [keys[refs[x.draft_item_id].canonical_entity_id] for x in meals],
-            "conflicting_visit_keys": [
-                keys[refs[x.draft_item_id].canonical_entity_id] for x in omitted_visits
-            ],
+            "visit_key": keys[visit_ref.canonical_entity_id],
+            "venue": catalog.candidates[keys[visit_ref.canonical_entity_id]].display_name,
+            "meal_keys": [keys[ref.canonical_entity_id] for ref in meal_refs],
+            "conflicting_visit_keys": [keys[ref.canonical_entity_id] for ref in omitted_refs],
             "conflict": [
                 x
                 for x in schedule_meal_issues(workspace)
@@ -100,22 +93,20 @@ def long_visit_meal_options(
             ],
             "options": [
                 {
-                    "candidate_key": keys[refs[x.draft_item_id].canonical_entity_id],
-                    "name": catalog.candidates[
-                        keys[refs[x.draft_item_id].canonical_entity_id]
-                    ].display_name,
-                    "address": places[refs[x.draft_item_id].canonical_entity_id].address
-                    if refs[x.draft_item_id].canonical_entity_id in places
+                    "candidate_key": keys[ref.canonical_entity_id],
+                    "name": catalog.candidates[keys[ref.canonical_entity_id]].display_name,
+                    "address": places[ref.canonical_entity_id].address
+                    if ref.canonical_entity_id in places
                     else None,
                     "hours": [
                         d.model_dump(mode="json")
                         for h in workspace.hours_evidence
-                        if h.canonical_entity_id == refs[x.draft_item_id].canonical_entity_id
+                        if h.canonical_entity_id == ref.canonical_entity_id
                         for d in h.days
                         if d.service_date == day.service_date
                     ],
                 }
-                for x in meals
+                for ref in meal_refs
             ],
         }
     return None

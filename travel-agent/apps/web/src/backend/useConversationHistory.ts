@@ -3,9 +3,9 @@ import type { ConversationHistoryWindow } from "../generated/v4/contracts";
 import type { TripRuntimeStore } from "../realtime/tripRuntimeStore";
 import {
   BackendRequestError,
-  type RestoreTimings,
-  type TimedConversationView,
   type TravelApiClient,
+  type TimedConversationView,
+  type RestoreTimings
 } from "./travelApiClient";
 
 export type AppliedRestoreTimings = RestoreTimings & {
@@ -19,7 +19,7 @@ export function useConversationHistory(
   api: TravelApiClient,
   tripId: string,
   store: TripRuntimeStore,
-  anonymousSession: { current: string | null },
+  anonymousSession: { current: string | null }
 ) {
   const activeTrip = useRef(tripId);
   activeTrip.current = tripId;
@@ -72,15 +72,15 @@ export function useConversationHistory(
             ? null
             : Math.min(
                 prior.before_state_version,
-                view.history.before_state_version,
+                view.history.before_state_version
               )
           : view.history.before_state_version,
         deferred_attachment_message_ids: [
           ...new Set([
             ...(prior?.deferred_attachment_message_ids ?? []),
-            ...(view.history.deferred_attachment_message_ids ?? []),
-          ]),
-        ],
+            ...(view.history.deferred_attachment_message_ids ?? [])
+          ])
+        ]
       };
       historyRef.current = { tripId, window };
       setHistory(historyRef.current);
@@ -89,11 +89,11 @@ export function useConversationHistory(
           ...view.timings,
           tripId,
           applyMs: performance.now() - applying,
-          appliedAt: performance.now(),
+          appliedAt: performance.now()
         });
       return true;
     },
-    [store, tripId],
+    [store, tripId]
   );
 
   const loadOlderMessages = useCallback(async () => {
@@ -114,7 +114,7 @@ export function useConversationHistory(
         current.window.before_state_version,
         current.window.through_state_version,
         anonymousSession.current ?? undefined,
-        controller.signal,
+        controller.signal
       );
       if (activeTrip.current !== tripId || controller.signal.aborted) return;
       if (!store.getState().addV4HistoryMessages(tripId, page.messages ?? [])) {
@@ -132,17 +132,17 @@ export function useConversationHistory(
           deferred_attachment_message_ids: [
             ...new Set([
               ...(latest.deferred_attachment_message_ids ?? []),
-              ...(page.history.deferred_attachment_message_ids ?? []),
-            ]),
-          ],
-        },
+              ...(page.history.deferred_attachment_message_ids ?? [])
+            ])
+          ]
+        }
       };
       setHistory(historyRef.current);
     } catch {
       if (activeTrip.current === tripId && !controller.signal.aborted) {
         setHistoryError({
           tripId,
-          message: "更早的消息暂未加载成功，当前行程不受影响。",
+          message: "更早的消息暂未加载成功，当前行程不受影响。"
         });
       }
     } finally {
@@ -164,9 +164,9 @@ export function useConversationHistory(
         tripId,
         messageId,
         anonymousSession.current ?? undefined,
-        signal,
+        signal
       ),
-    [api, anonymousSession, tripId],
+    [api, anonymousSession, tripId]
   );
 
   return {
@@ -177,6 +177,6 @@ export function useConversationHistory(
     historyWindow: history?.tripId === tripId ? history.window : null,
     restoreTimings: restoreTimings?.tripId === tripId ? restoreTimings : null,
     historyLoading: loadingTrip === tripId,
-    historyError: historyError?.tripId === tripId ? historyError.message : null,
+    historyError: historyError?.tripId === tripId ? historyError.message : null
   };
 }

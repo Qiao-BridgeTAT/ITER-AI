@@ -2,17 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { discoveryOptionDescription } from "../conversation/discoveryCopy";
 import type {
   ConversationMessageV4,
-  PlannerPlacePreview,
   PlannerPlanPreview,
-  PlannerPublishedPlan,
+  PlannerPlacePreview,
   PlannerWeatherEvidence,
+  PlannerPublishedPlan
 } from "../generated/v4/contracts";
 
 export function usePlanPreview(
   plan: PlannerPublishedPlan | null,
   messages: readonly ConversationMessageV4[],
   enabled: boolean,
-  load: (planVersionId: string) => Promise<PlannerPlanPreview>,
+  load: (planVersionId: string) => Promise<PlannerPlanPreview>
 ): {
   places: readonly PlannerPlacePreview[];
   weather: readonly PlannerWeatherEvidence[];
@@ -51,10 +51,12 @@ export function usePlanPreview(
           const previous = previews.get(id);
           const description =
             card.domain === "attraction" &&
-            card.generation_metadata.strategy_version === "attraction-v2"
+            ["attraction-v2", "attraction-v3"].includes(
+              card.generation_metadata.strategy_version ?? "legacy"
+            )
               ? discoveryOptionDescription(
                   "attraction_specific",
-                  option.description,
+                  option.description
                 )
               : null;
           previews.set(id, {
@@ -63,7 +65,7 @@ export function usePlanPreview(
             image_source_ref: option.image_url
               ? option.image_source_ref
               : (previous?.image_source_ref ?? null),
-            description: description ?? previous?.description ?? null,
+            description: description ?? previous?.description ?? null
           });
         }
       }
@@ -83,10 +85,10 @@ export function usePlanPreview(
           description:
             discoveryOptionDescription(
               "attraction_specific",
-              preview.description,
+              preview.description
             ) ??
             previous?.description ??
-            null,
+            null
         });
       }
     }
@@ -95,7 +97,7 @@ export function usePlanPreview(
       weather:
         loaded?.plan_version_id === version && loaded?.trip_id === tripId
           ? (loaded?.weather_evidence ?? [])
-          : [],
+          : []
     };
   }, [messages, loaded, version, tripId]);
 }

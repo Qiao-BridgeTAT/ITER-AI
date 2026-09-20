@@ -6,7 +6,7 @@ const FOCUSABLE_SELECTOR = [
   "input:not([disabled])",
   "select:not([disabled])",
   "textarea:not([disabled])",
-  "[tabindex]:not([tabindex='-1'])",
+  "[tabindex]:not([tabindex='-1'])"
 ].join(",");
 
 export function useModalFocus<T extends HTMLElement>(onClose: () => void) {
@@ -21,7 +21,7 @@ export function useModalFocus<T extends HTMLElement>(onClose: () => void) {
 
     const focusable = () =>
       Array.from(
-        container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+        container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
       ).filter((element) => !element.hasAttribute("hidden"));
     (focusable()[0] ?? container).focus();
 

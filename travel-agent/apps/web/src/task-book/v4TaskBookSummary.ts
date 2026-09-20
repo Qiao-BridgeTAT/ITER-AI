@@ -1,7 +1,7 @@
 import type {
   TaskBookEntityIntent,
   TaskBookV4,
-  TripSemanticState,
+  TripSemanticState
 } from "../generated/v4/contracts";
 
 export type CompactTaskBookSummary = {
@@ -15,7 +15,7 @@ const HOTEL_QUALITY_LABELS: Record<string, string> = {
   economy: "经济实用",
   comfort: "舒适中档",
   upscale: "高档品质",
-  luxury: "豪华享受",
+  luxury: "豪华享受"
 };
 
 const CLASSIC_NICHE_LABELS: Record<number, string> = {
@@ -23,20 +23,20 @@ const CLASSIC_NICHE_LABELS: Record<number, string> = {
   2: "经典为主",
   3: "经典与兴趣平衡",
   4: "兴趣为主",
-  5: "跟着兴趣走",
+  5: "跟着兴趣走"
 };
 
 export function buildCompactTaskBookSummary(
   taskBook: TaskBookV4,
-  semanticState: TripSemanticState | null = null,
+  semanticState: TripSemanticState | null = null
 ): CompactTaskBookSummary {
   const attractionPreference = firstPreference(
     taskBook.attraction_direction.preferences,
-    coldStartAttractionPreference(semanticState),
+    coldStartAttractionPreference(semanticState)
   );
   const diningPreference = firstPreference(
     taskBook.dining_direction.preferences,
-    coldStartDiningPreference(semanticState),
+    coldStartDiningPreference(semanticState)
   );
 
   return {
@@ -48,23 +48,23 @@ export function buildCompactTaskBookSummary(
       "想去",
       [
         ...(taskBook.attraction_direction.wanted ?? []),
-        ...(taskBook.attraction_direction.if_convenient ?? []),
-      ],
+        ...(taskBook.attraction_direction.if_convenient ?? [])
+      ]
     ),
     diningPreference: joinPreferenceAndIntents(
       diningPreference,
       "必吃",
       taskBook.dining_direction.destination_restaurants ?? [],
       "想吃",
-      taskBook.dining_direction.if_convenient_restaurants ?? [],
+      taskBook.dining_direction.if_convenient_restaurants ?? []
     ),
-    lodgingPreference: lodgingPreference(taskBook),
+    lodgingPreference: lodgingPreference(taskBook)
   };
 }
 
 function destinationAndDates(
   taskBook: TaskBookV4,
-  semanticState: TripSemanticState | null,
+  semanticState: TripSemanticState | null
 ): string {
   const destination = taskBook.destination_and_dates.destination_name;
   const datesWereProvided =
@@ -72,7 +72,7 @@ function destinationAndDates(
   if (!datesWereProvided) return destination;
   const dateRange = formatDateRange(
     taskBook.destination_and_dates.start_date,
-    taskBook.destination_and_dates.end_date,
+    taskBook.destination_and_dates.end_date
   );
   return dateRange ? `${destination} · ${dateRange}` : destination;
 }
@@ -96,20 +96,20 @@ function parseDateParts(value: string) {
   return {
     year: Number(match[1]),
     month: Number(match[2]),
-    day: Number(match[3]),
+    day: Number(match[3])
   };
 }
 
 function firstPreference(
   preferences: Array<{ value: string }> | undefined,
-  fallback: string,
+  fallback: string
 ): string {
   const values = uniqueStrings((preferences ?? []).map((item) => item.value));
   return values.length > 0 ? values.join("、") : fallback;
 }
 
 function coldStartAttractionPreference(
-  semanticState: TripSemanticState | null,
+  semanticState: TripSemanticState | null
 ): string {
   const level =
     semanticState?.cold_start_profile_snapshot?.preferences.classic_niche_level;
@@ -117,7 +117,7 @@ function coldStartAttractionPreference(
 }
 
 function coldStartDiningPreference(
-  semanticState: TripSemanticState | null,
+  semanticState: TripSemanticState | null
 ): string {
   const priorities =
     semanticState?.cold_start_profile_snapshot?.preferences.priority_goals ??
@@ -130,12 +130,12 @@ function joinPreferenceAndIntents(
   strongLabel: string,
   strongIntents: TaskBookEntityIntent[],
   secondaryLabel: string,
-  secondaryIntents: TaskBookEntityIntent[],
+  secondaryIntents: TaskBookEntityIntent[]
 ): string {
   const strong = uniqueIntents(strongIntents);
   const strongIds = new Set(strong.map(intentKey));
   const secondary = uniqueIntents(secondaryIntents).filter(
-    (item) => !strongIds.has(intentKey(item)),
+    (item) => !strongIds.has(intentKey(item))
   );
   const visibleStrong = strong.slice(0, 3);
   const visibleSecondary =
@@ -146,14 +146,14 @@ function joinPreferenceAndIntents(
     parts.push(
       `${strongLabel} ${visibleStrong.map((item) => item.display_name).join("、")}${
         strong.length > 3 ? "等" : ""
-      }`,
+      }`
     );
   }
   if (visibleSecondary.length > 0) {
     parts.push(
       `${secondaryLabel} ${visibleSecondary
         .map((item) => item.display_name)
-        .join("、")}${secondary.length > visibleSecondary.length ? "等" : ""}`,
+        .join("、")}${secondary.length > visibleSecondary.length ? "等" : ""}`
     );
   }
   return parts.length > 0 ? parts.join(" · ") : preference;
@@ -165,14 +165,25 @@ function lodgingPreference(taskBook: TaskBookV4): string {
     taskBook.lodging_direction.existing_booking?.user_description.trim();
   const areas = uniqueStrings(
     (taskBook.lodging_direction.area_preferences ?? []).map(
-      (item) => item.value,
-    ),
+      (item) => item.value
+    )
   );
   const quality = taskBook.lodging_direction.hotel_quality_tier;
   const parts = [
     ...(existingBooking ? [existingBooking] : []),
     ...(areas.length > 0 ? [areas.join("、")] : []),
-    ...(quality ? [HOTEL_QUALITY_LABELS[quality] ?? quality] : []),
+    ...((taskBook.lodging_direction.hotel_quality_tiers ?? []).length > 0
+      ? [
+          (taskBook.lodging_direction.hotel_quality_tiers ?? [])
+            .map((tier) => HOTEL_QUALITY_LABELS[tier] ?? tier)
+            .join("、")
+        ]
+      : quality
+        ? [HOTEL_QUALITY_LABELS[quality] ?? quality]
+        : []),
+    ...(taskBook.lodging_direction.property_type_preferences ?? []).map(
+      (item) => item.value
+    )
   ];
   return parts.length > 0 ? parts.join(" · ") : "灵活安排";
 }

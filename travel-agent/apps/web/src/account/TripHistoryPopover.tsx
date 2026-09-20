@@ -4,7 +4,7 @@ import type { TripListItem } from "../generated/contracts";
 import type {
   NewTripResult,
   TripResumeResult,
-  ViewerSession,
+  ViewerSession
 } from "../session/viewerSession";
 import { tripRows } from "./tripHistoryView";
 
@@ -15,7 +15,7 @@ interface TripHistoryPopoverProps {
   currentTripId: string;
   onSelectTrip: (
     tripId: string,
-    signal?: AbortSignal,
+    signal?: AbortSignal
   ) => Promise<TripResumeResult>;
   onStartNewTrip: () => Promise<NewTripResult>;
   onRetryHistory: () => Promise<boolean>;
@@ -29,7 +29,7 @@ function phaseLabel(phase: TripPhase): string {
 }
 
 function resumeFailureMessage(
-  reason: Exclude<TripResumeResult, { ok: true }>["reason"],
+  reason: Exclude<TripResumeResult, { ok: true }>["reason"]
 ): string {
   if (reason === "not_found") return "这段行程已经不存在，请重新加载列表。";
   if (reason === "forbidden") return "你没有权限打开这段行程。";
@@ -46,7 +46,7 @@ export function TripHistoryPopover({
   onSelectTrip,
   onStartNewTrip,
   onRetryHistory,
-  onSignIn,
+  onSignIn
 }: TripHistoryPopoverProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const [busyTripId, setBusyTripId] = useState<string | null>(null);
@@ -66,7 +66,7 @@ export function TripHistoryPopover({
 
   useEffect(() => {
     const target = sectionRef.current?.querySelector<HTMLElement>(
-      "button:not(:disabled), [tabindex='0']",
+      "button:not(:disabled), [tabindex='0']"
     );
     (target ?? sectionRef.current)?.focus();
     return () => switchRequest.current?.abort();
@@ -107,7 +107,7 @@ export function TripHistoryPopover({
             ? "登录或临时会话已失效，请重新登录后再新建旅行。"
             : result.reason === "invalid"
               ? "新行程返回的数据异常，当前行程已保留，请重试。"
-              : "暂时无法新建旅行，当前行程已保留，请重试。",
+              : "暂时无法新建旅行，当前行程已保留，请重试。"
         );
       }
     } catch {

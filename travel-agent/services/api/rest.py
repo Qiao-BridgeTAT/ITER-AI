@@ -43,6 +43,7 @@ from backend.contracts.rest import (
     UpdateAccountRequest,
 )
 from backend.contracts.trip_setup import TripShell
+from backend.contracts.v4.memory import CreateUserMemory, UserMemoryList
 from backend.domain.authorization import RequestActor
 from backend.persistence.database import create_database_engine, create_session_factory
 from backend.persistence.redis_temporary import RedisTemporaryStore
@@ -176,15 +177,19 @@ def build_actor_resolver(
     auth_service: AuthenticationService,
     *,
     public_app_url: str,
+    allowed_origins: tuple[str, ...] = (),
 ) -> ActorResolver:
-    expected = urlsplit(public_app_url)
-    expected_origin = f"{expected.scheme}://{expected.netloc}"
+    websocket_origins = frozenset(
+        origin
+        for value in (public_app_url, *allowed_origins)
+        if (origin := _normalized_origin(value)) is not None
+    )
 
     async def resolve(connection: HTTPConnection) -> RequestActor:
         session_token = connection.cookies.get(SESSION_COOKIE_NAME, "").strip()
         if connection.scope.get("type") == "websocket" and session_token:
-            origin = connection.headers.get("origin")
-            if origin is None or origin.rstrip("/") != expected_origin.rstrip("/"):
+            origin = _normalized_origin(connection.headers.get("origin", ""))
+            if origin is None or origin not in websocket_origins:
                 raise ServiceError(
                     "origin_not_allowed",
                     "The WebSocket origin is not allowed.",
@@ -197,6 +202,21 @@ def build_actor_resolver(
         return await default_actor_resolver(connection)
 
     return resolve
+
+
+def _normalized_origin(value: str) -> str | None:
+    try:
+        parsed = urlsplit(value.strip())
+        port = parsed.port
+    except ValueError:
+        return None
+    scheme = parsed.scheme.lower()
+    hostname = parsed.hostname.lower() if parsed.hostname else ""
+    if scheme not in {"http", "https"} or not hostname:
+        return None
+    default_port = 443 if scheme == "https" else 80
+    suffix = f":{port}" if port is not None and port != default_port else ""
+    return f"{scheme}://{hostname}{suffix}"
 
 
 def create_rest_router(
@@ -428,6 +448,23 @@ def create_rest_router(
         idempotency_key: IdempotencyHeader,
     ) -> Response:
         await service.delete_trip(await actor(request), trip_id, idempotency_key)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    @router.get("/memories", response_model=UserMemoryList)
+    async def get_memories(request: Request) -> UserMemoryList:
+        return await service.get_memories(await actor(request))
+
+    @router.post("/memories", response_model=UserMemoryList)
+    async def create_memory(
+        payload: CreateUserMemory, request: Request, idempotency_key: IdempotencyHeader
+    ) -> UserMemoryList:
+        return await service.create_memory(await actor(request), payload, idempotency_key)
+
+    @router.delete("/memories/{memory_id}", status_code=status.HTTP_204_NO_CONTENT)
+    async def delete_memory(
+        memory_id: UUID, request: Request, idempotency_key: IdempotencyHeader
+    ) -> Response:
+        await service.delete_memory(await actor(request), memory_id)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     @router.get("/preferences", response_model=PreferenceListView)

@@ -24,7 +24,7 @@ import type {
   SemanticOperationStatus,
   TaskBookStatus,
   ToolObservationStatus,
-  ToolRequestPurpose,
+  ToolRequestPurpose
 } from "./enums";
 
 // prettier-ignore
@@ -47,7 +47,33 @@ export interface AddConditionalRequirementOperation {
 }
 
 // prettier-ignore
+export interface AgentProgressEntry {
+  "emitted_at": string;
+  "event_id": string;
+  "generation_id": string;
+  "progress_index": number;
+  "source": "planner" | "reviewer" | "tool" | "runtime";
+  "text": string;
+  "trip_id": string;
+  "turn_id": string;
+}
+
+// prettier-ignore
+export interface AgentProgressEvent {
+  "emitted_at": string;
+  "event_id": string;
+  "event_type": "agent.progress";
+  "generation_id": string;
+  "progress": AgentProgressEntry;
+  "protocol_version"?: "v4";
+  "sequence": number;
+  "trip_id": string;
+  "turn_id": string;
+}
+
+// prettier-ignore
 export interface AgentStatusEvent {
+  "conversation_message"?: ConversationMessageV4 | null;
   "emitted_at": string;
   "event_id": string;
   "event_type": "agent.status";
@@ -77,6 +103,7 @@ export interface AppliedHotelConstraints {
   "nightly_budget_ref"?: string | null;
   "property_types"?: Array<string>;
   "quality_tier"?: string | null;
+  "quality_tiers"?: Array<"economy" | "comfort" | "upscale" | "luxury">;
   "source_task_book_refs"?: Array<string>;
 }
 
@@ -213,6 +240,18 @@ export interface AttractionPreferenceCard {
 }
 
 // prettier-ignore
+export interface AttractionSearchHints {
+  "representative_places"?: Array<AttractionSearchPlace>;
+  "search_queries"?: Array<string>;
+}
+
+// prettier-ignore
+export interface AttractionSearchPlace {
+  "name": string;
+  "subcategory": string;
+}
+
+// prettier-ignore
 export interface AttractionSemanticProjection {
   "concrete_intents"?: Array<ConcreteIntentState>;
   "delegation"?: DelegatedScope | null;
@@ -239,6 +278,16 @@ export interface BookingReference {
   "source_operation_refs": Array<string>;
   "start_date"?: string | null;
   "user_description": string;
+}
+
+// prettier-ignore
+export interface BoundReview {
+  "draft_digest": string;
+  "draft_revision": number;
+  "evidence_digest": string;
+  "reviewed_at": string;
+  "validation_fingerprint": string;
+  "verdict": ReviewVerdict;
 }
 
 // prettier-ignore
@@ -360,10 +409,10 @@ export interface CardEntityRef {
 // prettier-ignore
 export interface CardGenerationMetadata {
   "generated_at": string;
-  "generation_mode": "qwen" | "safe_seed_fallback" | "provider_composed";
+  "generation_mode": "qwen" | "safe_seed_fallback" | "provider_composed" | "static";
   "model_plan_id"?: string | null;
   "source_refs"?: Array<string>;
-  "strategy_version"?: "legacy" | "attraction-v2" | "dining-v2";
+  "strategy_version"?: "legacy" | "attraction-v2" | "attraction-v3" | "dining-v2" | "dining-v3" | "lodging-v2";
 }
 
 // prettier-ignore
@@ -375,18 +424,22 @@ export interface CardGenerationRecovery {
 // prettier-ignore
 export interface CardOption {
   "composition_role"?: CompositionRole | null;
+  "coordinates"?: Gcj02Coordinates | null;
   "description"?: string | null;
   "dining_details"?: DiningDisplayFacts | null;
   "entity_ref"?: CardEntityRef | null;
   "image_source_ref"?: string | null;
   "image_url"?: string | null;
   "label": string;
+  "lodging_area_copy"?: LodgingAreaCopy | null;
   "observed_at"?: string | null;
   "option_id": string;
+  "selection_group"?: "quality" | "property_type" | null;
   "selection_state"?: SelectionState;
   "semantic_value": CardSemanticValue;
   "signed_operation_ref": string;
   "source_refs"?: Array<string>;
+  "suggested_visit_duration"?: VisitDurationRange | null;
 }
 
 // prettier-ignore
@@ -497,7 +550,7 @@ export interface ConstraintValue {
 }
 
 // prettier-ignore
-export type ConversationEventV4 = TurnAcceptedEvent | AgentStatusEvent | StateCommittedEvent | AssistantStartedEvent | AssistantDeltaEvent | AttachmentReadyEvent | AssistantCompletedEvent | TurnCancelledEvent | TurnFailedEvent;
+export type ConversationEventV4 = TurnAcceptedEvent | AgentProgressEvent | AgentStatusEvent | StateCommittedEvent | AssistantStartedEvent | AssistantDeltaEvent | AttachmentReadyEvent | AssistantCompletedEvent | TurnCancelledEvent | TurnFailedEvent;
 
 // prettier-ignore
 export interface ConversationHistoryPage {
@@ -533,10 +586,13 @@ export interface ConversationMessageV4 {
 // prettier-ignore
 export interface ConversationSnapshotV4 {
   "active_generation_id"?: string | null;
+  "active_generation_status"?: AgentStatusEvent | null;
+  "agent_progress"?: Array<AgentProgressEntry>;
   "last_outbox_cursor"?: string | null;
   "messages"?: Array<ConversationMessageV4>;
   "pending_interaction"?: PendingInteraction | null;
   "planner_workspace"?: PlannerWorkspacePublicView | null;
+  "reference_links"?: Array<TripReferenceLink>;
   "snapshot_at": string;
   "terminal_event"?: ConversationEventV4 | null;
   "trip_state": V4TripStateEnvelope;
@@ -581,6 +637,15 @@ export interface CostValidationDraft {
   "task_book_id": string;
   "task_book_revision": number;
   "trip_id": string;
+}
+
+// prettier-ignore
+export interface CreateUserMemory {
+  "explicitly_confirmed": true;
+  "kind": "preference" | "feedback";
+  "source_message_id"?: string | null;
+  "text": string;
+  "trip_id"?: string | null;
 }
 
 // prettier-ignore
@@ -774,6 +839,49 @@ export interface DiningPreferenceValue {
 }
 
 // prettier-ignore
+export interface DiningQueryHit {
+  "fact_reference_id": string;
+  "page": number;
+  "provider_entity_id": string;
+  "provider_rank": number;
+  "query_key": string;
+}
+
+// prettier-ignore
+export interface DiningRecallCandidate {
+  "allocation_query_key"?: string | null;
+  "candidate_key": string;
+  "place": PlannerPlaceEvidence;
+  "query_hits": Array<DiningQueryHit>;
+  "source_evidence": Array<PlannerPlaceEvidence>;
+}
+
+// prettier-ignore
+export interface DiningSearchAttempt {
+  "admitted_count"?: number;
+  "failure_code"?: string | null;
+  "page": number;
+  "query_key": string;
+  "returned_count"?: number;
+  "status": "complete" | "partial" | "empty" | "unavailable" | "budget_exhausted";
+}
+
+// prettier-ignore
+export interface DiningSearchDirection {
+  "kind": "representative" | "personalized";
+  "limit": number;
+  "query": string;
+  "query_key": string;
+}
+
+// prettier-ignore
+export interface DiningSearchHints {
+  "kind": "local_specialty" | "regular";
+  "representative_restaurants"?: Array<string>;
+  "search_keywords"?: Array<string>;
+}
+
+// prettier-ignore
 export interface DiningSemanticProjection {
   "allergies"?: Array<string>;
   "avoidances"?: Array<string>;
@@ -786,10 +894,13 @@ export interface DiningSemanticProjection {
 
 // prettier-ignore
 export interface DirectionSemanticValue {
+  "attraction_search_hints"?: AttractionSearchHints | null;
+  "dining_search_hints"?: DiningSearchHints | null;
   "direction_id": string;
   "direction_kind": "local_representative" | "personalized" | "hybrid" | "area_strategy" | "hotel_class";
   "hotel_quality_tier"?: "economy" | "comfort" | "upscale" | "luxury" | null;
   "kind": "direction";
+  "lodging_examples"?: Array<LodgingExample>;
   "nightly_budget_maximum_minor"?: number | null;
   "nightly_budget_minimum_minor"?: number | null;
   "property_type"?: string | null;
@@ -987,13 +1098,17 @@ export interface ExcludeConcreteEntityOperation {
 
 // prettier-ignore
 export interface ExcludePreferenceDirectionOperation {
+  "attraction_search_hints"?: AttractionSearchHints | null;
   "confidence": ConfidenceLevel;
   "description"?: string | null;
+  "dining_search_hints"?: DiningSearchHints | null;
   "direction_id": string;
   "domain": SemanticDomainV4;
   "label": string;
   "local_operation_key": string;
+  "lodging_examples"?: Array<LodgingExample>;
   "operation_type": "exclude_preference_direction";
+  "replace_lodging_area_choices"?: boolean;
   "search_query"?: string | null;
   "source_refs": Array<string>;
   "tags"?: Array<string>;
@@ -1131,8 +1246,12 @@ export interface HotelObservation {
   "mode": "not_applicable" | "fixed_booking_verification" | "search";
   "observed_at": string;
   "offers"?: Array<HotelOfferObservation>;
+  "query_attempts"?: Array<HotelQueryAttempt>;
+  "query_origin"?: "prepare_handoff" | "planner_query" | null;
+  "query_status"?: "available" | "empty" | "failed" | "unverified" | null;
   "request_id": string;
   "scope": PlannerScope;
+  "search_keyword"?: string | null;
   "source_reference_ids"?: Array<string>;
   "status": "complete" | "partial" | "unavailable";
   "stay_segments"?: Array<HotelStaySegment>;
@@ -1174,6 +1293,19 @@ export interface HotelOfferRefreshArguments {
 }
 
 // prettier-ignore
+export interface HotelQueryAttempt {
+  "anchor_name"?: string | null;
+  "attempts"?: number;
+  "error_code"?: string | null;
+  "observed_at": string;
+  "outcome": "results" | "empty" | "failed";
+  "result_count"?: number;
+  "retryable"?: boolean;
+  "search_keyword"?: string | null;
+  "stage"?: "search" | "identity";
+}
+
+// prettier-ignore
 export interface HotelSearchArguments {
   "activity_cluster_refs": Array<string>;
   "budget_constraint_ref"?: string | null;
@@ -1182,6 +1314,7 @@ export interface HotelSearchArguments {
   "facility_constraint_refs"?: Array<string>;
   "lodging_preference_refs"?: Array<string>;
   "party_size_ref": string;
+  "search_keyword"?: string | null;
 }
 
 // prettier-ignore
@@ -1257,6 +1390,13 @@ export interface ItineraryValidationResult {
 export type JsonValue = unknown;
 
 // prettier-ignore
+export interface LodgingAreaCopy {
+  "advantage": string;
+  "examples": Array<LodgingExample>;
+  "tradeoff": string;
+}
+
+// prettier-ignore
 export interface LodgingAreaPreferenceCard {
   "attachment_id": string;
   "based_on_state_version": number;
@@ -1277,7 +1417,7 @@ export interface LodgingBaseline {
   "fixed_commitment_ref"?: FixedCommitmentRef | null;
   "mode": "not_applicable" | "fixed" | "selected_offer" | "unresolved";
   "selected_offer_ref"?: HotelOfferRef | null;
-  "unresolved_reason"?: "provider_unavailable" | "no_verified_hotel" | null;
+  "unresolved_reason"?: "provider_unavailable" | "no_verified_hotel" | "not_queried" | "no_results" | "query_failed" | null;
 }
 
 // prettier-ignore
@@ -1303,9 +1443,17 @@ export interface LodgingDirection {
   "existing_booking"?: BookingReference | null;
   "facility_requirements"?: Array<EvidenceBackedText>;
   "hotel_quality_tier"?: string | null;
+  "hotel_quality_tiers"?: Array<"economy" | "comfort" | "upscale" | "luxury">;
   "nightly_budget"?: MoneyRange | null;
   "not_applicable"?: boolean;
   "property_type_preferences"?: Array<EvidenceBackedText>;
+  "search_examples"?: Array<LodgingExample>;
+}
+
+// prettier-ignore
+export interface LodgingExample {
+  "name": string;
+  "search_keyword": string;
 }
 
 // prettier-ignore
@@ -1349,6 +1497,7 @@ export interface LodgingSemanticProjection {
   "existing_bookings"?: Array<BookingReference>;
   "facility_requirements"?: Array<string>;
   "hotel_quality_tier"?: string | null;
+  "hotel_quality_tiers"?: Array<"economy" | "comfort" | "upscale" | "luxury">;
   "nightly_budget"?: MoneyRange | null;
   "not_applicable"?: boolean;
   "property_type_preferences"?: Array<string>;
@@ -1397,6 +1546,46 @@ export interface MissingRouteFact {
 
 // prettier-ignore
 export type MobilityTolerance = "never" | "within_5" | "around_10" | "15_plus";
+
+// prettier-ignore
+export interface ModelDiningReview {
+  "candidate_keys": Array<string>;
+}
+
+// prettier-ignore
+export interface ModelDiningSearchPlan {
+  "city_representative_queries": Array<string>;
+  "exploration_queries": Array<string>;
+}
+
+// prettier-ignore
+export interface ModelDiningSlotChoice {
+  "candidate_key": string | null;
+}
+
+// prettier-ignore
+export interface ModelMessage {
+  "content"?: string;
+  "role": ModelRole;
+  "tool_call_id"?: string | null;
+  "tool_calls"?: Array<ModelToolCall>;
+}
+
+// prettier-ignore
+export type ModelRole = "system" | "user" | "assistant" | "tool";
+
+// prettier-ignore
+export interface ModelToolCall {
+  "function": ModelToolFunction;
+  "id": string;
+  "type"?: "function";
+}
+
+// prettier-ignore
+export interface ModelToolFunction {
+  "arguments"?: string;
+  "name": string;
+}
 
 // prettier-ignore
 export interface MoneyAmount {
@@ -1595,10 +1784,17 @@ export interface PlanConfirmationOperation {
 // prettier-ignore
 export interface PlannerCandidateOrigin {
   "canonical_entity_id": string;
+  "dependency_fingerprint"?: string | null;
+  "display_name"?: string | null;
+  "entity_kind"?: CandidateEntityKind;
+  "inherit_as_neutral"?: boolean;
   "provider"?: "amap";
   "provider_entity_id": string;
+  "source_attachment_id"?: string | null;
+  "source_kind"?: "card" | "prepare_pool";
   "source_message_id": string;
   "source_option_id": string;
+  "suggested_visit_duration"?: VisitDurationRange | null;
 }
 
 // prettier-ignore
@@ -1655,6 +1851,49 @@ export interface PlannerDecisionProposal {
   "payload": BuildOrUpdateStrategyPayload | RequestEvidencePayload | MaterializeDraftPayload | ReviseDraftPayload | AskUserPayload | ProposeFinalizePayload;
   "reason_summary": string;
   "scope": PlannerScope;
+}
+
+// prettier-ignore
+export interface PlannerDiningState {
+  "admitted_canonical_ids"?: Array<string>;
+  "candidates"?: Array<DiningRecallCandidate>;
+  "failure_codes"?: Array<string>;
+  "inherited_canonical_ids"?: Array<string>;
+  "inherited_hits"?: Array<DiningRecallCandidate>;
+  "initial_threshold"?: number;
+  "queries"?: Array<DiningSearchDirection>;
+  "review_attempts"?: number;
+  "review_candidate_keys"?: Array<string>;
+  "search_attempts"?: Array<DiningSearchAttempt>;
+  "search_plan_attempts"?: number;
+  "status"?: "pending" | "skipped" | "recalled" | "reviewed" | "partial" | "unavailable";
+}
+
+// prettier-ignore
+export interface PlannerDraftDayPreview {
+  "service_date": string;
+  "stops": Array<PlannerDraftStopPreview>;
+  "theme": string;
+  "transport_summary": string;
+}
+
+// prettier-ignore
+export interface PlannerDraftPreview {
+  "content_digest": string;
+  "days": Array<PlannerDraftDayPreview>;
+  "draft_id": string;
+  "draft_revision": number;
+  "lodging_summary": string;
+  "notice": string;
+  "status"?: "unverified";
+  "unresolved_issues": Array<string>;
+}
+
+// prettier-ignore
+export interface PlannerDraftStopPreview {
+  "draft_item_id": string;
+  "time_hint": string;
+  "title": string;
 }
 
 // prettier-ignore
@@ -1727,6 +1966,7 @@ export interface PlannerInteraction {
   "interaction_id": string;
   "issue_ids": Array<string>;
   "option_contracts": Array<PlannerInteractionOption>;
+  "question"?: string | null;
   "reason_code": AskUserReasonCode;
   "resume_token": string;
   "scope": PlannerScope;
@@ -1735,10 +1975,11 @@ export interface PlannerInteraction {
 
 // prettier-ignore
 export interface PlannerInteractionAnswer {
+  "affected_refs"?: Array<string>;
   "answer_id": string;
   "interaction_id": string;
   "option_id": string;
-  "semantic_action": "keep_task_book" | "revise_task_book" | "supply_booking_detail";
+  "semantic_action": "keep_task_book" | "revise_task_book" | "supply_booking_detail" | "keep_required_candidate" | "omit_required_candidate";
   "source_turn_id": string;
   "user_text"?: string | null;
 }
@@ -1762,6 +2003,7 @@ export interface PlannerInteractionOption {
 export interface PlannerInteractionPublicView {
   "interaction_id": string;
   "option_contracts": Array<PlannerInteractionOption>;
+  "question"?: string | null;
   "reason_code": AskUserReasonCode;
   "resume_token": string;
   "status": InteractionStatus;
@@ -1776,6 +2018,7 @@ export interface PlannerPlaceEvidence {
   "canonical_entity_id": string;
   "city_id": string;
   "coordinates": Gcj02Coordinates;
+  "cuisine"?: string | null;
   "display_name": string;
   "entity_kind": CandidateEntityKind;
   "fact_reference_id": string;
@@ -1822,6 +2065,7 @@ export interface PlannerPublishedPlan {
   "materialized_schedule": ScheduleValidationDraft;
   "place_evidence"?: Array<PlannerPlaceEvidence>;
   "plan_version_id": string;
+  "planning_notes"?: Array<string>;
   "publication_key": string;
   "published_at": string;
   "route_evidence"?: Array<SpatialRouteEdge>;
@@ -1832,8 +2076,37 @@ export interface PlannerPublishedPlan {
   "trip_id": string;
   "validation_observation": PlannerValidationObservation;
   "validation_report": ItineraryValidationResult;
+  "verification_status"?: "verified" | "with_issues" | "not_reviewed";
   "weather_evidence"?: Array<PlannerWeatherEvidence>;
   "working_itinerary": WorkingItineraryDraft;
+}
+
+// prettier-ignore
+export interface PlannerReactState {
+  "checkpoint_version"?: "v4-planner-react-2";
+  "deadline_at": string;
+  "dialogue_mode"?: "native_tools" | "json_schema";
+  "effective_revisions"?: number;
+  "engine_version"?: "langgraph-react-2";
+  "external_requests"?: number;
+  "long_term_memories"?: Array<UserMemoryView>;
+  "messages"?: Array<ModelMessage>;
+  "native_interrupt_checkpoint"?: Record<string, unknown> | null;
+  "planner_call_limit"?: number;
+  "planner_calls"?: number;
+  "receipts"?: Array<ToolReceipt>;
+  "resumed_interaction_id"?: string | null;
+  "review"?: BoundReview | null;
+  "review_in_progress"?: boolean;
+  "reviewer_batches"?: Array<string>;
+  "reviewer_calls"?: number;
+  "reviewer_messages"?: Array<ModelMessage>;
+  "reviewer_query_rounds"?: number;
+  "route_refresh_only"?: boolean;
+  "stop_reason"?: string | null;
+  "time_limit_disabled"?: boolean;
+  "web_search_blocked"?: boolean;
+  "web_search_calls"?: number;
 }
 
 // prettier-ignore
@@ -1968,6 +2241,7 @@ export interface PlannerVisitDurationEstimate {
   "maximum_minutes": number;
   "minimum_minutes": number;
   "source": "llm_estimate" | "category_estimate";
+  "source_reference_ids"?: Array<string>;
 }
 
 // prettier-ignore
@@ -1988,8 +2262,9 @@ export interface PlannerWorkspacePublicView {
   "active_interaction"?: PlannerInteractionPublicView | null;
   "based_on_task_book_id": string;
   "based_on_task_book_version": number;
+  "draft_preview"?: PlannerDraftPreview | null;
   "generation_id": string;
-  "last_interaction_action"?: "keep_task_book" | "revise_task_book" | "supply_booking_detail" | null;
+  "last_interaction_action"?: "keep_task_book" | "revise_task_book" | "supply_booking_detail" | "keep_required_candidate" | "omit_required_candidate" | null;
   "status": PlannerStatus;
   "trip_id": string;
   "workspace_revision": number;
@@ -2007,6 +2282,7 @@ export interface PlannerWorkspaceState {
   "capability_observations"?: Array<PlannerCapabilityObservation>;
   "cost_draft"?: CostValidationDraft | null;
   "decision_trace"?: Array<PlannerDecision>;
+  "dining_state"?: PlannerDiningState | null;
   "generation_id": string;
   "guard_observations"?: Array<PlannerGuardObservation>;
   "hotel_location_evidence"?: Array<PlannerHotelLocationEvidence>;
@@ -2019,6 +2295,7 @@ export interface PlannerWorkspaceState {
   "place_evidence"?: Array<PlannerPlaceEvidence>;
   "plan_change_request"?: PlanChangeRequest | null;
   "planning_strategy"?: PlanningStrategy | null;
+  "react_state"?: PlannerReactState | null;
   "readiness_observation"?: PlannerReadinessObservation | null;
   "recovery_observations"?: Array<PlannerValidationObservation>;
   "recovery_omissions"?: Array<UnassignedIntent>;
@@ -2069,10 +2346,13 @@ export type PreferenceDirectionCard = AttractionPreferenceCard | DiningPreferenc
 
 // prettier-ignore
 export interface PreferenceDirectionState {
+  "attraction_search_hints"?: AttractionSearchHints | null;
   "coverage_eligible"?: boolean;
   "description"?: string | null;
+  "dining_search_hints"?: DiningSearchHints | null;
   "direction_id": string;
   "label": string;
+  "lodging_examples"?: Array<LodgingExample>;
   "search_query"?: string | null;
   "selected": boolean;
   "source_operation_refs": Array<string>;
@@ -2219,6 +2499,23 @@ export interface RestPolicy {
 export type RestaurantIntent = "destination" | "if_convenient" | "avoid";
 
 // prettier-ignore
+export interface ReviewIssue {
+  "code": string;
+  "description": string;
+  "evidence_refs"?: Array<string>;
+  "severity": "warning" | "error" | "blocking";
+  "suggestion": string;
+  "target": string;
+}
+
+// prettier-ignore
+export interface ReviewVerdict {
+  "accepted": boolean;
+  "issues"?: Array<ReviewIssue>;
+  "summary": string;
+}
+
+// prettier-ignore
 export interface ReviseDraftPayload {
   "action"?: "revise_draft";
   "declared_affected_dates": Array<string>;
@@ -2259,6 +2556,16 @@ export interface RouteEndpointRef {
 
 // prettier-ignore
 export type RouteMode = "walking" | "cycling" | "transit" | "driving";
+
+// prettier-ignore
+export interface RouteQueryFailure {
+  "attempts": number;
+  "code": string;
+  "query_count": number;
+  "retry_after"?: string | null;
+  "retryable": boolean;
+  "upstream_code"?: string | null;
+}
 
 // prettier-ignore
 export type ScheduleActivityKind = "attraction" | "restaurant" | "fixed_event";
@@ -2348,13 +2655,17 @@ export interface SelectConcreteEntityOperation {
 
 // prettier-ignore
 export interface SelectPreferenceDirectionOperation {
+  "attraction_search_hints"?: AttractionSearchHints | null;
   "confidence": ConfidenceLevel;
   "description"?: string | null;
+  "dining_search_hints"?: DiningSearchHints | null;
   "direction_id": string;
   "domain": SemanticDomainV4;
   "label": string;
   "local_operation_key": string;
+  "lodging_examples"?: Array<LodgingExample>;
   "operation_type": "select_preference_direction";
+  "replace_lodging_area_choices"?: boolean;
   "search_query"?: string | null;
   "source_refs": Array<string>;
   "tags"?: Array<string>;
@@ -2516,11 +2827,13 @@ export interface SetLodgingClassPreferenceOperation {
   "confidence": ConfidenceLevel;
   "domain": "lodging";
   "hotel_quality_tier"?: "economy" | "comfort" | "upscale" | "luxury" | null;
+  "hotel_quality_tiers"?: Array<"economy" | "comfort" | "upscale" | "luxury"> | null;
   "local_operation_key": string;
   "nightly_budget_maximum_minor"?: number | null;
   "nightly_budget_minimum_minor"?: number | null;
   "operation_type": "set_lodging_class_preference";
   "property_type"?: string | null;
+  "property_types"?: Array<"酒店" | "民宿"> | null;
   "source_refs": Array<string>;
   "target": SemanticTargetV4;
 }
@@ -2647,6 +2960,7 @@ export interface SpatialRouteEdge {
   "missing_reason"?: string | null;
   "origin": SpatialRouteEndpoint;
   "polyline"?: Array<Gcj02Coordinates>;
+  "query_failure"?: RouteQueryFailure | null;
   "route_edge_id": string;
   "status": "available" | "partial" | "missing";
   "transfer_count"?: number | null;
@@ -2825,6 +3139,17 @@ export interface ToolObservation {
 }
 
 // prettier-ignore
+export interface ToolReceipt {
+  "call": ModelToolCall;
+  "expires_at"?: string | null;
+  "fingerprint": string;
+  "read_only": boolean;
+  "result"?: string | null;
+  "source"?: "planner" | "reviewer";
+  "status"?: "pending" | "completed" | "failed";
+}
+
+// prettier-ignore
 export type ToolRequest = ResolvePlaceRequest | PlaceFactsRequest | OpeningHoursRequest | TicketAvailabilityRequest | WeatherForecastRequest | SpatialRoutesRequest | HotelBookingFactsRequest | PlaceProductsRequest;
 
 // prettier-ignore
@@ -2883,6 +3208,13 @@ export interface TripBasicsProjection {
 }
 
 // prettier-ignore
+export interface TripReferenceLink {
+  "source": "web_search" | "provider_source";
+  "title": string;
+  "url": string;
+}
+
+// prettier-ignore
 export interface TripSemanticState {
   "attractions"?: AttractionSemanticProjection;
   "audit_log"?: Array<SemanticMergeAudit>;
@@ -2895,6 +3227,7 @@ export interface TripSemanticState {
   "existing_bookings"?: Array<BookingReference>;
   "invalidations"?: Array<SemanticInvalidation>;
   "lodging"?: LodgingSemanticProjection;
+  "long_term_memory_snapshot"?: Array<UserMemoryView> | null;
   "state_version"?: number;
   "superseded_entries"?: Array<SemanticStateEntry>;
   "transport_and_pace"?: TransportAndPaceProjection;
@@ -2947,6 +3280,7 @@ export interface TurnFailedEvent {
 export interface UnassignedIntent {
   "candidate_ref": CandidateRef;
   "commitment_level": "strong" | "soft";
+  "planner_reason"?: string | null;
   "reason_code": "infeasible_date" | "capacity_conflict" | "route_conflict" | "opening_conflict" | "budget_conflict" | "duplicate_experience" | "planner_tradeoff" | "user_requested" | "awaiting_user";
   "requires_user_resolution": boolean;
   "supporting_observation_refs": Array<string>;
@@ -2957,6 +3291,21 @@ export interface UseToolAction {
   "domain"?: PrepareDomain | null;
   "kind": "use_tool";
   "requested_targets": Array<string>;
+}
+
+// prettier-ignore
+export interface UserMemoryList {
+  "memories"?: Array<UserMemoryView>;
+}
+
+// prettier-ignore
+export interface UserMemoryView {
+  "created_at": string;
+  "kind": "preference" | "feedback";
+  "memory_id": string;
+  "source_message_id"?: string | null;
+  "text": string;
+  "trip_id"?: string | null;
 }
 
 // prettier-ignore
@@ -3022,7 +3371,7 @@ export interface V4CheckpointEnvelope {
 }
 
 // prettier-ignore
-export type V4ClientCommand = V4UserMessageCommand | V4CardAnswerCommand | V4RetryInteractionCommand | V4TaskBookConfirmationCommand | V4CancelGenerationCommand | V4PlannerResumeCommand | V4PlanTransportSelectionCommand | V4PlannerAnswerCommand;
+export type V4ClientCommand = V4UserMessageCommand | V4TripSetupCommand | V4CardAnswerCommand | V4RetryInteractionCommand | V4TaskBookConfirmationCommand | V4CancelGenerationCommand | V4PlannerResumeCommand | V4PlanTransportSelectionCommand | V4PlannerAnswerCommand;
 
 // prettier-ignore
 export interface V4PlanTransportSelectionCommand {
@@ -3122,6 +3471,26 @@ export interface V4TaskBookConfirmationPayload {
 }
 
 // prettier-ignore
+export interface V4TripSetupCommand {
+  "client_sequence": number;
+  "expected_state_version": number;
+  "idempotency_key": string;
+  "payload": V4TripSetupPayload;
+  "protocol_version"?: "v4";
+  "request_id": string;
+  "schema_version"?: "4.0.0";
+  "type": "trip_setup";
+}
+
+// prettier-ignore
+export interface V4TripSetupPayload {
+  "city_id": string;
+  "end_date": string;
+  "message_id": string;
+  "start_date": string;
+}
+
+// prettier-ignore
 export interface V4TripStateEnvelope {
   "current_plan_version_id"?: string | null;
   "discovery_runtime_state": DiscoveryRuntimeState;
@@ -3200,6 +3569,12 @@ export interface VerifiedFactSummary {
 }
 
 // prettier-ignore
+export interface VisitDurationRange {
+  "maximum_minutes": number;
+  "minimum_minutes": number;
+}
+
+// prettier-ignore
 export interface WalkingPolicy {
   "goal": "minimize" | "balanced" | "no_preference";
   "hard_limit_ref"?: string | null;
@@ -3229,10 +3604,12 @@ export interface WorkingItineraryDay {
   "day_kind": "active" | "arrival_departure" | "rest";
   "day_theme": string;
   "dining_goals"?: Array<"breakfast" | "lunch" | "dinner" | "snack">;
+  "end_time"?: string | null;
   "ordered_items"?: Array<DraftItem>;
   "primary_cluster_id"?: string | null;
   "route_mode_selections"?: Array<DraftRouteModeSelection>;
   "service_date": string;
+  "start_time"?: string | null;
   "transport_preferences": Array<"public_transit" | "taxi" | "walking" | "driving">;
 }
 

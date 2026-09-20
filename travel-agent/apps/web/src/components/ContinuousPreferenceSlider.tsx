@@ -25,14 +25,14 @@ export function ContinuousPreferenceSlider({
   valueText,
   disabled = false,
   showHeading = true,
-  onChange,
+  onChange
 }: ContinuousPreferenceSliderProps) {
   const feedbackId = useId();
   const hasEndpointDescriptions = Boolean(startDescription || endDescription);
   const progressStyle = {
     "--slider-progress": `${value}%`,
     "--slider-feedback-shift": `${-value}%`,
-    "--slider-thumb-offset": `${10 - value * 0.2}px`,
+    "--slider-thumb-offset": `${10 - value * 0.2}px`
   } as CSSProperties;
 
   return (

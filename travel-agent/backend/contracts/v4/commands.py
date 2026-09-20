@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import re
+from datetime import date
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import Field, RootModel, StringConstraints, model_validator
+from pydantic import Field, RootModel, StringConstraints, field_validator, model_validator
 
 from backend.contracts.v4.base import DisplayText, Identifier, V4ContractModel, require_unique
 
@@ -37,6 +39,33 @@ class V4UserMessagePayload(V4ContractModel):
 class V4UserMessageCommand(V4CommandEnvelope):
     type: Literal["user_message"]
     payload: V4UserMessagePayload
+
+
+class V4TripSetupPayload(V4ContractModel):
+    message_id: UUID
+    city_id: str = Field(pattern=r"^cn-[0-9]{6}$")
+    start_date: date
+    end_date: date
+
+    @field_validator("start_date", "end_date", mode="before")
+    @classmethod
+    def calendar_dates_only(cls, value: object) -> object:
+        if isinstance(value, str) and re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+            return value
+        if type(value) is date:
+            return value
+        raise ValueError("trip setup requires YYYY-MM-DD calendar dates")
+
+    @model_validator(mode="after")
+    def supported_range(self) -> V4TripSetupPayload:
+        if not 1 <= (self.end_date - self.start_date).days + 1 <= 5:
+            raise ValueError("trip setup requires an inclusive range of one to five days")
+        return self
+
+
+class V4TripSetupCommand(V4CommandEnvelope):
+    type: Literal["trip_setup"]
+    payload: V4TripSetupPayload
 
 
 class V4CardSelection(V4ContractModel):
@@ -136,6 +165,7 @@ class V4PlannerAnswerCommand(V4CommandEnvelope):
 
 V4ClientCommandValue = Annotated[
     V4UserMessageCommand
+    | V4TripSetupCommand
     | V4CardAnswerCommand
     | V4RetryInteractionCommand
     | V4TaskBookConfirmationCommand

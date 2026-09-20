@@ -1,0 +1,86 @@
+{
+  "$defs": {
+    "AttractionFeedback": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source": {
+                "const": "system_default"
+              }
+            },
+            "required": [
+              "source"
+            ]
+          },
+          "then": {
+            "properties": {
+              "intent": {
+                "const": "if_convenient",
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "intent": {
+          "$ref": "#/$defs/AttractionIntent",
+          "default": "if_convenient"
+        },
+        "place_id": {
+          "format": "uuid",
+          "title": "Place Id",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/FeedbackSource",
+          "default": "system_default"
+        }
+      },
+      "required": [
+        "place_id"
+      ],
+      "title": "AttractionFeedback",
+      "type": "object"
+    },
+    "AttractionIntent": {
+      "enum": [
+        "must",
+        "want",
+        "if_convenient",
+        "avoid"
+      ],
+      "title": "AttractionIntent",
+      "type": "string"
+    },
+    "FeedbackSource": {
+      "enum": [
+        "card",
+        "dialogue",
+        "system_default"
+      ],
+      "title": "FeedbackSource",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/attraction-feedback-submission.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "feedback": {
+      "items": {
+        "$ref": "#/$defs/AttractionFeedback"
+      },
+      "title": "Feedback",
+      "type": "array"
+    }
+  },
+  "title": "AttractionFeedbackSubmission",
+  "type": "object",
+  "x-travel-unique-by": {
+    "arrayField": "feedback",
+    "itemField": "place_id"
+  }
+}

@@ -7,7 +7,7 @@ export function V4CardRecovery({
   disabled,
   conflictMessage,
   onRetry,
-  onReload,
+  onReload
 }: {
   pending: PendingInteraction | null;
   disabled: boolean;

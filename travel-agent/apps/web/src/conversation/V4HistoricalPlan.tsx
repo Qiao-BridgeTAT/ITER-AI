@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   ConversationMessageV4,
-  V4TripStateEnvelope,
+  V4TripStateEnvelope
 } from "../generated/v4/contracts";
 import { buildV4PublishedPlanPresentation } from "../planning/v4PublishedPlanPresentation";
 import { visibleV4PlanCityName } from "../planning/visibleV4PublishedPlan";
@@ -11,14 +11,14 @@ export function V4HistoricalPlan({
   message,
   deferred,
   tripState,
-  load,
+  load
 }: {
   message: ConversationMessageV4;
   deferred: boolean;
   tripState: V4TripStateEnvelope | null;
   load: (
     messageId: string,
-    signal?: AbortSignal,
+    signal?: AbortSignal
   ) => Promise<ConversationMessageV4>;
 }) {
   const [complete, setComplete] = useState<ConversationMessageV4 | null>(null);
@@ -31,13 +31,13 @@ export function V4HistoricalPlan({
     if (!expanded) return null;
     const source = complete ?? message;
     const plan = (source.attachments ?? []).find(
-      (item) => "plan_version_id" in item,
+      (item) => "plan_version_id" in item
     );
     return plan && "plan_version_id" in plan
       ? buildV4PublishedPlanPresentation(
           plan,
           visibleV4PlanCityName(plan, tripState, [source]),
-          "历史版本",
+          "历史版本"
         )
       : null;
   }, [complete, expanded, message, tripState]);

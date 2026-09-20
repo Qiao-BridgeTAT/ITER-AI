@@ -1,0 +1,79 @@
+{
+  "$defs": {
+    "IssueSeverity": {
+      "enum": [
+        "info",
+        "warning",
+        "hard"
+      ],
+      "title": "IssueSeverity",
+      "type": "string"
+    },
+    "PlanningIssueCode": {
+      "enum": [
+        "date_conflict",
+        "opening_hours_conflict",
+        "fixed_event_conflict",
+        "insufficient_travel_time",
+        "time_overlap",
+        "walking_limit",
+        "daily_load",
+        "lodging_coverage",
+        "repeated_experience",
+        "cross_area_backtracking",
+        "meal_timing",
+        "insufficient_buffer",
+        "weather_risk",
+        "missing_data"
+      ],
+      "title": "PlanningIssueCode",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/planning-issue.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "affected_entry_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Affected Entry Ids",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "code": {
+      "$ref": "#/$defs/PlanningIssueCode"
+    },
+    "issue_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Issue Id",
+      "type": "string"
+    },
+    "message": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Message",
+      "type": "string"
+    },
+    "resolved": {
+      "default": false,
+      "title": "Resolved",
+      "type": "boolean"
+    },
+    "severity": {
+      "$ref": "#/$defs/IssueSeverity"
+    }
+  },
+  "required": [
+    "issue_id",
+    "code",
+    "severity",
+    "message"
+  ],
+  "title": "PlanningIssue",
+  "type": "object"
+}

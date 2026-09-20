@@ -22,7 +22,7 @@ const directionVectors: Record<EchoDirection, { x: number; y: number }> = {
   left: { x: -1, y: 0 },
   up: { x: 0, y: -1 },
   down: { x: 0, y: 1 },
-  diagonal: { x: 0.72, y: 0.72 },
+  diagonal: { x: 0.72, y: 0.72 }
 };
 
 function clamp(value: number, minimum: number, maximum: number) {
@@ -41,12 +41,12 @@ export function EchoText({
   fontSize = "clamp(1.25rem, 2.2vw, 1.75rem)",
   fontWeight = 600,
   color = "#10243f",
-  className = "",
+  className = ""
 }: EchoTextProps) {
   const echoCount = clamp(Math.round(echoes), 0, 12);
   const indexes = useMemo(
     () => Array.from({ length: echoCount }, (_, index) => index + 1),
-    [echoCount],
+    [echoCount]
   );
   const vector = directionVectors[direction];
 
@@ -57,7 +57,7 @@ export function EchoText({
     "--echo-vector-y": vector.y,
     color,
     fontSize,
-    fontWeight,
+    fontWeight
   } as CSSProperties;
 
   return (
@@ -74,7 +74,7 @@ export function EchoText({
           "--echo-blur": `${clamp(blur, 0, 8) * depth}px`,
           "--echo-x": `${vector.x * clamp(offset, 0, 64) * index}px`,
           "--echo-y": `${vector.y * clamp(offset, 0, 64) * index}px`,
-          color: tint,
+          color: tint
         } as CSSProperties;
 
         return (
@@ -93,7 +93,7 @@ export function EchoText({
         style={
           {
             "--echo-front-x": `${vector.x * clamp(offset, 0, 64) * 0.35}px`,
-            "--echo-front-y": `${vector.y * clamp(offset, 0, 64) * 0.35}px`,
+            "--echo-front-y": `${vector.y * clamp(offset, 0, 64) * 0.35}px`
           } as CSSProperties
         }
       >

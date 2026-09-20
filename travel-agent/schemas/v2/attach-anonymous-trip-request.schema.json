@@ -1,0 +1,24 @@
+{
+  "$id": "https://travel-agent.local/schemas/v2/attach-anonymous-trip-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "anonymous_session_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Anonymous Session Id",
+      "type": "string"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "anonymous_session_id",
+    "trip_id"
+  ],
+  "title": "AttachAnonymousTripRequest",
+  "type": "object"
+}

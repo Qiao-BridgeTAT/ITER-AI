@@ -1,0 +1,121 @@
+{
+  "$defs": {
+    "DiningOption": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "popular_eatery"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "place_id": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "source_fact_ids": {
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "place_id",
+              "source_fact_ids"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/DiningOptionKind"
+        },
+        "label": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "option_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Option Id",
+          "type": "string"
+        },
+        "place_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Place Id"
+        },
+        "source_fact_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "summary": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "option_id",
+        "kind",
+        "label",
+        "summary"
+      ],
+      "title": "DiningOption",
+      "type": "object"
+    },
+    "DiningOptionKind": {
+      "enum": [
+        "local_cuisine",
+        "popular_eatery"
+      ],
+      "title": "DiningOptionKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/dining-option-card.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "options": {
+      "items": {
+        "$ref": "#/$defs/DiningOption"
+      },
+      "minItems": 1,
+      "title": "Options",
+      "type": "array"
+    }
+  },
+  "required": [
+    "options"
+  ],
+  "title": "DiningOptionCard",
+  "type": "object",
+  "x-travel-unique-by": {
+    "arrayField": "options",
+    "itemField": "option_id"
+  }
+}

@@ -1,0 +1,238 @@
+{
+  "$defs": {
+    "AskUserReasonCode": {
+      "enum": [
+        "incompatible_strong_commitments",
+        "fixed_booking_conflict",
+        "permission_to_relax_constraint",
+        "material_tradeoff_outside_delegation",
+        "missing_user_owned_booking_detail",
+        "revision_budget_exhausted"
+      ],
+      "type": "string"
+    },
+    "CandidateEntityKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "activity"
+      ],
+      "type": "string"
+    },
+    "CardDomain": {
+      "enum": [
+        "attraction",
+        "dining",
+        "lodging_area",
+        "lodging_class"
+      ],
+      "type": "string"
+    },
+    "CardKind": {
+      "enum": [
+        "preference_card",
+        "specific_card",
+        "task_book"
+      ],
+      "type": "string"
+    },
+    "CardStatus": {
+      "enum": [
+        "active",
+        "completed",
+        "superseded",
+        "partial_availability"
+      ],
+      "type": "string"
+    },
+    "CommitmentLevel": {
+      "enum": [
+        "immutable",
+        "strong",
+        "soft",
+        "filler",
+        "neutral",
+        "forbidden"
+      ],
+      "type": "string"
+    },
+    "CompletionMode": {
+      "enum": [
+        "selected",
+        "explicitly_none",
+        "existing_booking",
+        "delegated",
+        "not_applicable"
+      ],
+      "type": "string"
+    },
+    "CompositionRole": {
+      "enum": [
+        "personalized_top",
+        "representative_extra"
+      ],
+      "type": "string"
+    },
+    "ConfidenceLevel": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "type": "string"
+    },
+    "CoverageStatus": {
+      "enum": [
+        "not_started",
+        "in_progress",
+        "complete",
+        "reopened",
+        "not_applicable"
+      ],
+      "type": "string"
+    },
+    "CrossClusterReasonCode": {
+      "enum": [
+        "reservation_or_fixed_commitment",
+        "date_specific_availability",
+        "strong_user_intent",
+        "lodging_or_transport_anchor",
+        "verified_global_route_improvement"
+      ],
+      "type": "string"
+    },
+    "DiscoverySection": {
+      "enum": [
+        "other",
+        "attraction_preference",
+        "attraction_specific",
+        "dining_preference",
+        "dining_specific",
+        "lodging_area_preference",
+        "lodging_class_preference",
+        "final_supplement",
+        "task_book_review"
+      ],
+      "type": "string"
+    },
+    "InteractionStatus": {
+      "enum": [
+        "active",
+        "answered",
+        "superseded",
+        "expired"
+      ],
+      "type": "string"
+    },
+    "PendingInteractionKind": {
+      "enum": [
+        "preference_card",
+        "specific_card",
+        "free_text_question",
+        "confirmation"
+      ],
+      "type": "string"
+    },
+    "PlannerCapability": {
+      "enum": [
+        "candidate_recall",
+        "place_facts",
+        "opening_hours",
+        "ticket_availability",
+        "weather_forecast",
+        "spatial_routes",
+        "hotel_search",
+        "hotel_offer_refresh"
+      ],
+      "type": "string"
+    },
+    "PlannerStatus": {
+      "enum": [
+        "planning",
+        "awaiting_user",
+        "draft_ready",
+        "ready_to_publish",
+        "failed",
+        "cancelled",
+        "stale"
+      ],
+      "type": "string"
+    },
+    "PrepareActionKind": {
+      "enum": [
+        "reply_only",
+        "use_tool",
+        "show_preference_card",
+        "show_specific_card",
+        "ask_clarification",
+        "final_supplement",
+        "generate_task_book"
+      ],
+      "type": "string"
+    },
+    "PrepareDomain": {
+      "enum": [
+        "attraction",
+        "dining",
+        "lodging",
+        "general"
+      ],
+      "type": "string"
+    },
+    "SectionProposalKind": {
+      "enum": [
+        "stay",
+        "complete_and_advance",
+        "reopen"
+      ],
+      "type": "string"
+    },
+    "SelectionState": {
+      "enum": [
+        "available",
+        "selected",
+        "excluded",
+        "unavailable"
+      ],
+      "type": "string"
+    },
+    "SemanticOperationStatus": {
+      "enum": [
+        "proposed",
+        "pending_resolution",
+        "accepted",
+        "rejected"
+      ],
+      "type": "string"
+    },
+    "TaskBookStatus": {
+      "enum": [
+        "draft",
+        "awaiting_confirmation",
+        "confirmed",
+        "superseded"
+      ],
+      "type": "string"
+    },
+    "ToolObservationStatus": {
+      "enum": [
+        "success",
+        "partial",
+        "unavailable",
+        "invalid_request"
+      ],
+      "type": "string"
+    },
+    "ToolRequestPurpose": {
+      "enum": [
+        "answer_user",
+        "validate_operation",
+        "build_card"
+      ],
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/enums.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Travel Agent V4 shared enums"
+}

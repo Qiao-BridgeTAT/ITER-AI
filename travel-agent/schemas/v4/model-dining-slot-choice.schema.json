@@ -1,0 +1,26 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/model-dining-slot-choice.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "candidate_key": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^c[1-9][0-9]*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Candidate Key"
+    }
+  },
+  "required": [
+    "candidate_key"
+  ],
+  "title": "ModelDiningSlotChoice",
+  "type": "object"
+}

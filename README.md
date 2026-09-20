@@ -1,4 +1,4 @@
-# ITER AI
+# ITER AI · V2.0
 
 通过对话理解旅行需求，结合真实地点、路线、住宿等信息，生成可以继续调整的逐日行程。
 
@@ -10,10 +10,16 @@
 
 - 在对话中整理目的地、日期、同行人和旅行偏好。
 - 通过景点、饮食和住宿偏好卡逐步确认需求，生成旅行任务书。
-- 确认任务书后，结合实时查询生成逐日行程、餐厅、住宿、交通及预算参考。
+- 确认任务书后，LangGraph ReAct 主 Agent 自主选择工具、生成行程，并交由独立 Reviewer 核查和反馈修订。
+- Prepare 提前补齐候选和可复用事实；Planner 接入高德 MCP、天气、FlyAI 和可选 Tavily 联网搜索。
+- 规划过程以可折叠自然语言短句展示；来源链接归入“本次资料”，登录用户可管理显式长期偏好。
 - 展示行程地图，支持历史行程恢复和部分行程调整。
 
-模型负责理解需求和选择方案；程序负责时间排程、数据引用、校验与发布。界面使用 React / TypeScript，服务端使用 FastAPI、LangGraph、PostgreSQL 和 Redis。
+模型负责理解需求、选择工具和修订方案；程序负责时间试算、数据引用、预算、持久化、校验与结果提交。界面使用 React / TypeScript，服务端使用 FastAPI、LangGraph、PostgreSQL 和 Redis。
+
+## V2.0 发布验证
+
+开发版本通过后端 3,045 项、前端 724 项和浏览器确定性回归 11 项。公开分发另行通过类型检查、构建、Python 模块导入与应用装配检查。上述检查不代表重新完成真实模型与 Provider 的整轮旅行验收，也不包含服务器部署。
 
 ## 当前限制
 
@@ -38,7 +44,7 @@ flyai --help
 git clone https://github.com/Qiao-BridgeTAT/ITER-AI.git
 cd ITER-AI/travel-agent
 python3.12 -m venv .venv
-.venv/bin/python -m pip install -r requirements-agent.lock .
+.venv/bin/python -m pip install -r requirements-agent.lock -r requirements-mcp.lock .
 cp .env.example .env
 ```
 
@@ -69,6 +75,20 @@ python3.12 -c "import secrets; print(secrets.token_urlsafe(32))"
 `AMAP_SEARCH_PROXY_*` 是可选的服务端 POI 查询代理配置；不使用时保持 URL 和 Key 都为空。启用时必须使用 HTTPS，并自行确认代理的可信性和数据处理条款。其余高德接口不经此代理。
 
 `.env` 不是自动配置完成的凭据包。以下命令会执行其中的 shell 赋值，只应加载自己维护的文件；包含空格或 shell 特殊字符的值需要正确引用。
+
+### V2.0 Planner 与 MCP
+
+示例配置为新运行启用 `V4_PLANNER_ENGINE=langgraph-react-2`。Planner 使用 `qwen3.8-flash` 和 JSON Schema，Reviewer 保持独立上下文；已有运行按创建时的引擎恢复。`V4_PLANNER_ENGINE=legacy` 只影响后续新运行。
+
+高德默认连接官方 MCP，使用自己的 `AMAP_WEB_SERVICE_KEY`。如果基础搜索使用单独代理，请给本地搜索 MCP 进程配置自己的 `AMAP_SEARCH_PROXY_URL`、`AMAP_SEARCH_PROXY_KEY` 和匹配网关的参数名，然后在 API 环境配置 `AMAP_SEARCH_MCP_URL=http://127.0.0.1:8766/mcp`：
+
+```bash
+.venv/bin/python -m services.amap_search_mcp --env-file .env --port 8766
+```
+
+本地服务仅监听回环地址；代理凭据留在该服务环境中，路线工具继续走官方 MCP。联网搜索可设置 `TAVILY_MCP_ENABLED=true` 并填写自己的 `TAVILY_API_KEY`。天气和酒店沿用各自服务配置。
+
+新运行默认总预算 180 秒、12 次主 Agent 决策，并限制外部请求与并发。调试可通过配置放宽，但响应时间和外部费用也会增加。无需预约余量即可规划；预约与未知信息作为行程提醒保留。
 
 ### 启动 API
 

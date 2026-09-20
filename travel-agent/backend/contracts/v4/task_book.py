@@ -8,6 +8,10 @@ from pydantic import AwareDatetime, Field, model_validator
 
 from backend.contracts.v4.base import DisplayText, Identifier, V4ContractModel, require_unique
 from backend.contracts.v4.enums import TaskBookStatus
+from backend.contracts.v4.lodging_preferences import (
+    HotelQualityTier,
+    LodgingExample,
+)
 from backend.contracts.v4.semantic_operations import (
     AttractionDisposition,
     DiningDisposition,
@@ -143,7 +147,9 @@ class DiningDirection(V4ContractModel):
 
 
 class LodgingDirection(V4ContractModel):
+    search_examples: list[LodgingExample] = Field(default_factory=list, max_length=7)
     area_preferences: list[EvidenceBackedText] = Field(default_factory=list)
+    hotel_quality_tiers: list[HotelQualityTier] = Field(default_factory=list, max_length=4)
     hotel_quality_tier: str | None = Field(
         default=None,
         pattern=r"^(economy|comfort|upscale|luxury)$",
@@ -161,6 +167,8 @@ class LodgingDirection(V4ContractModel):
             (
                 self.area_preferences,
                 self.hotel_quality_tier,
+                self.hotel_quality_tiers,
+                self.search_examples,
                 self.property_type_preferences,
                 self.nightly_budget,
                 self.facility_requirements,

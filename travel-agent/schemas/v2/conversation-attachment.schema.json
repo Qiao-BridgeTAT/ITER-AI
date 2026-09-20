@@ -1,0 +1,2238 @@
+{
+  "$defs": {
+    "ChoiceOption": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "label": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "option_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Option Id",
+          "type": "string"
+        },
+        "semantic_value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChoiceSemanticValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "option_id",
+        "label"
+      ],
+      "title": "ChoiceOption",
+      "type": "object"
+    },
+    "ChoiceSemanticValue": {
+      "additionalProperties": false,
+      "description": "Typed server meaning for one reviewed exploration option.",
+      "properties": {
+        "domain": {
+          "enum": [
+            "dining_direction",
+            "city_theme"
+          ],
+          "title": "Domain",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "theme",
+            "cuisine",
+            "dietary_requirement",
+            "specific_restaurant",
+            "open_to_any"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "place_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Place Id"
+        },
+        "source_fact_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Source Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "value": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "domain",
+        "kind"
+      ],
+      "title": "ChoiceSemanticValue",
+      "type": "object"
+    },
+    "CompactChoiceAttachment": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "missing_reason": {
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              }
+            },
+            "required": [
+              "missing_reason"
+            ]
+          },
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "available"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "missing_reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "missing"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "external_fact_ids": {
+                "maxItems": 0,
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "superseded"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "editable": {
+                "const": false
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "attachment_id": {
+          "format": "uuid",
+          "title": "Attachment Id",
+          "type": "string"
+        },
+        "availability": {
+          "$ref": "#/$defs/DataAvailability",
+          "default": "available"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "editable": {
+          "default": true,
+          "title": "Editable",
+          "type": "boolean"
+        },
+        "external_fact_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "External Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "generation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generation Id"
+        },
+        "kind": {
+          "const": "compact_choice",
+          "title": "Kind",
+          "type": "string"
+        },
+        "maximum_selections": {
+          "const": 1,
+          "default": 1,
+          "title": "Maximum Selections",
+          "type": "integer"
+        },
+        "minimum_selections": {
+          "const": 1,
+          "default": 1,
+          "title": "Minimum Selections",
+          "type": "integer"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/ChoiceOption"
+          },
+          "maxItems": 4,
+          "minItems": 2,
+          "title": "Options",
+          "type": "array"
+        },
+        "prompt": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Prompt",
+          "type": "string"
+        },
+        "source_message_id": {
+          "format": "uuid",
+          "title": "Source Message Id",
+          "type": "string"
+        },
+        "state_version": {
+          "minimum": 0,
+          "title": "State Version",
+          "type": "integer"
+        },
+        "status": {
+          "default": "active",
+          "enum": [
+            "active",
+            "completed",
+            "superseded"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attachment_id",
+        "source_message_id",
+        "created_at",
+        "state_version",
+        "prompt",
+        "kind",
+        "options"
+      ],
+      "title": "CompactChoiceAttachment",
+      "type": "object",
+      "x-travel-selection-bounds": {
+        "itemIdField": "option_id",
+        "itemsField": "options",
+        "maximumField": "maximum_selections",
+        "minimumField": "minimum_selections"
+      }
+    },
+    "CompactMultiAttachment": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "missing_reason": {
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              }
+            },
+            "required": [
+              "missing_reason"
+            ]
+          },
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "available"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "missing_reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "missing"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "external_fact_ids": {
+                "maxItems": 0,
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "superseded"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "editable": {
+                "const": false
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "attachment_id": {
+          "format": "uuid",
+          "title": "Attachment Id",
+          "type": "string"
+        },
+        "availability": {
+          "$ref": "#/$defs/DataAvailability",
+          "default": "available"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "editable": {
+          "default": true,
+          "title": "Editable",
+          "type": "boolean"
+        },
+        "external_fact_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "External Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "generation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generation Id"
+        },
+        "kind": {
+          "const": "compact_multi",
+          "title": "Kind",
+          "type": "string"
+        },
+        "maximum_selections": {
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Maximum Selections",
+          "type": "integer"
+        },
+        "minimum_selections": {
+          "default": 1,
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Minimum Selections",
+          "type": "integer"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/ChoiceOption"
+          },
+          "maxItems": 8,
+          "minItems": 2,
+          "title": "Options",
+          "type": "array"
+        },
+        "prompt": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Prompt",
+          "type": "string"
+        },
+        "source_message_id": {
+          "format": "uuid",
+          "title": "Source Message Id",
+          "type": "string"
+        },
+        "state_version": {
+          "minimum": 0,
+          "title": "State Version",
+          "type": "integer"
+        },
+        "status": {
+          "default": "active",
+          "enum": [
+            "active",
+            "completed",
+            "superseded"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attachment_id",
+        "source_message_id",
+        "created_at",
+        "state_version",
+        "prompt",
+        "maximum_selections",
+        "kind",
+        "options"
+      ],
+      "title": "CompactMultiAttachment",
+      "type": "object",
+      "x-travel-selection-bounds": {
+        "itemIdField": "option_id",
+        "itemsField": "options",
+        "maximumField": "maximum_selections",
+        "minimumField": "minimum_selections"
+      }
+    },
+    "DataAvailability": {
+      "enum": [
+        "available",
+        "partial",
+        "missing"
+      ],
+      "title": "DataAvailability",
+      "type": "string"
+    },
+    "DetailedChoiceAttachment": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "missing_reason": {
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              }
+            },
+            "required": [
+              "missing_reason"
+            ]
+          },
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "available"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "missing_reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "missing"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "external_fact_ids": {
+                "maxItems": 0,
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "superseded"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "editable": {
+                "const": false
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "attachment_id": {
+          "format": "uuid",
+          "title": "Attachment Id",
+          "type": "string"
+        },
+        "availability": {
+          "$ref": "#/$defs/DataAvailability",
+          "default": "available"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "editable": {
+          "default": true,
+          "title": "Editable",
+          "type": "boolean"
+        },
+        "external_fact_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "External Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "generation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generation Id"
+        },
+        "kind": {
+          "const": "detailed_choice",
+          "title": "Kind",
+          "type": "string"
+        },
+        "maximum_selections": {
+          "const": 1,
+          "default": 1,
+          "title": "Maximum Selections",
+          "type": "integer"
+        },
+        "minimum_selections": {
+          "const": 1,
+          "default": 1,
+          "title": "Minimum Selections",
+          "type": "integer"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/ChoiceOption"
+          },
+          "maxItems": 4,
+          "minItems": 2,
+          "title": "Options",
+          "type": "array"
+        },
+        "prompt": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Prompt",
+          "type": "string"
+        },
+        "source_message_id": {
+          "format": "uuid",
+          "title": "Source Message Id",
+          "type": "string"
+        },
+        "state_version": {
+          "minimum": 0,
+          "title": "State Version",
+          "type": "integer"
+        },
+        "status": {
+          "default": "active",
+          "enum": [
+            "active",
+            "completed",
+            "superseded"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attachment_id",
+        "source_message_id",
+        "created_at",
+        "state_version",
+        "prompt",
+        "kind",
+        "options"
+      ],
+      "title": "DetailedChoiceAttachment",
+      "type": "object",
+      "x-travel-selection-bounds": {
+        "itemIdField": "option_id",
+        "itemsField": "options",
+        "maximumField": "maximum_selections",
+        "minimumField": "minimum_selections"
+      }
+    },
+    "PreferenceSliderAttachment": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "missing_reason": {
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              }
+            },
+            "required": [
+              "missing_reason"
+            ]
+          },
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "available"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "missing_reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "missing"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "external_fact_ids": {
+                "maxItems": 0,
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "superseded"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "editable": {
+                "const": false
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "allow_no_preference": {
+          "default": true,
+          "title": "Allow No Preference",
+          "type": "boolean"
+        },
+        "attachment_id": {
+          "format": "uuid",
+          "title": "Attachment Id",
+          "type": "string"
+        },
+        "availability": {
+          "$ref": "#/$defs/DataAvailability",
+          "default": "available"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "editable": {
+          "default": true,
+          "title": "Editable",
+          "type": "boolean"
+        },
+        "external_fact_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "External Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "generation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generation Id"
+        },
+        "kind": {
+          "const": "preference_slider",
+          "title": "Kind",
+          "type": "string"
+        },
+        "maximum_label": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Maximum Label",
+          "type": "string"
+        },
+        "maximum_value": {
+          "title": "Maximum Value",
+          "type": "number"
+        },
+        "minimum_label": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Minimum Label",
+          "type": "string"
+        },
+        "minimum_value": {
+          "title": "Minimum Value",
+          "type": "number"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "prompt": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Prompt",
+          "type": "string"
+        },
+        "source_message_id": {
+          "format": "uuid",
+          "title": "Source Message Id",
+          "type": "string"
+        },
+        "state_version": {
+          "minimum": 0,
+          "title": "State Version",
+          "type": "integer"
+        },
+        "status": {
+          "default": "active",
+          "enum": [
+            "active",
+            "completed",
+            "superseded"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "step": {
+          "exclusiveMinimum": 0,
+          "title": "Step",
+          "type": "number"
+        }
+      },
+      "required": [
+        "attachment_id",
+        "source_message_id",
+        "created_at",
+        "state_version",
+        "prompt",
+        "kind",
+        "minimum_value",
+        "maximum_value",
+        "step",
+        "minimum_label",
+        "maximum_label"
+      ],
+      "title": "PreferenceSliderAttachment",
+      "type": "object",
+      "x-travel-slider-bounds": {
+        "maximumField": "maximum_value",
+        "minimumField": "minimum_value",
+        "stepField": "step"
+      }
+    },
+    "RecommendationItem": {
+      "additionalProperties": false,
+      "properties": {
+        "city_significance": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "City Significance"
+        },
+        "experience_summary": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Experience Summary"
+        },
+        "image_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image Url"
+        },
+        "main_cost": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Main Cost"
+        },
+        "match_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Match Reason"
+        },
+        "physical_cost": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Physical Cost"
+        },
+        "place_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Place Id"
+        },
+        "recommendation_id": {
+          "format": "uuid",
+          "title": "Recommendation Id",
+          "type": "string"
+        },
+        "source_fact_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Source Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "summary": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        },
+        "time_cost": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Time Cost"
+        },
+        "title": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "recommendation_id",
+        "title",
+        "summary"
+      ],
+      "title": "RecommendationItem",
+      "type": "object"
+    },
+    "RecommendationSetAttachment": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "missing_reason": {
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              }
+            },
+            "required": [
+              "missing_reason"
+            ]
+          },
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "available"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "missing_reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "missing"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "external_fact_ids": {
+                "maxItems": 0,
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "superseded"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "editable": {
+                "const": false
+              }
+            }
+          }
+        },
+        {
+          "else": {
+            "properties": {
+              "items": {
+                "minItems": 1,
+                "type": "array"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "missing"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "items": {
+                "maxItems": 0,
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "else": {
+            "properties": {
+              "external_fact_ids": {
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "external_fact_ids"
+            ]
+          },
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "missing"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "recommendation_domain": {
+                "const": "attraction"
+              }
+            },
+            "required": [
+              "recommendation_domain"
+            ]
+          },
+          "then": {
+            "properties": {
+              "items": {
+                "items": {
+                  "properties": {
+                    "city_significance": {
+                      "type": "string"
+                    },
+                    "experience_summary": {
+                      "type": "string"
+                    },
+                    "physical_cost": {
+                      "type": "string"
+                    },
+                    "place_id": {
+                      "type": "string"
+                    },
+                    "source_fact_ids": {
+                      "minItems": 1,
+                      "type": "array",
+                      "uniqueItems": true
+                    },
+                    "time_cost": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "place_id",
+                    "city_significance",
+                    "experience_summary",
+                    "time_cost",
+                    "physical_cost",
+                    "source_fact_ids"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 10,
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "available"
+              },
+              "recommendation_domain": {
+                "const": "attraction"
+              }
+            },
+            "required": [
+              "recommendation_domain",
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "items": {
+                "maxItems": 10,
+                "minItems": 5,
+                "type": "array"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "attachment_id": {
+          "format": "uuid",
+          "title": "Attachment Id",
+          "type": "string"
+        },
+        "availability": {
+          "$ref": "#/$defs/DataAvailability",
+          "default": "available"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "editable": {
+          "default": true,
+          "title": "Editable",
+          "type": "boolean"
+        },
+        "external_fact_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "External Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "generation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generation Id"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/RecommendationItem"
+          },
+          "maxItems": 20,
+          "title": "Items",
+          "type": "array"
+        },
+        "kind": {
+          "const": "recommendation_set",
+          "title": "Kind",
+          "type": "string"
+        },
+        "maximum_selections": {
+          "maximum": 20,
+          "minimum": 0,
+          "title": "Maximum Selections",
+          "type": "integer"
+        },
+        "minimum_selections": {
+          "default": 0,
+          "maximum": 20,
+          "minimum": 0,
+          "title": "Minimum Selections",
+          "type": "integer"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "prompt": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Prompt",
+          "type": "string"
+        },
+        "recommendation_domain": {
+          "default": "generic",
+          "enum": [
+            "generic",
+            "attraction",
+            "restaurant",
+            "hotel"
+          ],
+          "title": "Recommendation Domain",
+          "type": "string"
+        },
+        "source_message_id": {
+          "format": "uuid",
+          "title": "Source Message Id",
+          "type": "string"
+        },
+        "state_version": {
+          "minimum": 0,
+          "title": "State Version",
+          "type": "integer"
+        },
+        "status": {
+          "default": "active",
+          "enum": [
+            "active",
+            "completed",
+            "superseded"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attachment_id",
+        "source_message_id",
+        "created_at",
+        "state_version",
+        "prompt",
+        "maximum_selections",
+        "kind"
+      ],
+      "title": "RecommendationSetAttachment",
+      "type": "object",
+      "x-travel-recommendation-set": {
+        "attachmentFactIdsField": "external_fact_ids",
+        "domainField": "recommendation_domain",
+        "itemFactIdsField": "source_fact_ids",
+        "itemsField": "items",
+        "placeIdField": "place_id"
+      },
+      "x-travel-selection-bounds": {
+        "itemIdField": "recommendation_id",
+        "itemsField": "items",
+        "maximumField": "maximum_selections",
+        "minimumField": "minimum_selections"
+      }
+    },
+    "TaskBookReferenceAttachment": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "missing_reason": {
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              }
+            },
+            "required": [
+              "missing_reason"
+            ]
+          },
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "available"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "missing_reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "missing"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "external_fact_ids": {
+                "maxItems": 0,
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "superseded"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "editable": {
+                "const": false
+              }
+            }
+          }
+        },
+        {
+          "else": {
+            "properties": {
+              "task_book_id": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "task_book_id"
+            ]
+          },
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "missing"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "task_book_id": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "attachment_id": {
+          "format": "uuid",
+          "title": "Attachment Id",
+          "type": "string"
+        },
+        "availability": {
+          "$ref": "#/$defs/DataAvailability",
+          "default": "available"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "editable": {
+          "default": true,
+          "title": "Editable",
+          "type": "boolean"
+        },
+        "external_fact_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "External Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "generation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generation Id"
+        },
+        "kind": {
+          "const": "task_book_reference",
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "prompt": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Prompt",
+          "type": "string"
+        },
+        "source_message_id": {
+          "format": "uuid",
+          "title": "Source Message Id",
+          "type": "string"
+        },
+        "state_version": {
+          "minimum": 0,
+          "title": "State Version",
+          "type": "integer"
+        },
+        "status": {
+          "default": "active",
+          "enum": [
+            "active",
+            "completed",
+            "superseded"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "task_book_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Task Book Id"
+        }
+      },
+      "required": [
+        "attachment_id",
+        "source_message_id",
+        "created_at",
+        "state_version",
+        "prompt",
+        "kind",
+        "task_book_id",
+        "label"
+      ],
+      "title": "TaskBookReferenceAttachment",
+      "type": "object"
+    },
+    "TextMultiChoiceAttachment": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "missing_reason": {
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              }
+            },
+            "required": [
+              "missing_reason"
+            ]
+          },
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "available"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "missing_reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "missing"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "external_fact_ids": {
+                "maxItems": 0,
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "superseded"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "editable": {
+                "const": false
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "attachment_id": {
+          "format": "uuid",
+          "title": "Attachment Id",
+          "type": "string"
+        },
+        "availability": {
+          "$ref": "#/$defs/DataAvailability",
+          "default": "available"
+        },
+        "context_label": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Context Label"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "editable": {
+          "default": true,
+          "title": "Editable",
+          "type": "boolean"
+        },
+        "exclusive_option_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exclusive Option Id"
+        },
+        "external_fact_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "External Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "generation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generation Id"
+        },
+        "interaction_domain": {
+          "default": "generic",
+          "enum": [
+            "generic",
+            "dining_direction",
+            "city_theme"
+          ],
+          "title": "Interaction Domain",
+          "type": "string"
+        },
+        "kind": {
+          "const": "text_multi_choice",
+          "title": "Kind",
+          "type": "string"
+        },
+        "maximum_selections": {
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Maximum Selections",
+          "type": "integer"
+        },
+        "minimum_selections": {
+          "default": 1,
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Minimum Selections",
+          "type": "integer"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/ChoiceOption"
+          },
+          "maxItems": 12,
+          "minItems": 2,
+          "title": "Options",
+          "type": "array"
+        },
+        "prompt": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Prompt",
+          "type": "string"
+        },
+        "source_message_id": {
+          "format": "uuid",
+          "title": "Source Message Id",
+          "type": "string"
+        },
+        "state_version": {
+          "minimum": 0,
+          "title": "State Version",
+          "type": "integer"
+        },
+        "status": {
+          "default": "active",
+          "enum": [
+            "active",
+            "completed",
+            "superseded"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attachment_id",
+        "source_message_id",
+        "created_at",
+        "state_version",
+        "prompt",
+        "maximum_selections",
+        "kind",
+        "options"
+      ],
+      "title": "TextMultiChoiceAttachment",
+      "type": "object",
+      "x-travel-selection-bounds": {
+        "exclusiveField": "exclusive_option_id",
+        "itemIdField": "option_id",
+        "itemsField": "options",
+        "maximumField": "maximum_selections",
+        "minimumField": "minimum_selections"
+      },
+      "x-travel-semantic-choice": {
+        "attachmentFactIdsField": "external_fact_ids",
+        "domainField": "interaction_domain",
+        "exclusiveField": "exclusive_option_id",
+        "optionsField": "options"
+      }
+    },
+    "WeatherAttachment": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "missing_reason": {
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              }
+            },
+            "required": [
+              "missing_reason"
+            ]
+          },
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "available"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "missing_reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "missing"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "external_fact_ids": {
+                "maxItems": 0,
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "superseded"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "editable": {
+                "const": false
+              }
+            }
+          }
+        },
+        {
+          "else": {
+            "properties": {
+              "days": {
+                "minItems": 1,
+                "type": "array"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "missing"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "days": {
+                "maxItems": 0,
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "else": {
+            "properties": {
+              "external_fact_ids": {
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "external_fact_ids"
+            ]
+          },
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "missing"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "attachment_id": {
+          "format": "uuid",
+          "title": "Attachment Id",
+          "type": "string"
+        },
+        "availability": {
+          "$ref": "#/$defs/DataAvailability",
+          "default": "available"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "days": {
+          "items": {
+            "$ref": "#/$defs/WeatherDaySummary"
+          },
+          "maxItems": 5,
+          "title": "Days",
+          "type": "array"
+        },
+        "editable": {
+          "default": true,
+          "title": "Editable",
+          "type": "boolean"
+        },
+        "external_fact_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "External Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "generation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generation Id"
+        },
+        "kind": {
+          "const": "weather",
+          "title": "Kind",
+          "type": "string"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "prompt": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Prompt",
+          "type": "string"
+        },
+        "source_message_id": {
+          "format": "uuid",
+          "title": "Source Message Id",
+          "type": "string"
+        },
+        "state_version": {
+          "minimum": 0,
+          "title": "State Version",
+          "type": "integer"
+        },
+        "status": {
+          "default": "active",
+          "enum": [
+            "active",
+            "completed",
+            "superseded"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attachment_id",
+        "source_message_id",
+        "created_at",
+        "state_version",
+        "prompt",
+        "kind"
+      ],
+      "title": "WeatherAttachment",
+      "type": "object",
+      "x-travel-unique-by": {
+        "arrayField": "days",
+        "itemField": "date"
+      },
+      "x-travel-weather-days": {
+        "daysField": "days",
+        "maximumField": "maximum_celsius",
+        "minimumField": "minimum_celsius"
+      }
+    },
+    "WeatherDaySummary": {
+      "additionalProperties": false,
+      "properties": {
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "daytime_condition": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Daytime Condition",
+          "type": "string"
+        },
+        "maximum_celsius": {
+          "maximum": 70,
+          "minimum": -90,
+          "title": "Maximum Celsius",
+          "type": "number"
+        },
+        "minimum_celsius": {
+          "maximum": 70,
+          "minimum": -90,
+          "title": "Minimum Celsius",
+          "type": "number"
+        },
+        "nighttime_condition": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nighttime Condition"
+        }
+      },
+      "required": [
+        "date",
+        "daytime_condition",
+        "minimum_celsius",
+        "maximum_celsius"
+      ],
+      "title": "WeatherDaySummary",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/conversation-attachment.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Discriminated union for every V2 message attachment.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CompactChoiceAttachment"
+    },
+    {
+      "$ref": "#/$defs/CompactMultiAttachment"
+    },
+    {
+      "$ref": "#/$defs/DetailedChoiceAttachment"
+    },
+    {
+      "$ref": "#/$defs/PreferenceSliderAttachment"
+    },
+    {
+      "$ref": "#/$defs/TextMultiChoiceAttachment"
+    },
+    {
+      "$ref": "#/$defs/RecommendationSetAttachment"
+    },
+    {
+      "$ref": "#/$defs/TaskBookReferenceAttachment"
+    },
+    {
+      "$ref": "#/$defs/WeatherAttachment"
+    }
+  ],
+  "title": "ConversationAttachment",
+  "type": "object"
+}

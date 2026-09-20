@@ -1,0 +1,174 @@
+{
+  "$defs": {
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    },
+    "DiningDisplayFacts": {
+      "additionalProperties": false,
+      "properties": {
+        "average_cost": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cuisine": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cuisine"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "rating": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 5,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rating"
+        },
+        "source_name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source Name",
+          "type": "string"
+        },
+        "source_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_ref",
+        "source_name",
+        "observed_at"
+      ],
+      "title": "DiningDisplayFacts",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/planner-place-preview.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "description": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    },
+    "dining_details": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DiningDisplayFacts"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "image_source_ref": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Image Source Ref"
+    },
+    "image_url": {
+      "anyOf": [
+        {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Image Url"
+    },
+    "place_id": {
+      "format": "uuid",
+      "title": "Place Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "place_id"
+  ],
+  "title": "PlannerPlacePreview",
+  "type": "object"
+}

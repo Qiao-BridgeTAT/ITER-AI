@@ -1,0 +1,154 @@
+.agent-progress-history {
+  display: grid;
+  gap: 8px;
+  width: min(100%, 900px);
+  min-width: 0;
+  flex: 0 0 auto;
+}
+.agent-progress-run {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #44536a;
+}
+.agent-progress-run summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  min-height: 44px;
+  cursor: pointer;
+  padding: 8px 0;
+  list-style: none;
+}
+.agent-progress-run summary::-webkit-details-marker {
+  display: none;
+}
+.agent-progress-chevron {
+  flex: 0 0 auto;
+  transition: transform 180ms ease;
+}
+.agent-progress-run[open] .agent-progress-chevron,
+.agent-progress-toggle[aria-expanded="true"] .agent-progress-chevron {
+  transform: rotate(90deg);
+}
+.agent-progress-content {
+  --progress-line-height: 24px;
+  --progress-paragraph-gap: 10px;
+  box-sizing: border-box;
+  width: min(100%, 72ch);
+  min-width: 0;
+  max-block-size: min(
+    calc(10 * var(--progress-line-height) + 9 * var(--progress-paragraph-gap)),
+    40vh
+  );
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  margin: 2px 0 14px;
+  padding: 0 12px 0 16px;
+  border-inline-start: 1px solid #d2d8e1;
+  color: #4c586b;
+  font-size: 13px;
+  line-height: var(--progress-line-height);
+}
+.agent-progress-content p {
+  margin: 0;
+  min-block-size: var(--progress-line-height);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.agent-progress-content p + p {
+  margin-block-start: var(--progress-paragraph-gap);
+}
+.agent-progress-content
+  :is([data-progress-source="tool"], [data-progress-source="runtime"]) {
+  color: #5b6575;
+  font-size: 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-progress-chevron {
+    transition: none;
+  }
+}
+.agent-loading-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  width: fit-content;
+}
+.agent-loading-row > .message-bubble-loading {
+  min-width: 0;
+}
+.agent-progress-toggle {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #44536a;
+  cursor: pointer;
+}
+.agent-progress-run summary:hover,
+.agent-progress-toggle:hover {
+  color: #14223a;
+}
+.agent-progress-run summary:focus-visible,
+.agent-progress-toggle:focus-visible,
+.agent-progress-content:focus-visible {
+  outline: 2px solid #176bff;
+  outline-offset: 2px;
+}
+
+.long-term-memory-manager {
+  margin: 0 0 20px;
+  border-bottom: 1px solid var(--border-subtle, #dce2de);
+  font-size: 13px;
+  max-height: 35vh;
+  overflow: auto;
+}
+.long-term-memory-manager summary {
+  cursor: pointer;
+  padding: 10px 0;
+}
+.long-term-memory-manager ul {
+  list-style: none;
+  padding: 0;
+}
+.long-term-memory-manager li {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+.long-term-memory-manager label {
+  display: grid;
+  gap: 6px;
+}
+.long-term-memory-manager input {
+  padding: 8px;
+  border: 1px solid #dce2de;
+  border-radius: 6px;
+}
+.long-term-memory-manager button {
+  margin: 6px 0;
+  padding: 6px 10px;
+  border: 1px solid #dfe6f0;
+  border-radius: 6px;
+  background: #f6f8fb;
+  color: #0c203e;
+  font: inherit;
+  cursor: pointer;
+}
+
+.long-term-memory-manager button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.long-term-memory-manager :is(button, input, summary):focus-visible {
+  outline: 2px solid #176bff;
+  outline-offset: 2px;
+}

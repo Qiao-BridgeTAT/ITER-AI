@@ -1,0 +1,105 @@
+{
+  "$defs": {
+    "ArtifactStatus": {
+      "enum": [
+        "pending",
+        "ready",
+        "failed"
+      ],
+      "title": "ArtifactStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/export-view.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "else": {
+        "properties": {
+          "download_url": {
+            "type": "null"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "status": {
+            "const": "ready"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "download_url": {
+            "not": {
+              "type": "null"
+            }
+          }
+        },
+        "required": [
+          "download_url"
+        ]
+      }
+    }
+  ],
+  "properties": {
+    "artifact_id": {
+      "format": "uuid",
+      "title": "Artifact Id",
+      "type": "string"
+    },
+    "download_url": {
+      "anyOf": [
+        {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Download Url"
+    },
+    "expires_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expires At"
+    },
+    "plan_version_id": {
+      "format": "uuid",
+      "title": "Plan Version Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ArtifactStatus"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "artifact_id",
+    "trip_id",
+    "plan_version_id",
+    "status"
+  ],
+  "title": "ExportView",
+  "type": "object"
+}

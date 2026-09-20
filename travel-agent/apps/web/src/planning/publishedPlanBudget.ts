@@ -2,11 +2,11 @@ import type {
   CategoryCostSummary,
   CostEstimate,
   CostLineItem,
-  TripCostEstimate,
+  TripCostEstimate
 } from "../generated/contracts";
 
 export function buildPublishedPlanBudget(
-  estimate: TripCostEstimate,
+  estimate: TripCostEstimate
 ): CostEstimate | null {
   if (estimate.known_total_per_person == null) return null;
   const items = estimate.categories.map(categoryToLineItem);
@@ -15,7 +15,7 @@ export function buildPublishedPlanBudget(
     items,
     lodging_share_divisor: estimate.lodging_share_divisor ?? 2,
     excluded_costs: estimate.excluded_costs,
-    fetched_at_note: `${estimate.pricing_note}（估算于 ${formatDateTime(estimate.generated_at)}）`,
+    fetched_at_note: `${estimate.pricing_note}（估算于 ${formatDateTime(estimate.generated_at)}）`
   };
 }
 
@@ -36,7 +36,7 @@ function categoryToLineItem(category: CategoryCostSummary): CostLineItem {
         (category.status === "not_applicable"
           ? "本次没有这一类费用"
           : "当前还没有可展示的估算")),
-    source_fact_ids: category.source_reference_ids,
+    source_fact_ids: category.source_reference_ids
   };
 }
 
@@ -48,6 +48,6 @@ function formatDateTime(value: string): string {
         month: "numeric",
         day: "numeric",
         hour: "2-digit",
-        minute: "2-digit",
+        minute: "2-digit"
       }).format(parsed);
 }

@@ -1,0 +1,124 @@
+{
+  "$defs": {
+    "DateInputMode": {
+      "enum": [
+        "suggestion",
+        "natural_language"
+      ],
+      "title": "DateInputMode",
+      "type": "string"
+    },
+    "DateSuggestionKind": {
+      "enum": [
+        "nearest_weekend",
+        "nearby_holiday"
+      ],
+      "title": "DateSuggestionKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/date-selection.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "else": {
+        "properties": {
+          "raw_input": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "suggestion_kind": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "raw_input"
+        ]
+      },
+      "if": {
+        "properties": {
+          "input_mode": {
+            "const": "suggestion"
+          }
+        },
+        "required": [
+          "input_mode"
+        ]
+      },
+      "then": {
+        "properties": {
+          "raw_input": {
+            "type": "null"
+          },
+          "suggestion_kind": {
+            "enum": [
+              "nearest_weekend",
+              "nearby_holiday"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "suggestion_kind"
+        ]
+      }
+    }
+  ],
+  "properties": {
+    "end_date": {
+      "format": "date",
+      "title": "End Date",
+      "type": "string"
+    },
+    "input_mode": {
+      "$ref": "#/$defs/DateInputMode"
+    },
+    "raw_input": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Raw Input"
+    },
+    "start_date": {
+      "format": "date",
+      "title": "Start Date",
+      "type": "string"
+    },
+    "suggestion_kind": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DateSuggestionKind"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "input_mode",
+    "start_date",
+    "end_date"
+  ],
+  "title": "DateSelection",
+  "type": "object",
+  "x-travel-date-range": {
+    "endField": "end_date",
+    "maximumDays": 5,
+    "maximumStartYears": 1,
+    "minimumDays": 1,
+    "minimumStartOffsetDays": 0,
+    "startField": "start_date"
+  }
+}

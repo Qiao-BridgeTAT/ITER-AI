@@ -29,6 +29,7 @@ from backend.agent.planner.daily_repair import (
     refresh_repair_state,
 )
 from backend.agent.planner.dependencies import rebase_workspace_for_plan_change
+from backend.agent.planner.draft_preview import build_draft_preview, draft_preview_response
 from backend.agent.planner.finalization import build_finalize_decision
 from backend.agent.planner.graph import PlannerAgentGraph, PlannerGraphContext
 from backend.agent.planner.plan_change_router import (
@@ -36,8 +37,11 @@ from backend.agent.planner.plan_change_router import (
     requests_hotel_replacement,
     route_published_plan_message,
 )
+from backend.agent.planner.prepared_facts import inherit_prepared_facts
 from backend.agent.planner.proposals import PlannerReferenceCatalog
 from backend.agent.planner.publication import build_planner_published_plan
+from backend.agent.planner.result_delivery import prepare_result_delivery
+from backend.agent.planner.route_refresh import same_planning_choices, same_scheduled_choices
 from backend.agent.planner.timing_quality import (
     has_time_quality_issues,
     natural_day_limitations,
@@ -71,6 +75,7 @@ from backend.contracts.v4.commands import (
     V4UserMessagePayload,
 )
 from backend.contracts.v4.conversation import (
+    AgentProgressEvent,
     AgentStatusEvent,
     ConversationSnapshotV4,
     ConversationView,
@@ -81,15 +86,26 @@ from backend.contracts.v4.conversation import (
     TurnFailedEvent,
     V4Attachment,
 )
-from backend.contracts.v4.enums import InteractionStatus, PlannerStatus
+from backend.contracts.v4.enums import (
+    CandidateEntityKind,
+    CardDomain,
+    CardStatus,
+    InteractionStatus,
+    PlannerStatus,
+    SelectionState,
+)
 from backend.contracts.v4.plan_change import PlanChangeRequest
 from backend.contracts.v4.planner_evidence import PlannerCandidateOrigin, PlannerInteractionAnswer
 from backend.contracts.v4.planner_observations import PlannerInteractionOption
 from backend.contracts.v4.planner_workspace import PlannerWorkspaceState
 from backend.contracts.v4.state import V4TripStateEnvelope
 from backend.contracts.v4.task_book import TaskBookV4
+from backend.discovery.cards.candidate_composition import specific_dependency_fingerprint
+from backend.discovery.planning_candidates import PreparedPlanningPoolService
+from backend.discovery.prepared_evidence import PreparedEvidenceCollector
 from backend.domain.authorization import RequestActor
 from backend.domain.discovery.state_merge import advance_without_operations
+from backend.persistence.agent_progress_repository import AgentProgressRepository
 from backend.persistence.checkpoint_repository import (
     V4_PLANNER_CHECKPOINT_VERSION,
     CheckpointRepository,
@@ -98,6 +114,7 @@ from backend.persistence.checkpoint_repository import (
     PlannerWorkspaceWrite,
 )
 from backend.persistence.outbox_repository import canonical_json_hash
+from backend.persistence.prepared_evidence_repository import PreparedEvidenceRepository
 from backend.persistence.redis_temporary import RedisTemporaryStore
 from backend.persistence.turn_repository import (
     AssistantMessageWrite,
@@ -106,6 +123,7 @@ from backend.persistence.turn_repository import (
     TurnResultWrite,
     UserMessageWrite,
 )
+from backend.persistence.user_memory_repository import UserMemoryRepository
 
 PLANNER_EXECUTION_TIMEOUT_SECONDS = 300
 PLANNER_RECOVERY_TIMEOUT_SECONDS = 110
@@ -124,6 +142,8 @@ class PlannerJourneyService:
         temporary: RedisTemporaryStore,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         model_audit: ModelAuditRecorder | None = None,
+        prepared_evidence: PreparedEvidenceCollector | None = None,
+        planning_pool: PreparedPlanningPoolService | None = None,
     ) -> None:
         self.prepare = prepare
         self.graph = graph
@@ -132,8 +152,14 @@ class PlannerJourneyService:
         self.temporary = temporary
         self.clock = clock
         self.model_audit = model_audit or NoopModelAuditRecorder()
+        self.prepared_evidence = prepared_evidence
+        self.planning_pool = planning_pool
         self._cancellations: dict[str, ModelCancellation] = {}
         self._terminal_turns: set[str] = set()
+
+    @property
+    def progress_store(self) -> AgentProgressRepository:
+        return AgentProgressRepository(self.checkpoints._session_factory)
 
     async def get_snapshot(self, actor: RequestActor, trip_id: UUID) -> ConversationSnapshotV4:
         snapshot = await self.prepare.get_snapshot(actor, trip_id)
@@ -151,6 +177,16 @@ class PlannerJourneyService:
         snapshot: ConversationSnapshotV4,
     ) -> ConversationSnapshotV4:
         owner = await self.prepare.resolve_owner(actor, trip_id)
+        from backend.application.trip_reference_links import collect_reference_links
+
+        snapshot = snapshot.model_copy(
+            update={
+                "agent_progress": await self.progress_store.list(owner, trip_id),
+                "reference_links": collect_reference_links(
+                    await self.checkpoints.list_planner_reference_evidence(owner, trip_id)
+                ),
+            }
+        )
         record = await self._current_record(owner, trip_id, snapshot.trip_state)
         if record is None:
             return snapshot
@@ -183,6 +219,7 @@ class PlannerJourneyService:
                                 include={
                                     "interaction_id",
                                     "reason_code",
+                                    "question",
                                     "option_contracts",
                                     "resume_token",
                                     "status",
@@ -193,8 +230,18 @@ class PlannerJourneyService:
                         else None
                     ),
                     status=workspace.status,
+                    draft_preview=(
+                        build_draft_preview(workspace)
+                        if snapshot.trip_state.published_plan is None
+                        or str(snapshot.trip_state.published_plan.generation_id)
+                        != workspace.generation_id
+                        else None
+                    ),
                 ),
                 "active_generation_id": active_generation,
+                "active_generation_status": (
+                    snapshot.active_generation_status if active_generation is not None else None
+                ),
             },
             context={"restore_historical_semantic_state": True},
         )
@@ -293,6 +340,7 @@ class PlannerJourneyService:
                     if isinstance(command, V4PlannerResumeCommand)
                     and snapshot.trip_state.published_plan is None
                     and workspace.status is PlannerStatus.FAILED
+                    and not (workspace.react_state and workspace.working_itinerary)
                     and workspace.guard_observations
                     and workspace.guard_observations[-1].code == "planner_revision_budget_exhausted"
                     else record
@@ -435,7 +483,8 @@ class PlannerJourneyService:
         ):
             raise PlannerGuardError("planner_plan_change_workspace_drift")
         if (
-            requests_hotel_replacement(command.payload.text)
+            not getattr(self.graph, "new_engine", False)
+            and requests_hotel_replacement(command.payload.text)
             and not PlannerReferenceCatalog(previous_workspace).alternative_hotels
         ):
             return _unchanged_hotel_change_write(
@@ -446,6 +495,19 @@ class PlannerJourneyService:
             previous_workspace,
             generation_id=context.generation_id,
         )
+        if hasattr(self.graph, "pin_new_run"):
+            workspace = self.graph.pin_new_run(workspace)
+            if workspace.react_state is not None:
+                memories = await UserMemoryRepository(self.checkpoints._session_factory).list(
+                    context.owner_id
+                )
+                workspace = workspace.model_copy(
+                    update={
+                        "react_state": workspace.react_state.model_copy(
+                            update={"long_term_memories": memories.memories}
+                        )
+                    }
+                )
         workspace = bind_execution_budget(workspace, str(context.turn_id), datetime.now(UTC))
         execution_deadline = monotonic() + execution_remaining(workspace)
         previous_revision = -1
@@ -474,6 +536,25 @@ class PlannerJourneyService:
 
         async def progress(code: str, message: str) -> None:
             await barrier()
+            if code.startswith("agent."):
+                entry = await self.progress_store.append(
+                    context.owner_id,
+                    context.trip_id,
+                    context.turn_id,
+                    context.generation_id,
+                    context.previous_state.semantic_state.state_version,
+                    cast(Literal["planner", "reviewer", "tool", "runtime"], code.split(".", 1)[1]),
+                    message,
+                )
+                await context.emit(
+                    AgentProgressEvent(
+                        event_type="agent.progress",
+                        sequence=0,
+                        progress=entry,
+                        **entry.model_dump(exclude={"progress_index", "source", "text"}),
+                    ).model_dump(mode="json")
+                )
+                return
             await context.emit(
                 AgentStatusEvent(
                     event_id=str(uuid4()),
@@ -492,14 +573,22 @@ class PlannerJourneyService:
         # A full replan has the same bounded, validated recovery as first-time
         # planning. Local patches retain their exact scope and cannot silently
         # turn into a whole-plan best-effort rewrite.
-        can_recover = getattr(self.graph, "complete_plan", False)
+        can_recover = workspace.react_state is None and getattr(self.graph, "complete_plan", False)
+        # ReAct owns its compute cutoff and returns saved facts for the last
+        # twenty seconds. Do not race that cutoff with an outer cancellation.
         try:
             async with asyncio.timeout(
                 max(
                     0.1,
                     execution_deadline
                     - monotonic()
-                    - (PLANNER_RECOVERY_TIMEOUT_SECONDS if can_recover else 20),
+                    - (
+                        2
+                        if workspace.react_state
+                        else PLANNER_RECOVERY_TIMEOUT_SECONDS
+                        if can_recover
+                        else 20
+                    ),
                 )
             ):
                 workspace = await self.graph.apply_plan_change(
@@ -518,7 +607,7 @@ class PlannerJourneyService:
                 )
         except (TimeoutError, ModelGatewayError) as error:
             if (
-                not can_recover
+                (not can_recover and workspace.react_state is None)
                 or workspace.working_itinerary is None
                 or context.cancellation.is_cancelled
                 or (
@@ -536,7 +625,20 @@ class PlannerJourneyService:
             if workspace.status is not PlannerStatus.READY_TO_PUBLISH:
                 workspace = advance(workspace, status=PlannerStatus.FAILED)
                 await checkpoint(workspace)
-        if route.scope == "local_replan" and not workspace.accepted_local_change_dates:
+        route_only = bool(workspace.react_state and workspace.react_state.route_refresh_only)
+        if route_only and (
+            workspace.working_itinerary is None
+            or previous_workspace.working_itinerary is None
+            or not same_planning_choices(
+                previous_workspace.working_itinerary, workspace.working_itinerary
+            )
+        ):
+            raise PlannerGuardError("route_refresh_must_preserve_planning_choices")
+        if (
+            route.scope == "local_replan"
+            and not workspace.accepted_local_change_dates
+            and not route_only
+        ):
             # No local patch passed. The rebased workspace still contains the
             # previous publication's artifacts/input version; neither global
             # quality repair nor publishing those artifacts is authorized.
@@ -588,8 +690,26 @@ class PlannerJourneyService:
                         value, recovery_context
                     ),
                 )
+        if workspace.react_state is not None:
+            workspace = await prepare_result_delivery(
+                workspace,
+                planning_book,
+                context.cancellation,
+                materializer=self.graph.materializer,
+                validator=self.graph.validator,
+                input_state_version=context.previous_state.semantic_state.state_version,
+            )
+            await checkpoint(workspace)
         if workspace.status is not PlannerStatus.READY_TO_PUBLISH:
             raise PlannerGuardError("planner_plan_change_not_publishable")
+        if route_only and (
+            workspace.materialized_schedule is None
+            or previous_workspace.materialized_schedule is None
+            or not same_scheduled_choices(
+                previous_workspace.materialized_schedule, workspace.materialized_schedule
+            )
+        ):
+            raise PlannerGuardError("route_refresh_must_preserve_stops_durations_and_modes")
         workspace = refresh_repair_state(workspace, planning_book, stop_reason="publication")
         await checkpoint(workspace)
 
@@ -602,6 +722,7 @@ class PlannerJourneyService:
             publication_key=publication_key,
             based_on_state_version=context.previous_state.semantic_state.state_version,
             change_request=change_request,
+            allow_unresolved=workspace.react_state is not None,
             clock=self.clock,
         )
         generation_mode: Literal["qwen", "fallback"] = "qwen"
@@ -632,7 +753,7 @@ class PlannerJourneyService:
         )
         affected_dates = (
             service_dates(planning_book)
-            if route.scope == "full_replan"
+            if route.scope == "full_replan" or route_only
             else tuple(
                 sorted(
                     {
@@ -773,6 +894,19 @@ class PlannerJourneyService:
             else initial_workspace(state, uuid4(), self.clock())
         )
         if record is None:
+            if hasattr(self.graph, "pin_new_run"):
+                workspace = self.graph.pin_new_run(workspace)
+                if workspace.react_state is not None and actor.owner_type.value == "user":
+                    memories = await UserMemoryRepository(self.checkpoints._session_factory).list(
+                        owner
+                    )
+                    workspace = workspace.model_copy(
+                        update={
+                            "react_state": workspace.react_state.model_copy(
+                                update={"long_term_memories": memories.memories}
+                            )
+                        }
+                    )
             snapshot = await self.prepare.get_snapshot(actor, trip_id)
             if (
                 snapshot.trip_state.semantic_state.state_version
@@ -783,6 +917,15 @@ class PlannerJourneyService:
                 update={
                     "candidate_origins": _candidate_origins(snapshot, book),
                 }
+            )
+            if self.prepared_evidence and workspace.react_state is not None:
+                await self.prepared_evidence.wait(trip_id)
+            workspace = await inherit_prepared_facts(
+                workspace,
+                book,
+                PreparedEvidenceRepository(self.checkpoints._session_factory),
+                owner,
+                self.clock(),
             )
         if isinstance(command, V4PlanTransportSelectionCommand):
             assert state.published_plan is not None
@@ -796,6 +939,19 @@ class PlannerJourneyService:
             workspace = PlannerWorkspaceState.model_validate(published_record.payload)
             workspace = apply_transport_selection(workspace, state.published_plan, command)
             workspace = rebase_workspace_for_plan_change(workspace, generation_id=uuid4())
+            if hasattr(self.graph, "pin_new_run"):
+                workspace = self.graph.pin_new_run(workspace)
+                if workspace.react_state is not None and actor.owner_type.value == "user":
+                    memories = await UserMemoryRepository(self.checkpoints._session_factory).list(
+                        owner
+                    )
+                    workspace = workspace.model_copy(
+                        update={
+                            "react_state": workspace.react_state.model_copy(
+                                update={"long_term_memories": memories.memories}
+                            )
+                        }
+                    )
         pending_change = _pending_plan_change(workspace, state)
         generation = UUID(workspace.generation_id)
         request_id = (
@@ -954,6 +1110,27 @@ class PlannerJourneyService:
             async def progress(code: str, message: str) -> None:
                 await barrier()
                 assert accepted is not None
+                if code.startswith("agent."):
+                    entry = await self.progress_store.append(
+                        owner,
+                        trip_id,
+                        accepted.turn_id,
+                        generation,
+                        accepted.base_state_version,
+                        cast(
+                            Literal["planner", "reviewer", "tool", "runtime"], code.split(".", 1)[1]
+                        ),
+                        message,
+                    )
+                    await emit(
+                        AgentProgressEvent(
+                            event_type="agent.progress",
+                            sequence=0,
+                            progress=entry,
+                            **entry.model_dump(exclude={"progress_index", "source", "text"}),
+                        ).model_dump(mode="json")
+                    )
+                    return
                 await emit(
                     AgentStatusEvent(
                         event_id=str(uuid4()),
@@ -983,7 +1160,72 @@ class PlannerJourneyService:
                             return
 
             heartbeat = asyncio.create_task(keep_lease())
-            should_plan = True
+            if record is None and workspace.react_state is not None and self.planning_pool:
+                await progress("agent.runtime", "正在整理已准备的景点和餐厅备选。")
+                handoff = asyncio.create_task(
+                    self.planning_pool.ensure(
+                        owner, state.semantic_state, book.based_on_state_version
+                    )
+                )
+                cancel_signal = asyncio.create_task(cancellation.wait_cancelled())
+                try:
+                    await asyncio.wait(
+                        (handoff, cancel_signal), return_when=asyncio.FIRST_COMPLETED
+                    )
+                    cancellation.raise_if_cancelled("prepare_pool_handoff")
+                    pools = await handoff
+                finally:
+                    handoff.cancel()
+                    cancel_signal.cancel()
+                    await asyncio.gather(handoff, cancel_signal, return_exceptions=True)
+                if any(p.missing_count for p in pools):
+                    await progress(
+                        "agent.runtime", "部分备选尚未查实，规划时会保留已确认地点并继续补查。"
+                    )
+                origins = {o.canonical_entity_id: o for o in workspace.candidate_origins}
+                places = {p.canonical_entity_id: p for p in workspace.place_evidence}
+                for pool in pools:
+                    for candidate in pool.candidates:
+                        origins[candidate.place.canonical_entity_id] = candidate.origin
+                        places[candidate.place.canonical_entity_id] = candidate.place
+                workspace = workspace.model_copy(
+                    update={
+                        "candidate_origins": tuple(origins.values()),
+                        "place_evidence": tuple(places.values()),
+                    }
+                )
+                workspace = await inherit_prepared_facts(
+                    workspace,
+                    book,
+                    PreparedEvidenceRepository(self.checkpoints._session_factory),
+                    owner,
+                    self.clock(),
+                )
+                await record_execution_event(
+                    audit_context,
+                    "prepared_candidates_inherited",
+                    {
+                        "pools": [
+                            {
+                                "domain": p.domain,
+                                "count": len(p.candidates),
+                                "target": p.target_count,
+                                "model_rounds": p.model_rounds,
+                                "missing_count": p.missing_count,
+                            }
+                            for p in pools
+                        ],
+                    },
+                )
+                await checkpoint(workspace)
+            # A saved failed Agent run already contains its actual choices.
+            # Resume can deliver them without replaying Prepare or model work.
+            should_plan = not (
+                isinstance(command, V4PlannerResumeCommand)
+                and workspace.react_state is not None
+                and workspace.working_itinerary is not None
+                and workspace.status in {PlannerStatus.FAILED, PlannerStatus.READY_TO_PUBLISH}
+            )
             if isinstance(command, V4PlannerAnswerCommand):
                 option = _answer_option(workspace, command)
                 assert workspace.active_interaction is not None
@@ -992,9 +1234,16 @@ class PlannerJourneyService:
                     interaction_id=str(command.payload.interaction_id),
                     option_id=option.option_id,
                     semantic_action=cast(
-                        Literal["keep_task_book", "revise_task_book", "supply_booking_detail"],
+                        Literal[
+                            "keep_task_book",
+                            "revise_task_book",
+                            "supply_booking_detail",
+                            "keep_required_candidate",
+                            "omit_required_candidate",
+                        ],
                         option.semantic_action,
                     ),
+                    affected_refs=option.affected_refs,
                     user_text=command.payload.optional_user_text,
                     source_turn_id=str(accepted.turn_id),
                 )
@@ -1006,12 +1255,19 @@ class PlannerJourneyService:
                     interaction_answers=(*workspace.interaction_answers, answer),
                     status=(
                         PlannerStatus.PLANNING
-                        if option.semantic_action == "keep_task_book"
+                        if option.semantic_action
+                        in {"keep_task_book", "keep_required_candidate", "omit_required_candidate"}
                         else PlannerStatus.CANCELLED
                     ),
                 )
-                should_plan = option.semantic_action == "keep_task_book"
+                should_plan = option.semantic_action in {
+                    "keep_task_book",
+                    "keep_required_candidate",
+                    "omit_required_candidate",
+                }
                 if should_plan:
+                    if hasattr(self.graph, "begin_answer_segment"):
+                        workspace = self.graph.begin_answer_segment(workspace)
                     workspace = advance(
                         workspace,
                         unresolved_decisions=(),
@@ -1026,6 +1282,10 @@ class PlannerJourneyService:
                     )
             else:
                 if record is not None and not isinstance(command, V4PlanTransportSelectionCommand):
+                    if isinstance(command, V4PlannerResumeCommand) and hasattr(
+                        self.graph, "resume_with_configured_budget"
+                    ):
+                        workspace = self.graph.resume_with_configured_budget(workspace)
                     workspace = _resume_workspace(
                         workspace, optimize_timing=getattr(self.graph, "optimize_timing", False)
                     )
@@ -1041,13 +1301,20 @@ class PlannerJourneyService:
             execution_deadline = monotonic() + execution_remaining(workspace)
             await checkpoint(workspace)
             if should_plan:
-                can_recover = getattr(self.graph, "complete_plan", False) and not isinstance(
-                    command, V4PlanTransportSelectionCommand
+                can_recover = (
+                    workspace.react_state is None
+                    and getattr(self.graph, "complete_plan", False)
+                    and not isinstance(command, V4PlanTransportSelectionCommand)
                 )
+                # ReAct reserves its final twenty seconds internally. This outer
+                # bound leaves time to commit, not a second competing 160s timer.
                 try:
                     async with asyncio.timeout(
                         max(
-                            0.1, execution_deadline - monotonic() - PLANNER_RECOVERY_TIMEOUT_SECONDS
+                            0.1,
+                            execution_deadline
+                            - monotonic()
+                            - (2 if workspace.react_state else PLANNER_RECOVERY_TIMEOUT_SECONDS),
                         )
                     ):
                         workspace = await self.graph.invoke(
@@ -1067,7 +1334,7 @@ class PlannerJourneyService:
                         )
                 except (TimeoutError, ModelGatewayError) as error:
                     if (
-                        not can_recover
+                        (not can_recover and workspace.react_state is None)
                         or workspace.working_itinerary is None
                         or cancellation.is_cancelled
                         or (
@@ -1130,6 +1397,16 @@ class PlannerJourneyService:
                                 value, recovery_context
                             ),
                         )
+            if workspace.react_state is not None:
+                workspace = await prepare_result_delivery(
+                    workspace,
+                    book,
+                    cancellation,
+                    materializer=self.graph.materializer,
+                    validator=self.graph.validator,
+                    input_state_version=accepted.base_state_version,
+                )
+                await checkpoint(workspace)
             plan_version_id: UUID | None = None
             publication_key = f"planner-draft:{accepted.turn_id}"
             published_plan = None
@@ -1165,30 +1442,44 @@ class PlannerJourneyService:
                     publication_key=publication_key,
                     based_on_state_version=accepted.base_state_version,
                     change_request=change_request,
+                    allow_unresolved=workspace.react_state is not None,
                     clock=self.clock,
                 )
             generation_mode: Literal["qwen", "fallback"] = "qwen"
             failure_code: str | None = None
             try:
-                if execution_remaining(workspace, calls=True) <= 0:
-                    raise TimeoutError("planner_response_budget_exhausted")
-                async with asyncio.timeout(execution_remaining(workspace, calls=True)):
-                    text = await self.graph.compose_response(
-                        workspace, book, cancellation, change_request=change_request
-                    )
+                if (
+                    workspace.status is PlannerStatus.AWAITING_USER
+                    and workspace.active_interaction is not None
+                    and workspace.active_interaction.question
+                ):
+                    # This is the Planner's own tool-submitted question. Do not
+                    # invoke another model or turn a human interrupt into a result.
+                    text = workspace.active_interaction.question
+                else:
+                    if execution_remaining(workspace, calls=True) <= 0:
+                        raise TimeoutError("planner_response_budget_exhausted")
+                    async with asyncio.timeout(execution_remaining(workspace, calls=True)):
+                        text = await self.graph.compose_response(
+                            workspace, book, cancellation, change_request=change_request
+                        )
             except (TimeoutError, PlannerGuardError, ModelGatewayError) as error:
                 if (
-                    workspace.status is not PlannerStatus.READY_TO_PUBLISH
-                    or cancellation.is_cancelled
-                    or (
-                        isinstance(error, ModelGatewayError)
-                        and error.code is ModelFailureCode.AUDIT_UNAVAILABLE
+                    (
+                        workspace.status is not PlannerStatus.READY_TO_PUBLISH
+                        and build_draft_preview(workspace) is None
                     )
+                    or cancellation.is_cancelled
+                    or (isinstance(error, ModelGatewayError) and error.requires_runtime_recovery)
                 ):
                     raise
                 generation_mode = "fallback"
                 failure_code = "planner_response_fallback"
-                text = _formal_plan_fallback(workspace, book)
+                text = (
+                    _formal_plan_fallback(workspace, book)
+                    if workspace.status is PlannerStatus.READY_TO_PUBLISH
+                    else draft_preview_response(workspace)
+                )
             # Detailed omissions remain in the immutable published version and
             # audit. The completion message is a concise account of actual visits.
             await barrier()
@@ -1424,7 +1715,9 @@ class PlannerJourneyService:
                 confirmed_task_book_hash=canonical_json_hash(book.model_dump(mode="json")),
                 base_state_version=state.semantic_state.state_version,
                 revision=workspace.workspace_revision,
-                checkpoint_version=V4_PLANNER_CHECKPOINT_VERSION,
+                checkpoint_version=workspace.react_state.checkpoint_version
+                if workspace.react_state
+                else V4_PLANNER_CHECKPOINT_VERSION,
                 payload=workspace.model_dump(mode="json"),
                 status=status,
             ),
@@ -1571,6 +1864,8 @@ def _pending_plan_change(
 def _resume_workspace(
     workspace: PlannerWorkspaceState, *, optimize_timing: bool = False
 ) -> PlannerWorkspaceState:
+    if workspace.react_state is not None:
+        return advance(workspace, status=PlannerStatus.PLANNING)
     restarting = workspace.status in {PlannerStatus.CANCELLED, PlannerStatus.FAILED}
     changes: dict[str, Any] = {
         "status": PlannerStatus.PLANNING,
@@ -1617,12 +1912,17 @@ def _candidate_origins(
 ) -> tuple[PlannerCandidateOrigin, ...]:
     selected = set(entity_intents(book))
     origins = {}
+    latest_cards = {}
     for message in snapshot.messages:
         if message.status != "committed" or message.state_version > book.based_on_state_version:
             continue
         for attachment in message.attachments:
             if not isinstance(attachment.root, SpecificCandidateCard):
                 continue
+            if attachment.root.domain in {CardDomain.DINING, CardDomain.ATTRACTION}:
+                # Locate the newest committed batch BEFORE checking validity.
+                # A stale/newly replaced batch must never revive an older one.
+                latest_cards[attachment.root.domain] = (message, attachment.root)
             for option in attachment.root.options:
                 ref = option.entity_ref
                 if ref is None or ref.canonical_entity_id not in selected:
@@ -1633,9 +1933,46 @@ def _candidate_origins(
                     try:
                         origin = PlannerCandidateOrigin(
                             canonical_entity_id=ref.canonical_entity_id,
+                            entity_kind=CandidateEntityKind(ref.entity_kind),
                             provider_entity_id=source.removeprefix("provider:amap:"),
                             source_message_id=message.message_id,
                             source_option_id=option.option_id,
+                            display_name=option.label,
+                            suggested_visit_duration=option.suggested_visit_duration,
+                            source_attachment_id=attachment.root.attachment_id,
+                            dependency_fingerprint=attachment.root.dependency_fingerprint,
+                        )
+                    except ValidationError:
+                        continue
+                    origins[origin.canonical_entity_id] = origin
+    for domain, (message, card) in latest_cards.items():
+        expected_kind = "attraction" if domain is CardDomain.ATTRACTION else "restaurant"
+        fingerprint = specific_dependency_fingerprint(snapshot.trip_state.semantic_state, domain)
+        if card.status is not CardStatus.SUPERSEDED and card.dependency_fingerprint == fingerprint:
+            for option in card.options:
+                ref = option.entity_ref
+                if (
+                    ref is None
+                    or ref.entity_kind != expected_kind
+                    or ref.canonical_entity_id in selected
+                    or option.selection_state is not SelectionState.AVAILABLE
+                ):
+                    continue
+                for source in ref.provider_entity_refs:
+                    if not source.startswith("provider:amap:"):
+                        continue
+                    try:
+                        origin = PlannerCandidateOrigin(
+                            canonical_entity_id=ref.canonical_entity_id,
+                            entity_kind=CandidateEntityKind(ref.entity_kind),
+                            provider_entity_id=source.removeprefix("provider:amap:"),
+                            source_message_id=message.message_id,
+                            source_option_id=option.option_id,
+                            display_name=option.label,
+                            inherit_as_neutral=True,
+                            suggested_visit_duration=option.suggested_visit_duration,
+                            source_attachment_id=card.attachment_id,
+                            dependency_fingerprint=card.dependency_fingerprint,
                         )
                     except ValidationError:
                         continue
@@ -1678,9 +2015,15 @@ def _validate_answer(workspace: PlannerWorkspaceState, command: V4PlannerAnswerC
         "keep_task_book",
         "revise_task_book",
         "supply_booking_detail",
+        "keep_required_candidate",
+        "omit_required_candidate",
     }:
         raise PrepareJourneyError("planner_option_action_not_supported")
     if option.semantic_action == "supply_booking_detail" and not command.payload.optional_user_text:
         raise PrepareJourneyError("planner_booking_detail_required")
-    if option.semantic_action == "keep_task_book" and command.payload.optional_user_text:
+    if (
+        option.semantic_action
+        in {"keep_task_book", "keep_required_candidate", "omit_required_candidate"}
+        and command.payload.optional_user_text
+    ):
         raise PrepareJourneyError("planner_keep_task_book_cannot_submit_changes")

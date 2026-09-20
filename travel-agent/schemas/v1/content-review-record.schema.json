@@ -1,0 +1,106 @@
+{
+  "$defs": {
+    "CityCode": {
+      "enum": [
+        "beijing",
+        "nanjing"
+      ],
+      "title": "CityCode",
+      "type": "string"
+    },
+    "ContentReviewCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "check_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Check Id",
+          "type": "string"
+        },
+        "note": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Note",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "passed",
+            "pending"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "check_id",
+        "status",
+        "note"
+      ],
+      "title": "ContentReviewCheck",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/content-review-record.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Traceable pre-release review without claiming unperformed user acceptance.",
+  "properties": {
+    "checks": {
+      "items": {
+        "$ref": "#/$defs/ContentReviewCheck"
+      },
+      "minItems": 5,
+      "title": "Checks",
+      "type": "array"
+    },
+    "city": {
+      "$ref": "#/$defs/CityCode"
+    },
+    "content_version": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Content Version",
+      "type": "string"
+    },
+    "human_acceptance": {
+      "const": "pending_user_validation",
+      "title": "Human Acceptance",
+      "type": "string"
+    },
+    "review_version": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Review Version",
+      "type": "string"
+    },
+    "reviewed_at": {
+      "format": "date-time",
+      "title": "Reviewed At",
+      "type": "string"
+    },
+    "reviewer": {
+      "const": "ai_pre_review",
+      "title": "Reviewer",
+      "type": "string"
+    },
+    "story_fixture_version": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Story Fixture Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "review_version",
+    "city",
+    "content_version",
+    "story_fixture_version",
+    "reviewed_at",
+    "reviewer",
+    "checks",
+    "human_acceptance"
+  ],
+  "title": "ContentReviewRecord",
+  "type": "object"
+}

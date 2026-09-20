@@ -1,0 +1,534 @@
+{
+  "$defs": {
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    },
+    "DataAvailability": {
+      "enum": [
+        "available",
+        "partial",
+        "missing"
+      ],
+      "title": "DataAvailability",
+      "type": "string"
+    },
+    "Gcj02Coordinates": {
+      "additionalProperties": false,
+      "description": "Canonical coordinates used by every internal planning contract.",
+      "properties": {
+        "coord_system": {
+          "const": "gcj_02",
+          "title": "Coord System",
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Gcj02Coordinates",
+      "type": "object"
+    },
+    "PlaceCategory": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "hotel",
+        "transport",
+        "activity",
+        "other"
+      ],
+      "title": "PlaceCategory",
+      "type": "string"
+    },
+    "ProviderCode": {
+      "enum": [
+        "amap",
+        "baidu",
+        "flyai",
+        "weather",
+        "city_content",
+        "official",
+        "manual"
+      ],
+      "title": "ProviderCode",
+      "type": "string"
+    },
+    "ProviderDisplayFact": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "availability": {
+          "$ref": "#/$defs/DataAvailability"
+        },
+        "display_text": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Display Text"
+        },
+        "fact_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Fact Id",
+          "type": "string"
+        },
+        "fetched_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fetched At"
+        },
+        "forecast_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Forecast Date"
+        },
+        "kind": {
+          "enum": [
+            "regular_hours",
+            "ticket_price",
+            "hotel_price",
+            "weather"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "maximum_celsius": {
+          "anyOf": [
+            {
+              "maximum": 70,
+              "minimum": -90,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum Celsius"
+        },
+        "minimum_celsius": {
+          "anyOf": [
+            {
+              "maximum": 70,
+              "minimum": -90,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum Celsius"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "place_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Place Id"
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProviderCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_fact_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "fact_id",
+        "kind",
+        "label",
+        "availability"
+      ],
+      "title": "ProviderDisplayFact",
+      "type": "object"
+    },
+    "ProviderDisplayPlace": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Address"
+        },
+        "availability": {
+          "$ref": "#/$defs/DataAvailability"
+        },
+        "category": {
+          "$ref": "#/$defs/PlaceCategory"
+        },
+        "coordinates": {
+          "$ref": "#/$defs/Gcj02Coordinates"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "place_id": {
+          "format": "uuid",
+          "title": "Place Id",
+          "type": "string"
+        },
+        "source_fact_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "place_id",
+        "name",
+        "category",
+        "coordinates",
+        "availability"
+      ],
+      "title": "ProviderDisplayPlace",
+      "type": "object"
+    },
+    "ProviderDisplayRoute": {
+      "additionalProperties": false,
+      "properties": {
+        "availability": {
+          "$ref": "#/$defs/DataAvailability"
+        },
+        "distance_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Distance M"
+        },
+        "duration_minutes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Minutes"
+        },
+        "fare": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "from_place_id": {
+          "format": "uuid",
+          "title": "From Place Id",
+          "type": "string"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "mode": {
+          "$ref": "#/$defs/TransportMode"
+        },
+        "polyline": {
+          "items": {
+            "$ref": "#/$defs/Gcj02Coordinates"
+          },
+          "title": "Polyline",
+          "type": "array"
+        },
+        "route_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Route Id",
+          "type": "string"
+        },
+        "source_fact_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Fact Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "to_place_id": {
+          "format": "uuid",
+          "title": "To Place Id",
+          "type": "string"
+        },
+        "walking_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Walking M"
+        }
+      },
+      "required": [
+        "route_id",
+        "from_place_id",
+        "to_place_id",
+        "mode",
+        "availability"
+      ],
+      "title": "ProviderDisplayRoute",
+      "type": "object"
+    },
+    "ProviderDisplaySource": {
+      "additionalProperties": false,
+      "properties": {
+        "fact_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Fact Id",
+          "type": "string"
+        },
+        "fetched_at": {
+          "format": "date-time",
+          "title": "Fetched At",
+          "type": "string"
+        },
+        "provider": {
+          "$ref": "#/$defs/ProviderCode"
+        },
+        "source_record_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source Record Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fact_id",
+        "provider",
+        "source_record_id",
+        "fetched_at"
+      ],
+      "title": "ProviderDisplaySource",
+      "type": "object"
+    },
+    "TransportMode": {
+      "enum": [
+        "walk",
+        "bicycle",
+        "public_transit",
+        "taxi"
+      ],
+      "title": "TransportMode",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/provider-display-projection.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "facts": {
+      "items": {
+        "$ref": "#/$defs/ProviderDisplayFact"
+      },
+      "title": "Facts",
+      "type": "array"
+    },
+    "places": {
+      "items": {
+        "$ref": "#/$defs/ProviderDisplayPlace"
+      },
+      "title": "Places",
+      "type": "array"
+    },
+    "routes": {
+      "items": {
+        "$ref": "#/$defs/ProviderDisplayRoute"
+      },
+      "title": "Routes",
+      "type": "array"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/ProviderDisplaySource"
+      },
+      "title": "Sources",
+      "type": "array"
+    }
+  },
+  "title": "ProviderDisplayProjection",
+  "type": "object",
+  "x-travel-provider-display": {
+    "factsField": "facts",
+    "placesField": "places",
+    "routesField": "routes",
+    "sourcesField": "sources"
+  }
+}

@@ -1,0 +1,216 @@
+{
+  "$defs": {
+    "CityCode": {
+      "enum": [
+        "beijing",
+        "nanjing"
+      ],
+      "title": "CityCode",
+      "type": "string"
+    },
+    "CoordinateSystem": {
+      "enum": [
+        "gcj_02",
+        "wgs_84",
+        "bd_09"
+      ],
+      "title": "CoordinateSystem",
+      "type": "string"
+    },
+    "Coordinates": {
+      "additionalProperties": false,
+      "properties": {
+        "coord_system": {
+          "$ref": "#/$defs/CoordinateSystem"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Coordinates",
+      "type": "object"
+    },
+    "Gcj02Coordinates": {
+      "additionalProperties": false,
+      "description": "Canonical coordinates used by every internal planning contract.",
+      "properties": {
+        "coord_system": {
+          "const": "gcj_02",
+          "title": "Coord System",
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Gcj02Coordinates",
+      "type": "object"
+    },
+    "PlaceCategory": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "hotel",
+        "transport",
+        "activity",
+        "other"
+      ],
+      "title": "PlaceCategory",
+      "type": "string"
+    },
+    "PlaceSourceMapping": {
+      "additionalProperties": false,
+      "properties": {
+        "fetched_at": {
+          "format": "date-time",
+          "title": "Fetched At",
+          "type": "string"
+        },
+        "provider": {
+          "$ref": "#/$defs/ProviderCode"
+        },
+        "raw_address": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raw Address"
+        },
+        "raw_coordinates": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Coordinates"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "raw_name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Raw Name",
+          "type": "string"
+        },
+        "source_place_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source Place Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "source_place_id",
+        "raw_name",
+        "fetched_at"
+      ],
+      "title": "PlaceSourceMapping",
+      "type": "object"
+    },
+    "ProviderCode": {
+      "enum": [
+        "amap",
+        "baidu",
+        "flyai",
+        "weather",
+        "city_content",
+        "official",
+        "manual"
+      ],
+      "title": "ProviderCode",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/canonical-place.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "address": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Address"
+    },
+    "category": {
+      "$ref": "#/$defs/PlaceCategory"
+    },
+    "city": {
+      "$ref": "#/$defs/CityCode"
+    },
+    "coordinates": {
+      "$ref": "#/$defs/Gcj02Coordinates"
+    },
+    "name": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Name",
+      "type": "string"
+    },
+    "place_id": {
+      "format": "uuid",
+      "title": "Place Id",
+      "type": "string"
+    },
+    "source_mappings": {
+      "items": {
+        "$ref": "#/$defs/PlaceSourceMapping"
+      },
+      "title": "Source Mappings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "place_id",
+    "city",
+    "category",
+    "name",
+    "coordinates"
+  ],
+  "title": "CanonicalPlace",
+  "type": "object"
+}

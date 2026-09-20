@@ -1,14 +1,14 @@
-import { getRegisteredCityName } from "../city/cityContentRepository";
 import type {
   ConversationMessageV4,
   PlannerPublishedPlan,
-  V4TripStateEnvelope,
+  V4TripStateEnvelope
 } from "../generated/v4/contracts";
+import { getRegisteredCityName } from "../city/cityContentRepository";
 
 export function visibleV4PlanCityName(
   plan: PlannerPublishedPlan,
   state: V4TripStateEnvelope | null | undefined,
-  messages: readonly ConversationMessageV4[],
+  messages: readonly ConversationMessageV4[]
 ): string {
   const cityId = plan.materialized_schedule.city_id;
   const registered = getRegisteredCityName(cityId);
@@ -35,7 +35,7 @@ export function visibleV4PlanCityName(
 /** Display only: never use historical plans to authorize a planning command. */
 export function visibleV4PublishedPlan(
   state: V4TripStateEnvelope | null | undefined,
-  messages: readonly ConversationMessageV4[],
+  messages: readonly ConversationMessageV4[]
 ): PlannerPublishedPlan | null {
   if (!state) return null;
   if (state.published_plan) return state.published_plan;
@@ -50,15 +50,15 @@ export function visibleV4PublishedPlan(
           attachment.trip_id === tripId &&
           attachment.based_on_state_version <= message.state_version
             ? [{ plan: attachment, version: message.state_version }]
-            : [],
+            : []
         )
-      : [],
+      : []
   );
   candidates.sort(
     (a, b) =>
       b.version - a.version ||
       Date.parse(b.plan.published_at) - Date.parse(a.plan.published_at) ||
-      b.plan.plan_version_id.localeCompare(a.plan.plan_version_id),
+      b.plan.plan_version_id.localeCompare(a.plan.plan_version_id)
   );
   return candidates[0]?.plan ?? null;
 }

@@ -1,0 +1,63 @@
+{
+  "$defs": {
+    "CandidateEntityKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "activity"
+      ],
+      "title": "CandidateEntityKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/candidate-ref.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Revision-bound reference to one candidate in the current pool.",
+  "properties": {
+    "candidate_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Candidate Id",
+      "type": "string"
+    },
+    "candidate_pool_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Candidate Pool Id",
+      "type": "string"
+    },
+    "candidate_pool_revision": {
+      "minimum": 1,
+      "title": "Candidate Pool Revision",
+      "type": "integer"
+    },
+    "canonical_entity_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Canonical Entity Id",
+      "type": "string"
+    },
+    "entity_kind": {
+      "$ref": "#/$defs/CandidateEntityKind"
+    },
+    "kind": {
+      "const": "candidate",
+      "default": "candidate",
+      "title": "Kind",
+      "type": "string"
+    }
+  },
+  "required": [
+    "candidate_pool_id",
+    "candidate_pool_revision",
+    "candidate_id",
+    "entity_kind",
+    "canonical_entity_id"
+  ],
+  "title": "CandidateRef",
+  "type": "object"
+}

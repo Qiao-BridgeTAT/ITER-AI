@@ -1,6 +1,6 @@
 import {
   BackendRequestError,
-  TravelApiClient,
+  TravelApiClient
 } from "../backend/travelApiClient";
 import { validatePublicContract } from "../contracts/validation";
 import type {
@@ -9,7 +9,7 @@ import type {
   PreferenceValue,
   TripListItem,
   TripShell,
-  TripState,
+  TripState
 } from "../generated/contracts";
 
 export interface RealViewerSnapshot {
@@ -46,7 +46,7 @@ export class RealAccountRepository {
   async verify(phone: string, code: string): Promise<RealViewerSnapshot> {
     await this.api.verifySms(
       { phone, code },
-      `web:verify:${crypto.randomUUID()}`,
+      `web:verify:${crypto.randomUUID()}`
     );
     return this.loadViewer();
   }
@@ -56,22 +56,21 @@ export class RealAccountRepository {
     code: string,
     anonymousSessionId: string | null,
     tripId: string,
-    migrateAnonymousTrip: boolean,
+    migrateAnonymousTrip: boolean
   ): Promise<RealSignInResult> {
     await this.api.verifySms(
       { phone, code },
-      `web:verify:${crypto.randomUUID()}`,
+      `web:verify:${crypto.randomUUID()}`
     );
-    const attachedTrip =
-      anonymousSessionId && migrateAnonymousTrip
-        ? (
-            await this.api.attachAnonymousTrip(
-              anonymousSessionId,
-              tripId,
-              `web:attach-trip:${tripId}`,
-            )
-          ).state
-        : null;
+    let attachedTrip: TripShell | TripState | null = null;
+    if (anonymousSessionId && migrateAnonymousTrip) {
+      await this.api.attachAnonymousTrip(
+        anonymousSessionId,
+        tripId,
+        `web:attach-trip:${tripId}`
+      );
+      attachedTrip = await this.api.getTripShell(tripId);
+    }
     const viewer = await this.loadViewer();
     if (attachedTrip !== null) return { viewer, attachedTrip };
     const mostRecentTrip = viewer.history[0];
@@ -79,7 +78,7 @@ export class RealAccountRepository {
       viewer,
       attachedTrip: mostRecentTrip
         ? await this.api.getTripShell(mostRecentTrip.trip_id)
-        : null,
+        : null
     };
   }
 
@@ -90,7 +89,7 @@ export class RealAccountRepository {
   async updateNickname(nickname: string): Promise<AccountView> {
     return this.api.updateAccount(
       nickname,
-      `web:update-account:${crypto.randomUUID()}`,
+      `web:update-account:${crypto.randomUUID()}`
     );
   }
 
@@ -104,52 +103,52 @@ export class RealAccountRepository {
 
   async loadTripShell(
     tripId: string,
-    signal?: AbortSignal,
+    signal?: AbortSignal
   ): Promise<TripShell> {
     return this.api.getTripShell(tripId, signal);
   }
 
   async createTrip(
     tripId: string,
-    anonymousSessionId?: string,
+    anonymousSessionId?: string
   ): Promise<TripState> {
     return (
       await this.api.createTrip(
         tripId,
         `web:create-trip:${tripId}`,
         anonymousSessionId,
-        AbortSignal.timeout(15_000),
+        AbortSignal.timeout(15_000)
       )
     ).state;
   }
 
   async saveColdStart(
-    preferences: ColdStartSubmission,
+    preferences: ColdStartSubmission
   ): Promise<RealViewerSnapshot> {
     await this.api.saveColdStartPreference(
       preferences,
-      `web:cold-start-preference:${crypto.randomUUID()}`,
+      `web:cold-start-preference:${crypto.randomUUID()}`
     );
     return this.loadViewer();
   }
 
   async saveAnonymousColdStart(
     preferences: ColdStartSubmission,
-    anonymousSessionId?: string,
+    anonymousSessionId?: string
   ): Promise<void> {
     await this.api.saveColdStartPreference(
       preferences,
       `web:anonymous-cold-start:${crypto.randomUUID()}`,
-      anonymousSessionId,
+      anonymousSessionId
     );
   }
 
   async updatePreferences(
-    preferences: PreferenceValue[],
+    preferences: PreferenceValue[]
   ): Promise<RealViewerSnapshot> {
     await this.api.patchPreferences(
       preferences,
-      `web:preferences:${crypto.randomUUID()}`,
+      `web:preferences:${crypto.randomUUID()}`
     );
     return this.loadViewer();
   }
@@ -157,7 +156,7 @@ export class RealAccountRepository {
   private async loadViewer(): Promise<RealViewerSnapshot> {
     const [account, preferenceList] = await Promise.all([
       this.api.getAccount(),
-      this.api.getPreferences(),
+      this.api.getPreferences()
     ]);
     let history: TripListItem[] = [];
     let historyStatus: RealViewerSnapshot["historyStatus"] = "ready";
@@ -173,16 +172,16 @@ export class RealAccountRepository {
       history,
       historyStatus,
       preferences,
-      ...(personalDefaults ? { personalDefaults } : {}),
+      ...(personalDefaults ? { personalDefaults } : {})
     };
   }
 }
 
 export function parseColdStartPreference(
-  preferences: readonly PreferenceValue[],
+  preferences: readonly PreferenceValue[]
 ): ColdStartSubmission | undefined {
   const value = preferences.find(
-    (preference) => preference.key === "cold_start" && preference.active,
+    (preference) => preference.key === "cold_start" && preference.active
   )?.value;
   if (!value) return undefined;
   try {

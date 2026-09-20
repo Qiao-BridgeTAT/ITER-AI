@@ -1,0 +1,648 @@
+{
+  "$defs": {
+    "CandidateEntityKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "activity"
+      ],
+      "title": "CandidateEntityKind",
+      "type": "string"
+    },
+    "CandidateRef": {
+      "additionalProperties": false,
+      "description": "Revision-bound reference to one candidate in the current pool.",
+      "properties": {
+        "candidate_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "candidate_pool_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Pool Id",
+          "type": "string"
+        },
+        "candidate_pool_revision": {
+          "minimum": 1,
+          "title": "Candidate Pool Revision",
+          "type": "integer"
+        },
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "entity_kind": {
+          "$ref": "#/$defs/CandidateEntityKind"
+        },
+        "kind": {
+          "const": "candidate",
+          "default": "candidate",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_pool_id",
+        "candidate_pool_revision",
+        "candidate_id",
+        "entity_kind",
+        "canonical_entity_id"
+      ],
+      "title": "CandidateRef",
+      "type": "object"
+    },
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    },
+    "Gcj02Coordinates": {
+      "additionalProperties": false,
+      "description": "Canonical coordinates used by every internal planning contract.",
+      "properties": {
+        "coord_system": {
+          "const": "gcj_02",
+          "title": "Coord System",
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Gcj02Coordinates",
+      "type": "object"
+    },
+    "InterClusterCost": {
+      "additionalProperties": false,
+      "properties": {
+        "distance_meters": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Distance Meters"
+        },
+        "duration_minutes": {
+          "minimum": 0,
+          "title": "Duration Minutes",
+          "type": "integer"
+        },
+        "from_cluster_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "From Cluster Id",
+          "type": "string"
+        },
+        "route_edge_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Route Edge Ids",
+          "type": "array"
+        },
+        "to_cluster_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "To Cluster Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from_cluster_id",
+        "to_cluster_id",
+        "route_edge_ids",
+        "duration_minutes"
+      ],
+      "title": "InterClusterCost",
+      "type": "object"
+    },
+    "MissingRouteFact": {
+      "additionalProperties": false,
+      "properties": {
+        "destination": {
+          "$ref": "#/$defs/SpatialRouteEndpoint"
+        },
+        "origin": {
+          "$ref": "#/$defs/SpatialRouteEndpoint"
+        },
+        "reason_summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason Summary",
+          "type": "string"
+        },
+        "transport_modes": {
+          "items": {
+            "enum": [
+              "public_transit",
+              "taxi",
+              "walking",
+              "driving"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Transport Modes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "origin",
+        "destination",
+        "transport_modes",
+        "reason_summary"
+      ],
+      "title": "MissingRouteFact",
+      "type": "object"
+    },
+    "PlannerScope": {
+      "additionalProperties": false,
+      "description": "Optimistic-concurrency scope shared by one Planner decision round.",
+      "properties": {
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_state_version": {
+          "minimum": 0,
+          "title": "Task Book State Version",
+          "type": "integer"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "workspace_revision": {
+          "minimum": 0,
+          "title": "Workspace Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "trip_id",
+        "generation_id",
+        "task_book_id",
+        "task_book_version",
+        "task_book_state_version",
+        "workspace_revision"
+      ],
+      "title": "PlannerScope",
+      "type": "object"
+    },
+    "RouteQueryFailure": {
+      "additionalProperties": false,
+      "description": "Safe recovery metadata, not evidence that endpoints are unreachable.",
+      "properties": {
+        "attempts": {
+          "maximum": 2,
+          "minimum": 1,
+          "title": "Attempts",
+          "type": "integer"
+        },
+        "code": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Code",
+          "type": "string"
+        },
+        "query_count": {
+          "minimum": 1,
+          "title": "Query Count",
+          "type": "integer"
+        },
+        "retry_after": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "upstream_code": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{3,5}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Upstream Code"
+        }
+      },
+      "required": [
+        "code",
+        "retryable",
+        "attempts",
+        "query_count"
+      ],
+      "title": "RouteQueryFailure",
+      "type": "object"
+    },
+    "SpatialCluster": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_refs": {
+          "items": {
+            "$ref": "#/$defs/CandidateRef"
+          },
+          "minItems": 1,
+          "title": "Candidate Refs",
+          "type": "array"
+        },
+        "cluster_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Cluster Id",
+          "type": "string"
+        },
+        "representative_area_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Representative Area Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "cluster_id",
+        "candidate_refs"
+      ],
+      "title": "SpatialCluster",
+      "type": "object"
+    },
+    "SpatialOutlier": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_ref": {
+          "$ref": "#/$defs/CandidateRef"
+        },
+        "reason_summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason Summary",
+          "type": "string"
+        },
+        "route_edge_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Route Edge Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "candidate_ref",
+        "reason_summary"
+      ],
+      "title": "SpatialOutlier",
+      "type": "object"
+    },
+    "SpatialRouteEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "destination": {
+          "$ref": "#/$defs/SpatialRouteEndpoint"
+        },
+        "distance_meters": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Distance Meters"
+        },
+        "duration_minutes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Minutes"
+        },
+        "fact_reference_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Fact Reference Ids",
+          "type": "array"
+        },
+        "fare": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "origin": {
+          "$ref": "#/$defs/SpatialRouteEndpoint"
+        },
+        "polyline": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Gcj02Coordinates"
+          },
+          "title": "Polyline",
+          "type": "array"
+        },
+        "query_failure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RouteQueryFailure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "route_edge_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Route Edge Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "available",
+            "partial",
+            "missing"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "transfer_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transfer Count"
+        },
+        "transport_mode": {
+          "enum": [
+            "public_transit",
+            "taxi",
+            "walking",
+            "driving"
+          ],
+          "title": "Transport Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "route_edge_id",
+        "origin",
+        "destination",
+        "transport_mode",
+        "status"
+      ],
+      "title": "SpatialRouteEdge",
+      "type": "object"
+    },
+    "SpatialRouteEndpoint": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "candidate",
+            "cluster",
+            "hotel_offer",
+            "fixed_commitment"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "reference_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reference Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reference_id"
+      ],
+      "title": "SpatialRouteEndpoint",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/spatial-observation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "clusters": {
+      "items": {
+        "$ref": "#/$defs/SpatialCluster"
+      },
+      "title": "Clusters",
+      "type": "array"
+    },
+    "inter_cluster_costs": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/InterClusterCost"
+      },
+      "title": "Inter Cluster Costs",
+      "type": "array"
+    },
+    "missing_route_facts": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/MissingRouteFact"
+      },
+      "title": "Missing Route Facts",
+      "type": "array"
+    },
+    "observation_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Observation Id",
+      "type": "string"
+    },
+    "outliers": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/SpatialOutlier"
+      },
+      "title": "Outliers",
+      "type": "array"
+    },
+    "route_edges": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/SpatialRouteEdge"
+      },
+      "title": "Route Edges",
+      "type": "array"
+    },
+    "scope": {
+      "$ref": "#/$defs/PlannerScope"
+    },
+    "source_reference_ids": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Source Reference Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "observation_id",
+    "scope",
+    "clusters",
+    "source_reference_ids"
+  ],
+  "title": "SpatialObservation",
+  "type": "object"
+}

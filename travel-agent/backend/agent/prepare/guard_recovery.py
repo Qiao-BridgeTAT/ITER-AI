@@ -45,7 +45,6 @@ def is_action_conflict(error: Exception) -> bool:
             "concrete entity continuation requires next action ",
             "trip intake requires the ",
             "card text answer requires an executable next interaction",
-            "optional trip preferences response requires an executable attraction interaction",
         )
     )
 

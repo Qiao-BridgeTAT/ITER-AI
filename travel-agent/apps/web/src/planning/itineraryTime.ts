@@ -1,7 +1,7 @@
 /** Presentation only: never use rounded times for ordering or feasibility. */
 export function formatItineraryTime(
   value: string,
-  { exact = false }: { exact?: boolean } = {},
+  { exact = false }: { exact?: boolean } = {}
 ): string {
   const minutes = clockMinutes(value);
   if (minutes === null) return value;
@@ -24,7 +24,7 @@ export function formatItineraryDayTimes(day: {
   const entries: TimelineClock[] = [
     { time: day.startTime },
     ...day.stops,
-    { time: day.endTime },
+    { time: day.endTime }
   ];
   const nextFixed: number[] = [];
   let upper = 24 * 60;
@@ -47,13 +47,13 @@ export function formatItineraryDayTimes(day: {
     if (earliest > latest)
       return formatItineraryTime(entry.time, { exact: true });
     return quarterClock(
-      Math.min(latest, Math.max(earliest, Math.round(value / 15) * 15)),
+      Math.min(latest, Math.max(earliest, Math.round(value / 15) * 15))
     );
   });
   return {
     startTime: labels[0],
     endTime: labels[labels.length - 1],
-    stopTimes: labels.slice(1, -1),
+    stopTimes: labels.slice(1, -1)
   };
 }
 

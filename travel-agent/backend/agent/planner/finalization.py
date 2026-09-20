@@ -15,9 +15,15 @@ from backend.contracts.v4.planner_decision import (
 from backend.contracts.v4.planner_workspace import PlannerWorkspaceState
 
 
-def build_finalize_decision(workspace: PlannerWorkspaceState) -> PlannerDecision:
+def build_finalize_decision(
+    workspace: PlannerWorkspaceState, *, allow_unresolved: bool = False
+) -> PlannerDecision:
     """Bind current formal artifacts without asking the model to echo fixed fields."""
 
+    from backend.agent.planner.react_review import require_current_review
+
+    if not allow_unresolved:
+        require_current_review(workspace)
     strategy = workspace.planning_strategy
     draft = workspace.working_itinerary
     schedule = workspace.materialized_schedule
@@ -31,7 +37,7 @@ def build_finalize_decision(workspace: PlannerWorkspaceState) -> PlannerDecision
     assert schedule is not None
     assert cost is not None
     assert observation is not None
-    if observation.result != "passed":
+    if not allow_unresolved and observation.result != "passed":
         raise PlannerGuardError("planner_finalize_validation_not_passed")
     if (
         observation.draft_id != draft.draft_id
@@ -42,16 +48,21 @@ def build_finalize_decision(workspace: PlannerWorkspaceState) -> PlannerDecision
         or observation.cost_draft_revision != draft.draft_revision
     ):
         raise PlannerGuardError("planner_finalize_validation_stale")
-    if workspace.unresolved_decisions:
+    if not allow_unresolved and workspace.unresolved_decisions:
         raise PlannerGuardError("planner_finalize_has_unresolved_decisions")
     if (
-        workspace.active_interaction is not None
+        not allow_unresolved
+        and workspace.active_interaction is not None
         and workspace.active_interaction.status is InteractionStatus.ACTIVE
     ):
         raise PlannerGuardError("planner_finalize_active_interaction")
-    if workspace.decision_trace and isinstance(
-        workspace.decision_trace[-1].payload,
-        RequestEvidencePayload,
+    if (
+        not allow_unresolved
+        and workspace.decision_trace
+        and isinstance(
+            workspace.decision_trace[-1].payload,
+            RequestEvidencePayload,
+        )
     ):
         requested = {
             request.request_id
@@ -84,11 +95,15 @@ def build_finalize_decision(workspace: PlannerWorkspaceState) -> PlannerDecision
         ),
         scope=workspace.current_scope,
         action="propose_finalize",
-        current_goal="发布已核验的尽力完成版。"
+        current_goal="输出当前完整行程，保留检查问题和未知信息。"
+        if allow_unresolved
+        else "发布已核验的尽力完成版。"
         if incomplete_quality
         else "发布已经完成确定性校验的正式行程。",
         reason_summary=(
-            "硬校验通过，但仍有逐日游览或正餐缺口；保留可用安排，不将安全通过等同于质量完成。"
+            "行程输出与检查结论分别记录，未通过的检查不阻止交付已有安排。"
+            if allow_unresolved
+            else "硬校验通过，但仍有逐日游览或正餐缺口；保留可用安排，不将安全通过等同于质量完成。"
             if incomplete_quality
             else "所有正式引用由服务端从当前草稿、时间轴、费用和校验结果绑定。"
         ),

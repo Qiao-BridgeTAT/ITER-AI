@@ -19,6 +19,7 @@ from backend.providers.contracts import (
     ProviderResultStatus,
     WeatherRequest,
 )
+from backend.providers.request_budget import budgeted_external_request
 
 WEATHERAPI_BASE_URL = "https://api.weatherapi.com"
 WEATHERAPI_FORECAST_PATH = "/v1/forecast.json"
@@ -83,6 +84,7 @@ class WeatherApiForecastProvider:
         if self._owns_client:
             await self._client.aclose()
 
+    @budgeted_external_request
     async def _request(self, parameters: dict[str, str]) -> dict[str, Any]:
         operation = "forecast"
         try:

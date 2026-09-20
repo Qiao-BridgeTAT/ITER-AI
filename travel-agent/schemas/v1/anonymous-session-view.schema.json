@@ -1,0 +1,24 @@
+{
+  "$id": "https://travel-agent.local/schemas/v1/anonymous-session-view.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "session_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Session Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "session_id",
+    "expires_at"
+  ],
+  "title": "AnonymousSessionView",
+  "type": "object"
+}

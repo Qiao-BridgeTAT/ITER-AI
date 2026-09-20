@@ -1,13 +1,14 @@
-import AMapLoader from "@amap/amap-jsapi-loader";
+import type { DiscoveryApi } from "./discoveryMap";
+import { readAmapConfig, loadAmapApi } from "./amapRuntime";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowClockwise,
   CornersOut,
   MapTrifold,
   Minus,
-  Plus,
+  Plus
 } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import type { MapUpdatePayload } from "../generated/contracts";
 import { MapPlaceIcon } from "./MapPlaceIcon";
 import { MAP_PLACE_LEGEND, mapPlaceCategory } from "./mapPlaceKinds";
@@ -25,7 +26,7 @@ declare global {
 interface AmapMarker {
   on: (event: string, handler: () => void) => void;
 }
-interface AmapMap {
+export interface AmapMap {
   add: (overlays: unknown[]) => void;
   remove?: (overlays: unknown[]) => void;
   destroy: () => void;
@@ -33,29 +34,45 @@ interface AmapMap {
     overlays?: unknown[],
     immediately?: boolean,
     avoid?: number[],
-    maxZoom?: number,
+    maxZoom?: number
   ) => void;
   setCenter?: (
     center: number[],
     immediately?: boolean,
-    duration?: number,
+    duration?: number
   ) => void;
   getZoom?: () => number;
   setZoomAndCenter?: (
     zoom: number,
     center: number[],
     immediately?: boolean,
-    duration?: number,
+    duration?: number
   ) => void;
+  setBounds?: (bounds: unknown) => void;
+  getFitZoomAndCenterByBounds?: (
+    bounds: unknown,
+    avoid?: number[],
+    maxZoom?: number
+  ) => [number, unknown];
+  getFitZoomAndCenterByOverlays?: (
+    overlays: unknown[],
+    avoid?: number[],
+    maxZoom?: number
+  ) => [number, unknown];
+  addControl?: (control: unknown) => void;
+  resize?: () => void;
   zoomIn?: () => void;
   zoomOut?: () => void;
 }
-export interface AmapApi {
+export interface AmapApi extends DiscoveryApi {
   Map: new (
     container: HTMLElement,
-    options: Record<string, unknown>,
+    options: Record<string, unknown>
   ) => AmapMap;
   Marker: new (options: Record<string, unknown>) => AmapMarker;
+  Bounds?: new (southWest: number[], northEast: number[]) => unknown;
+  Polygon?: new (options: Record<string, unknown>) => unknown;
+  Scale?: new () => unknown;
   Polyline: new (options: Record<string, unknown>) => unknown;
 }
 const DEFAULT_AMAP_CONFIG = readAmapConfig();
@@ -68,7 +85,7 @@ export function ItineraryMapCanvas({
   onHighlightPlace,
   config = DEFAULT_AMAP_CONFIG,
   loadApi = loadAmapApi,
-  color,
+  color
 }: {
   update: MapUpdatePayload | null;
   highlightedPlaceId: string | null;
@@ -94,7 +111,7 @@ export function ItineraryMapCanvas({
   >([]);
   const hasMarkers = Boolean(update?.markers?.length);
   const selectedMarker = update?.markers?.find(
-    (marker) => marker.place_id === highlightedPlaceId,
+    (marker) => marker.place_id === highlightedPlaceId
   );
 
   useEffect(() => {
@@ -112,7 +129,7 @@ export function ItineraryMapCanvas({
           zoom: 12,
           viewMode: "2D",
           resizeEnable: true,
-          keyboardEnable: false,
+          keyboardEnable: false
         });
         mapRef.current = map;
         setMapResource({ api: AMap, map });
@@ -164,7 +181,7 @@ export function ItineraryMapCanvas({
         title: category.label,
         content: button,
         anchor: "center",
-        zIndex: 120,
+        zIndex: 120
       });
       return overlay;
     });
@@ -175,7 +192,7 @@ export function ItineraryMapCanvas({
           new api.Polyline({
             path: route.polyline.map((point) => [
               point.longitude,
-              point.latitude,
+              point.latitude
             ]),
             strokeColor: color,
             strokeOpacity: 0.82,
@@ -185,8 +202,8 @@ export function ItineraryMapCanvas({
             outlineColor: "#ffffff",
             showDir: true,
             lineJoin: "round",
-            zIndex: 50,
-          }),
+            zIndex: 50
+          })
       );
     const overlays = [...routes, ...markers];
     map.add(overlays);
@@ -205,7 +222,7 @@ export function ItineraryMapCanvas({
       const map = mapRef.current;
       const center = [
         selectedMarker.coordinates.longitude,
-        selectedMarker.coordinates.latitude,
+        selectedMarker.coordinates.latitude
       ];
       const immediate =
         window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? true;
@@ -214,7 +231,7 @@ export function ItineraryMapCanvas({
           Math.max(map.getZoom?.() ?? 12, 14),
           center,
           immediate,
-          200,
+          200
         );
       } else map?.setCenter?.(center, immediate, 200);
     }
@@ -226,7 +243,7 @@ export function ItineraryMapCanvas({
       data-map-state={config ? loadState : "unconfigured"}
     >
       {pinTargets.map(({ id, kind, button }) =>
-        createPortal(<MapPlaceIcon kind={kind} />, button, id),
+        createPortal(<MapPlaceIcon kind={kind} />, button, id)
       )}
       <div
         ref={containerRef}
@@ -287,7 +304,7 @@ export function ItineraryMapCanvas({
                 overlaysRef.current,
                 true,
                 MAP_FIT_AVOID,
-                16,
+                16
               )
             }
           >
@@ -311,27 +328,4 @@ export function ItineraryMapCanvas({
       )}
     </div>
   );
-}
-
-function readAmapConfig(): AmapConfig | null {
-  const key = import.meta.env.VITE_AMAP_JS_API_KEY?.trim();
-  const securityCode = import.meta.env.VITE_AMAP_JS_SECURITY_CODE?.trim();
-  const serviceHost = import.meta.env.VITE_AMAP_SERVICE_HOST?.trim();
-  if (
-    !key ||
-    (!securityCode && !serviceHost) ||
-    /replace|example/i.test(`${key}${securityCode ?? ""}`)
-  )
-    return null;
-  return { key, securityCode, serviceHost };
-}
-async function loadAmapApi(config: AmapConfig): Promise<AmapApi> {
-  window._AMapSecurityConfig = config.serviceHost
-    ? { serviceHost: `${window.location.origin}${config.serviceHost}` }
-    : { securityJsCode: config.securityCode };
-  return AMapLoader.load({
-    key: config.key,
-    version: "2.0",
-    plugins: [],
-  }) as Promise<AmapApi>;
 }

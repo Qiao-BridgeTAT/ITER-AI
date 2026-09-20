@@ -1,0 +1,52 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/fixed-commitment-ref.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Reference to a user-owned immutable commitment in the task book.",
+  "properties": {
+    "commitment_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Commitment Id",
+      "type": "string"
+    },
+    "commitment_kind": {
+      "enum": [
+        "reservation",
+        "arrival",
+        "departure",
+        "named_hotel",
+        "existing_booking"
+      ],
+      "title": "Commitment Kind",
+      "type": "string"
+    },
+    "kind": {
+      "const": "fixed_commitment",
+      "default": "fixed_commitment",
+      "title": "Kind",
+      "type": "string"
+    },
+    "task_book_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Task Book Id",
+      "type": "string"
+    },
+    "task_book_version": {
+      "minimum": 1,
+      "title": "Task Book Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "task_book_id",
+    "task_book_version",
+    "commitment_id",
+    "commitment_kind"
+  ],
+  "title": "FixedCommitmentRef",
+  "type": "object"
+}

@@ -22,7 +22,7 @@ export function ServerTaskBookPreview({
   onClose,
   onModify,
   onConfirm,
-  confirmError,
+  confirmError
 }: ServerTaskBookPreviewProps) {
   const close = useCallback(onClose, [onClose]);
   const dialogRef = useModalFocus<HTMLElement>(close);
@@ -83,7 +83,7 @@ export function ServerTaskBookPreview({
                   value={formatPlaces(
                     taskBook.strong_attraction_ids,
                     placeNames,
-                    "暂无强意愿景点",
+                    "暂无强意愿景点"
                   )}
                 />
                 <TaskBookFact
@@ -91,7 +91,7 @@ export function ServerTaskBookPreview({
                   value={formatPlaces(
                     taskBook.important_restaurant_ids,
                     placeNames,
-                    "没有需要专程前往的餐厅",
+                    "没有需要专程前往的餐厅"
                   )}
                 />
                 <TaskBookFact
@@ -125,7 +125,7 @@ export function ServerTaskBookPreview({
                   <TaskBookList
                     title="当前假设"
                     items={(taskBook.assumptions ?? []).map(
-                      (assumption) => assumption.description,
+                      (assumption) => assumption.description
                     )}
                     empty="当前没有额外假设"
                   />
@@ -184,7 +184,7 @@ function TaskBookFact({ label, value }: { label: string; value: string }) {
 function TaskBookList({
   title,
   items,
-  empty,
+  empty
 }: {
   title: string;
   items: string[];
@@ -209,7 +209,7 @@ function TaskBookList({
 function formatPlaces(
   ids: string[] | undefined,
   names: ReadonlyMap<string, string>,
-  empty: string,
+  empty: string
 ) {
   if (!ids?.length) return empty;
   return ids.map((id) => names.get(id) ?? "已选择地点").join("、");

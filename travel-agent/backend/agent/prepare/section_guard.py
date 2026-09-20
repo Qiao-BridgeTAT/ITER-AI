@@ -25,7 +25,6 @@ from backend.contracts.v4.state import (
     SectionCoverage,
     TripSemanticState,
 )
-from backend.contracts.v4.task_book import DelegatedScope
 from backend.domain.discovery.state_merge import AcceptedV4Operation
 
 DISCOVERY_ORDER = (
@@ -269,64 +268,6 @@ def delegation_covers_section(section: DiscoverySection, targets: Sequence[str])
     return section in aliases and bool({section.value, aliases[section]} & set(targets))
 
 
-def effective_domain_delegation(semantic: TripSemanticState, domain: str) -> DelegatedScope | None:
-    """Read explicit general and domain scopes without broadening their targets.
-
-    A single user transaction can delegate multiple domains. The global list
-    is durable too; a domain-only projection is not the sole source of truth.
-    Both coverage and task-book compilation must use this same projection.
-    """
-    local, sections = {
-        "attraction": (
-            semantic.attractions.delegation,
-            (
-                DiscoverySection.ATTRACTION_PREFERENCE,
-                DiscoverySection.ATTRACTION_SPECIFIC,
-            ),
-        ),
-        "dining": (
-            semantic.dining.delegation,
-            (
-                DiscoverySection.DINING_PREFERENCE,
-                DiscoverySection.DINING_SPECIFIC,
-            ),
-        ),
-        "lodging": (
-            semantic.lodging.delegation,
-            (
-                DiscoverySection.LODGING_AREA_PREFERENCE,
-                DiscoverySection.LODGING_CLASS_PREFERENCE,
-            ),
-        ),
-    }[domain]
-    scopes = [
-        scope
-        for scope in (
-            local,
-            *(item for item in semantic.delegations if item.domain in {domain, "general"}),
-        )
-        if scope is not None
-        and any(delegation_covers_section(section, scope.delegated_targets) for section in sections)
-    ]
-    if not scopes:
-        return None
-    return DelegatedScope(
-        domain=domain,
-        delegated_targets=list(
-            dict.fromkeys(
-                target
-                for scope in scopes
-                for target in scope.delegated_targets
-                if any(delegation_covers_section(section, [target]) for section in sections)
-            )
-        ),
-        boundary_refs=list(dict.fromkeys(ref for scope in scopes for ref in scope.boundary_refs)),
-        source_operation_refs=list(
-            dict.fromkeys(ref for scope in scopes for ref in scope.source_operation_refs)
-        ),
-    )
-
-
 def semantic_delegation_refs(
     section: DiscoverySection,
     semantic: TripSemanticState,
@@ -336,17 +277,17 @@ def semantic_delegation_refs(
         DiscoverySection.ATTRACTION_PREFERENCE,
         DiscoverySection.ATTRACTION_SPECIFIC,
     }:
-        delegation = effective_domain_delegation(semantic, "attraction")
+        delegation = semantic.attractions.delegation
     elif section in {
         DiscoverySection.DINING_PREFERENCE,
         DiscoverySection.DINING_SPECIFIC,
     }:
-        delegation = effective_domain_delegation(semantic, "dining")
+        delegation = semantic.dining.delegation
     elif section in {
         DiscoverySection.LODGING_AREA_PREFERENCE,
         DiscoverySection.LODGING_CLASS_PREFERENCE,
     }:
-        delegation = effective_domain_delegation(semantic, "lodging")
+        delegation = semantic.lodging.delegation
     if delegation is None or not delegation_covers_section(section, delegation.delegated_targets):
         return []
     return list(delegation.source_operation_refs)
@@ -408,6 +349,7 @@ def _semantic_selection_refs(
         if any(
             (
                 semantic.lodging.hotel_quality_tier,
+                semantic.lodging.hotel_quality_tiers,
                 semantic.lodging.property_type_preferences,
                 semantic.lodging.nightly_budget,
                 semantic.lodging.facility_requirements,

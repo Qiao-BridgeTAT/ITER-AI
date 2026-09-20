@@ -6,12 +6,13 @@ import math
 import re
 from contextlib import suppress
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from difflib import SequenceMatcher
 from typing import Literal, cast
 from uuid import NAMESPACE_URL, UUID, uuid5
 
 from backend.agent.model_gateway import ModelCancellation
+from backend.agent.prepare.progress import DiningProgress, report_dining_progress
 from backend.contracts.candidate_ranking import (
     CandidateRankingPreferences,
     CandidateRankingRequest,
@@ -56,11 +57,14 @@ from backend.contracts.v4.enums import (
     DiscoverySection,
 )
 from backend.contracts.v4.state import ConcreteIntentState, TripSemanticState
+from backend.contracts.v4.visit_duration import VisitDurationRange
 from backend.discovery.cards.attraction_media import AttractionMediaResolver
+from backend.discovery.cards.attraction_recall import AttractionRecallService, pool_targets
 from backend.discovery.cards.attraction_selection import (
     AttractionCandidateSelector,
     AttractionSelection,
 )
+from backend.discovery.cards.dining.pipeline import DiningDiscovery
 from backend.domain.discovery.cold_start import cold_start_default_notes
 from backend.planning.candidate_ranking import CandidateRankingService
 from backend.planning.candidate_recall import CandidateRecallService
@@ -142,11 +146,23 @@ class CandidateCompositionService:
         ranking: CandidateRankingService,
         attraction_selector: AttractionCandidateSelector | None = None,
         attraction_media: AttractionMediaResolver | None = None,
+        attraction_recall: AttractionRecallService | None = None,
+        dining_discovery: DiningDiscovery | None = None,
     ) -> None:
         self._recall = recall
         self._ranking = ranking
         self._attraction_selector = attraction_selector
         self._attraction_media = attraction_media
+        self._attraction_recall = attraction_recall
+        self._dining_discovery = dining_discovery
+
+    def start_attraction_prefetch(self, trip_id: str, city_id: str) -> None:
+        if self._attraction_recall is not None:
+            self._attraction_recall.start_city(trip_id, city_id)
+
+    def start_dining_prefetch(self, trip_id: str, city_id: str, *, fixed: bool = False) -> None:
+        if self._dining_discovery is not None:
+            self._dining_discovery.start(trip_id, city_id, "fixed" if fixed else "city")
 
     async def compose(
         self,
@@ -166,6 +182,14 @@ class CandidateCompositionService:
             city_led=domain is CardDomain.ATTRACTION and self._attraction_selector is not None,
         )
         if request.attraction_discovery is not None:
+            if self._attraction_recall is not None:
+                return await self._compose_parallel_attractions(
+                    state,
+                    request,
+                    interaction_id=interaction_id,
+                    attachment_id=attachment_id,
+                    cancellation=cancellation,
+                )
             return await self._compose_attractions(
                 state,
                 request,
@@ -178,6 +202,12 @@ class CandidateCompositionService:
             provider_calls=_INITIAL_RECALL_PROVIDER_CALLS,
             candidates=_INITIAL_RECALL_CANDIDATES,
         )
+        if domain is CardDomain.DINING and self._dining_discovery is not None:
+            return await self._compose_dining(
+                state, request, attachment_id, interaction_id, cancellation
+            )
+        if domain is CardDomain.DINING:
+            await report_dining_progress(DiningProgress.SPECIFIC_SEARCH)
         result = await self._recall.recall(initial_request, cancellation=cancellation)
         recall_request_ids = [initial_request.request_id]
         provider_candidates, live_result = _select_live_provider_candidates(
@@ -208,6 +238,8 @@ class CandidateCompositionService:
             )
             recall_request_ids.append(supplemental_request.request_id)
             try:
+                if domain is CardDomain.DINING:
+                    await report_dining_progress(DiningProgress.SPECIFIC_SUPPLEMENT)
                 supplemental_result = await self._recall.recall(
                     supplemental_request,
                     cancellation=cancellation,
@@ -299,6 +331,180 @@ class CandidateCompositionService:
             recall_attempts=result.attempts,
         )
 
+    async def _compose_dining(
+        self,
+        state: TripSemanticState,
+        request: CandidateRecallRequest,
+        attachment_id: UUID,
+        interaction_id: UUID,
+        cancellation: ModelCancellation | None,
+    ) -> CandidateCompositionResult:
+        assert self._dining_discovery is not None
+        try:
+            selected, pool, attempts, entries = await self._dining_discovery.select(
+                state, cancellation=cancellation
+            )
+        except ValueError as error:
+            raise CardGenerationError(
+                "dining discovery did not produce a valid selection",
+                code="dining_discovery_invalid",
+                recoverable=True,
+            ) from error
+        if not selected:
+            raise CardGenerationError(
+                "no suitable real restaurants available",
+                code="dining_candidates_empty",
+                recoverable=True,
+            )
+        options = [
+            _entity_option(
+                item,
+                domain=CardDomain.DINING,
+                interaction_id=interaction_id,
+                role=CompositionRole.PERSONALIZED_TOP,
+                description=item.place.short_description,
+            )
+            for item in selected
+        ]
+        card = SpecificCandidateCard(
+            attachment_id=str(attachment_id),
+            interaction_id=str(interaction_id),
+            domain=CardDomain.DINING,
+            section=DiscoverySection.DINING_SPECIFIC,
+            based_on_state_version=state.state_version,
+            dependency_fingerprint=specific_dependency_fingerprint(state, CardDomain.DINING),
+            status=CardStatus.ACTIVE
+            if len(options) == _COUNTS[CardDomain.DINING][request.day_count][2]
+            else CardStatus.PARTIAL_AVAILABILITY,
+            options=options,
+            control_actions=[],
+            duration_days=request.day_count,
+            generation_metadata=CardGenerationMetadata(
+                generated_at=datetime.now(UTC),
+                source_refs=list(dict.fromkeys(ref for opt in options for ref in opt.source_refs)),
+                model_plan_id=str(request.request_id),
+                generation_mode="provider_composed",
+                strategy_version="dining-v3",
+            ),
+            prompt="看看哪些店让你想尝一尝？",
+        )
+        return CandidateCompositionResult(
+            card=card,
+            recall_request_id=request.request_id,
+            recall_request_ids=(request.request_id,),
+            provider_candidate_count=len(pool),
+            provider_call_count=sum(not e.get("cache_hit", False) for e in entries),
+            supplemental_recall_used=False,
+            selected_provider_candidates=tuple(selected),
+            recall_attempts=attempts,
+        )
+
+    async def _compose_parallel_attractions(
+        self,
+        state: TripSemanticState,
+        request: CandidateRecallRequest,
+        *,
+        interaction_id: UUID,
+        attachment_id: UUID,
+        cancellation: ModelCancellation | None,
+    ) -> CandidateCompositionResult:
+        assert self._attraction_recall is not None
+        assert self._attraction_selector is not None
+        assert request.attraction_discovery is not None
+        pool = await self._attraction_recall.recall(request, cancellation=cancellation)
+        excluded_ids = {
+            item.known_place_id for item in request.excluded_places if item.known_place_id
+        }
+        candidates = tuple(
+            item for item in pool.candidates if item.place.place_id not in excluded_ids
+        )
+        pool = pool.model_copy(update={"candidates": candidates})
+        selection = await self._attraction_selector.select(
+            request, candidates, cancellation=cancellation
+        )
+        target = request.attraction_discovery.minimum_target
+        if len(selection.selected) < target and pool.supplemental_rounds < 2:
+            previous_ids = {item.place.place_id for item in candidates}
+            pool = await self._attraction_recall.supplement(
+                request,
+                pool,
+                cancellation=cancellation,
+                selection_feedback=[
+                    *selection.search_feedback,
+                    f"最终仅选中{len(selection.selected)}个，最低目标{target}个",
+                ],
+            )
+            candidates = tuple(
+                item for item in pool.candidates if item.place.place_id not in excluded_ids
+            )
+            if {item.place.place_id for item in candidates} != previous_ids:
+                selection = await self._attraction_selector.select(
+                    request,
+                    candidates,
+                    cancellation=cancellation,
+                    previous_selection=selection,
+                )
+        if not selection.selected:
+            raise CardGenerationError(
+                "no attraction remained after semantic selection",
+                code="candidate_selection_empty",
+                recoverable=True,
+            )
+        by_key = {str(item.place.place_id): item for item in candidates}
+        options = [
+            _entity_option(
+                by_key[item.candidate_key],
+                domain=CardDomain.ATTRACTION,
+                interaction_id=interaction_id,
+                role=item.composition_role,
+                description=item.experience,
+                suggested_visit_duration=item.suggested_visit_duration,
+            )
+            for item in selection.selected
+        ]
+        if self._attraction_media is not None:
+            options = await self._attraction_media.enrich(
+                options, request.city_id, cancellation=cancellation
+            )
+        _, margin = pool_targets(request)
+        complete = len(options) >= target and len(candidates) >= margin
+        card = SpecificCandidateCard(
+            attachment_id=str(attachment_id),
+            interaction_id=str(interaction_id),
+            kind=CardKind.SPECIFIC_CARD,
+            domain=CardDomain.ATTRACTION,
+            section=DiscoverySection.ATTRACTION_SPECIFIC,
+            based_on_state_version=state.state_version,
+            dependency_fingerprint=specific_dependency_fingerprint(state, CardDomain.ATTRACTION),
+            status=CardStatus.ACTIVE if complete else CardStatus.PARTIAL_AVAILABILITY,
+            options=options,
+            control_actions=[],
+            generation_metadata=CardGenerationMetadata(
+                generated_at=pool.generated_at,
+                source_refs=list(
+                    dict.fromkeys(ref for option in options for ref in option.source_refs)
+                ),
+                model_plan_id=str(request.request_id),
+                generation_mode="provider_composed",
+                strategy_version="attraction-v3",
+            ),
+            prompt="选一选你想去的地方。",
+            duration_days=request.day_count,
+        )
+        return CandidateCompositionResult(
+            card=card,
+            recall_request_id=request.request_id,
+            recall_request_ids=(request.request_id,),
+            provider_candidate_count=len(candidates),
+            provider_call_count=pool.provider_call_count,
+            supplemental_recall_used=bool(pool.supplemental_rounds),
+            selected_provider_candidates=tuple(
+                by_key[item.candidate_key] for item in selection.selected
+            ),
+            recall_attempts=pool.attempts,
+            attraction_selection=selection,
+        )
+
     async def _compose_attractions(
         self,
         state: TripSemanticState,
@@ -382,6 +588,7 @@ class CandidateCompositionService:
                 interaction_id=interaction_id,
                 role=item.composition_role,
                 description=item.experience,
+                suggested_visit_duration=item.suggested_visit_duration,
             )
             for item in selection.selected
         ]
@@ -834,6 +1041,7 @@ def _recall_request(
                     description=item.description,
                     tags=tuple(item.tags),
                     search_query=item.search_query,
+                    attraction_search_hints=item.attraction_search_hints,
                     selected=item.selected,
                     source_reference_ids=tuple(item.source_operation_refs),
                 )
@@ -1281,6 +1489,7 @@ def _entity_option(
     interaction_id: UUID,
     role: CompositionRole,
     description: str | None,
+    suggested_visit_duration: VisitDurationRange | None = None,
 ) -> CardOption:
     provider_sources = [
         source for source in candidate.sources if source.kind is RecallSourceKind.PROVIDER
@@ -1306,7 +1515,9 @@ def _entity_option(
     return CardOption(
         option_id=option_id,
         label=candidate.place.name,
+        coordinates=candidate.place.coordinates,
         description=description,
+        suggested_visit_duration=suggested_visit_duration,
         entity_ref=CardEntityRef(
             canonical_entity_id=place_id,
             entity_kind=("attraction" if domain is CardDomain.ATTRACTION else "restaurant"),

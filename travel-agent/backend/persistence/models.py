@@ -659,6 +659,45 @@ class PlannerWorkspace(TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(24), nullable=False, default="working")
 
 
+class UserMemory(TimestampMixin, Base):
+    __tablename__ = "user_memories"
+    __table_args__ = (
+        UniqueConstraint("user_id", "source_message_id", "kind", name="uq_user_memory_source"),
+        CheckConstraint("kind IN ('preference', 'feedback')", name="ck_user_memory_kind"),
+    )
+    id: Mapped[UUID] = mapped_column(ID, primary_key=True, default=uuid4)
+    user_id: Mapped[UUID] = mapped_column(
+        ID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    trip_id: Mapped[UUID | None] = mapped_column(ID, ForeignKey("trips.id", ondelete="CASCADE"))
+    source_message_id: Mapped[UUID | None] = mapped_column(
+        ID, ForeignKey("messages.id", ondelete="CASCADE")
+    )
+
+
+class AgentProgress(Base):
+    """Public process history, independent of formal result commit sequences."""
+
+    __tablename__ = "agent_progress"
+    __table_args__ = (
+        UniqueConstraint("generation_id", "progress_index", name="uq_agent_progress_index"),
+        ForeignKeyConstraint(
+            ["turn_id", "trip_id"], ["agent_turns.id", "agent_turns.trip_id"], ondelete="CASCADE"
+        ),
+        Index("ix_agent_progress_trip", "trip_id", "emitted_at"),
+    )
+    id: Mapped[UUID] = mapped_column(ID, primary_key=True)
+    trip_id: Mapped[UUID] = mapped_column(ID, nullable=False)
+    turn_id: Mapped[UUID] = mapped_column(ID, nullable=False)
+    generation_id: Mapped[UUID] = mapped_column(ID, nullable=False)
+    progress_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    source: Mapped[str] = mapped_column(String(16), nullable=False)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    emitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class OutboxEvent(Base):
     """At-least-once delivery bundle built exclusively from committed messages."""
 

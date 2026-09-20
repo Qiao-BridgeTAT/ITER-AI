@@ -9,7 +9,7 @@ export const WEATHER_CONDITIONS = [
   "snow",
   "fog-haze",
   "wind",
-  "unknown",
+  "unknown"
 ] as const;
 
 export type WeatherCondition = (typeof WEATHER_CONDITIONS)[number];

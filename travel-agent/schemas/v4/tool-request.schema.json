@@ -1,0 +1,581 @@
+{
+  "$defs": {
+    "HotelBookingFactsRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "hotel_booking_facts",
+          "title": "Capability",
+          "type": "string"
+        },
+        "city": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "City",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "user_booking_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "User Booking Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "user_booking_ref",
+        "city"
+      ],
+      "title": "HotelBookingFactsRequest",
+      "type": "object"
+    },
+    "OpeningHoursRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_entity_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Canonical Entity Ids",
+          "type": "array"
+        },
+        "capability": {
+          "const": "opening_hours",
+          "title": "Capability",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "service_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Service Dates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "canonical_entity_ids",
+        "service_dates"
+      ],
+      "title": "OpeningHoursRequest",
+      "type": "object"
+    },
+    "PlaceFactsRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_entity_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Canonical Entity Ids",
+          "type": "array"
+        },
+        "capability": {
+          "const": "place_facts",
+          "title": "Capability",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "fact_kinds": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Fact Kinds",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "canonical_entity_ids",
+        "fact_kinds"
+      ],
+      "title": "PlaceFactsRequest",
+      "type": "object"
+    },
+    "PlaceProductsRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_entity_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Canonical Entity Ids",
+          "type": "array"
+        },
+        "capability": {
+          "const": "place_products",
+          "title": "Capability",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "service_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "title": "Service Dates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "canonical_entity_ids"
+      ],
+      "title": "PlaceProductsRequest",
+      "type": "object"
+    },
+    "ResolvePlaceRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "resolve_place",
+          "title": "Capability",
+          "type": "string"
+        },
+        "city": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "City",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "query": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Query",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "query",
+        "city"
+      ],
+      "title": "ResolvePlaceRequest",
+      "type": "object"
+    },
+    "SpatialRoutesRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "spatial_routes",
+          "title": "Capability",
+          "type": "string"
+        },
+        "departure_at_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Departure At Ref"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "destination_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Destination Ref",
+          "type": "string"
+        },
+        "origin_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Origin Ref",
+          "type": "string"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "transport_modes": {
+          "items": {
+            "enum": [
+              "public_transit",
+              "taxi",
+              "walking",
+              "driving"
+            ],
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Transport Modes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "origin_ref",
+        "destination_ref",
+        "transport_modes"
+      ],
+      "title": "SpatialRoutesRequest",
+      "type": "object"
+    },
+    "TicketAvailabilityRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_entity_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Canonical Entity Ids",
+          "type": "array"
+        },
+        "capability": {
+          "const": "ticket_availability",
+          "title": "Capability",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "service_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Service Dates",
+          "type": "array"
+        },
+        "traveler_count_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Traveler Count Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "canonical_entity_ids",
+        "service_dates",
+        "traveler_count_ref"
+      ],
+      "title": "TicketAvailabilityRequest",
+      "type": "object"
+    },
+    "ToolRequestPurpose": {
+      "enum": [
+        "answer_user",
+        "validate_operation",
+        "build_card"
+      ],
+      "title": "ToolRequestPurpose",
+      "type": "string"
+    },
+    "WeatherForecastRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "weather_forecast",
+          "title": "Capability",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "destination_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Destination Ref",
+          "type": "string"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "service_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Service Dates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "destination_ref",
+        "service_dates"
+      ],
+      "title": "WeatherForecastRequest",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/tool-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "One typed, whitelisted Prepare tool request.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ResolvePlaceRequest"
+    },
+    {
+      "$ref": "#/$defs/PlaceFactsRequest"
+    },
+    {
+      "$ref": "#/$defs/OpeningHoursRequest"
+    },
+    {
+      "$ref": "#/$defs/TicketAvailabilityRequest"
+    },
+    {
+      "$ref": "#/$defs/WeatherForecastRequest"
+    },
+    {
+      "$ref": "#/$defs/SpatialRoutesRequest"
+    },
+    {
+      "$ref": "#/$defs/HotelBookingFactsRequest"
+    },
+    {
+      "$ref": "#/$defs/PlaceProductsRequest"
+    }
+  ],
+  "title": "ToolRequest",
+  "type": "object"
+}

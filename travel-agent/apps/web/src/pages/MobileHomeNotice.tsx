@@ -10,7 +10,7 @@ interface MobileHomeNoticeProps {
 
 export function MobileHomeNotice({
   onContinue,
-  returnFocusRef,
+  returnFocusRef
 }: MobileHomeNoticeProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const continueRef = useRef<HTMLButtonElement>(null);
@@ -63,6 +63,6 @@ export function MobileHomeNotice({
         继续在手机上使用
       </button>
     </dialog>,
-    document.body,
+    document.body
   );
 }

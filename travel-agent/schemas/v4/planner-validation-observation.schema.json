@@ -1,0 +1,455 @@
+{
+  "$defs": {
+    "CandidateEntityKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "activity"
+      ],
+      "title": "CandidateEntityKind",
+      "type": "string"
+    },
+    "CandidateRef": {
+      "additionalProperties": false,
+      "description": "Revision-bound reference to one candidate in the current pool.",
+      "properties": {
+        "candidate_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "candidate_pool_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Pool Id",
+          "type": "string"
+        },
+        "candidate_pool_revision": {
+          "minimum": 1,
+          "title": "Candidate Pool Revision",
+          "type": "integer"
+        },
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "entity_kind": {
+          "$ref": "#/$defs/CandidateEntityKind"
+        },
+        "kind": {
+          "const": "candidate",
+          "default": "candidate",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_pool_id",
+        "candidate_pool_revision",
+        "candidate_id",
+        "entity_kind",
+        "canonical_entity_id"
+      ],
+      "title": "CandidateRef",
+      "type": "object"
+    },
+    "HotelOfferRef": {
+      "additionalProperties": false,
+      "description": "Inventory-snapshot-bound reference to a normalized hotel offer.",
+      "properties": {
+        "hotel_observation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Hotel Observation Id",
+          "type": "string"
+        },
+        "inventory_snapshot_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Inventory Snapshot Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "hotel_offer",
+          "default": "hotel_offer",
+          "title": "Kind",
+          "type": "string"
+        },
+        "offer_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Offer Id",
+          "type": "string"
+        },
+        "property_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Property Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hotel_observation_id",
+        "offer_id",
+        "property_id",
+        "inventory_snapshot_id"
+      ],
+      "title": "HotelOfferRef",
+      "type": "object"
+    },
+    "PlannerScope": {
+      "additionalProperties": false,
+      "description": "Optimistic-concurrency scope shared by one Planner decision round.",
+      "properties": {
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_state_version": {
+          "minimum": 0,
+          "title": "Task Book State Version",
+          "type": "integer"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "workspace_revision": {
+          "minimum": 0,
+          "title": "Workspace Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "trip_id",
+        "generation_id",
+        "task_book_id",
+        "task_book_version",
+        "task_book_state_version",
+        "workspace_revision"
+      ],
+      "title": "PlannerScope",
+      "type": "object"
+    },
+    "PlannerValidationIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "affected_dates": {
+          "default": [],
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "title": "Affected Dates",
+          "type": "array"
+        },
+        "allowed_actions": {
+          "items": {
+            "enum": [
+              "request_evidence",
+              "move_item",
+              "reorder_item",
+              "replace_item",
+              "remove_item",
+              "change_window",
+              "change_transport",
+              "change_hotel",
+              "ask_user"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Allowed Actions",
+          "type": "array"
+        },
+        "candidate_refs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CandidateRef"
+          },
+          "title": "Candidate Refs",
+          "type": "array"
+        },
+        "code": {
+          "enum": [
+            "candidate_not_in_pool",
+            "required_missing",
+            "forbidden_included",
+            "opening_conflict",
+            "reservation_conflict",
+            "time_overlap",
+            "route_unavailable",
+            "route_cost_exceeded",
+            "unjustified_cross_cluster",
+            "walking_limit_exceeded",
+            "pace_limit_exceeded",
+            "half_day_without_visit",
+            "unfilled_sightseeing_gap",
+            "meal_constraint_violation",
+            "meal_gap",
+            "hotel_night_gap",
+            "hotel_unavailable",
+            "hotel_constraint_conflict",
+            "missing_price",
+            "budget_exceeded",
+            "unscheduled_strong_intent",
+            "stale_evidence",
+            "stale_revision"
+          ],
+          "title": "Code",
+          "type": "string"
+        },
+        "draft_item_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Draft Item Ids",
+          "type": "array"
+        },
+        "fact_reference_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Fact Reference Ids",
+          "type": "array"
+        },
+        "hotel_offer_refs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/HotelOfferRef"
+          },
+          "title": "Hotel Offer Refs",
+          "type": "array"
+        },
+        "issue_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Issue Id",
+          "type": "string"
+        },
+        "message_summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Message Summary",
+          "type": "string"
+        },
+        "route_edge_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Route Edge Ids",
+          "type": "array"
+        },
+        "scope_kind": {
+          "enum": [
+            "day",
+            "item",
+            "route_edge",
+            "hotel",
+            "cost",
+            "global"
+          ],
+          "title": "Scope Kind",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "warning",
+            "error",
+            "blocking"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "user_authority_required": {
+          "title": "User Authority Required",
+          "type": "boolean"
+        },
+        "violated_constraint_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Violated Constraint Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "issue_id",
+        "code",
+        "severity",
+        "scope_kind",
+        "message_summary",
+        "allowed_actions",
+        "user_authority_required"
+      ],
+      "title": "PlannerValidationIssue",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/planner-validation-observation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "checked_at": {
+      "format": "date-time",
+      "title": "Checked At",
+      "type": "string"
+    },
+    "cost_draft_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Cost Draft Id",
+      "type": "string"
+    },
+    "cost_draft_revision": {
+      "minimum": 1,
+      "title": "Cost Draft Revision",
+      "type": "integer"
+    },
+    "draft_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Draft Id",
+      "type": "string"
+    },
+    "draft_revision": {
+      "minimum": 1,
+      "title": "Draft Revision",
+      "type": "integer"
+    },
+    "globally_affected_dates": {
+      "default": [],
+      "items": {
+        "format": "date",
+        "type": "string"
+      },
+      "title": "Globally Affected Dates",
+      "type": "array"
+    },
+    "issues": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/PlannerValidationIssue"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "materialized_schedule_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Materialized Schedule Id",
+      "type": "string"
+    },
+    "materialized_schedule_revision": {
+      "minimum": 1,
+      "title": "Materialized Schedule Revision",
+      "type": "integer"
+    },
+    "observation_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Observation Id",
+      "type": "string"
+    },
+    "result": {
+      "enum": [
+        "passed",
+        "repairable",
+        "requires_user",
+        "insufficient_evidence",
+        "fatal"
+      ],
+      "title": "Result",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/PlannerScope"
+    },
+    "validation_fingerprint": {
+      "maxLength": 128,
+      "minLength": 16,
+      "pattern": "\\S",
+      "title": "Validation Fingerprint",
+      "type": "string"
+    },
+    "validator_version": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Validator Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "observation_id",
+    "scope",
+    "draft_id",
+    "draft_revision",
+    "materialized_schedule_id",
+    "materialized_schedule_revision",
+    "cost_draft_id",
+    "cost_draft_revision",
+    "validator_version",
+    "validation_fingerprint",
+    "result",
+    "checked_at"
+  ],
+  "title": "PlannerValidationObservation",
+  "type": "object"
+}

@@ -1,7 +1,10 @@
 import { useLayoutEffect, useState } from "react";
+
 import { BootLoadingVisual } from "./BootLoadingVisual";
 import { preloadInitialExperience } from "./preloadInitialExperience";
+
 type BootPhase = "loading" | "exiting" | "hidden";
+
 export interface AppBootScreenProps {
   load?: (signal: AbortSignal, attempt: number) => Promise<void>;
   minimumDuration?: number;
@@ -10,6 +13,7 @@ export interface AppBootScreenProps {
   exitDuration?: number;
   onComplete?: () => void;
 }
+
 function delay(duration: number, signal: AbortSignal) {
   if (signal.aborted || duration === 0) return Promise.resolve();
   return new Promise<void>((resolve) => {
@@ -22,20 +26,24 @@ function delay(duration: number, signal: AbortSignal) {
     signal.addEventListener("abort", finish, { once: true });
   });
 }
+
 export function AppBootScreen({
   load = preloadInitialExperience,
   minimumDuration = 0,
-  maximumDuration = 12000,
+  maximumDuration = 12_000,
   exitDuration = 380,
-  onComplete,
+  onComplete
 }: AppBootScreenProps) {
   const [phase, setPhase] = useState<BootPhase>("loading");
   const [attempt, setAttempt] = useState(0);
   const [skip, setSkip] = useState(false);
   const [notice, setNotice] = useState<"slow" | "error" | null>(null);
-  const isPreview = null;
-  const effectiveMinimumDuration = minimumDuration;
-  const effectiveMaximumDuration = maximumDuration;
+  const isPreview =
+    import.meta.env.DEV &&
+    new URLSearchParams(window.location.search).get("demo") === "boot";
+  const effectiveMinimumDuration = isPreview ? 10_000 : minimumDuration;
+  const effectiveMaximumDuration = isPreview ? 12_000 : maximumDuration;
+
   useLayoutEffect(() => {
     const controller = new AbortController();
     const root = document.documentElement;
@@ -43,6 +51,7 @@ export function AppBootScreen({
       document.querySelector<HTMLElement>(".app-content-root");
     const prefersReducedMotion =
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+
     setPhase("loading");
     setNotice(null);
     root.classList.add("app-is-booting");
@@ -52,12 +61,14 @@ export function AppBootScreen({
       contentRoot.setAttribute("aria-hidden", "true");
     }
     let safetyTimer = 0;
+
     const releaseContent = () => {
       root.classList.remove("app-is-booting");
       root.removeAttribute("aria-busy");
       contentRoot?.removeAttribute("inert");
       contentRoot?.removeAttribute("aria-hidden");
     };
+
     const finishLoading = async () => {
       try {
         if (!skip) {
@@ -65,8 +76,8 @@ export function AppBootScreen({
             load(controller.signal, attempt),
             delay(
               prefersReducedMotion ? 0 : effectiveMinimumDuration,
-              controller.signal,
-            ),
+              controller.signal
+            )
           ]);
         }
       } catch {
@@ -76,21 +87,27 @@ export function AppBootScreen({
         }
         return;
       }
+
       if (controller.signal.aborted) return;
+
       window.clearTimeout(safetyTimer);
       setPhase("exiting");
       releaseContent();
       window.dispatchEvent(new CustomEvent("iter:boot-complete"));
+
       await delay(prefersReducedMotion ? 0 : exitDuration, controller.signal);
       if (!controller.signal.aborted) {
         setPhase("hidden");
         onComplete?.();
       }
     };
+
     safetyTimer = window.setTimeout(() => {
       setNotice("slow");
     }, effectiveMaximumDuration);
+
     void finishLoading().finally(() => window.clearTimeout(safetyTimer));
+
     return () => {
       controller.abort();
       window.clearTimeout(safetyTimer);
@@ -103,9 +120,11 @@ export function AppBootScreen({
     effectiveMinimumDuration,
     exitDuration,
     load,
-    onComplete,
+    onComplete
   ]);
+
   if (phase === "hidden") return null;
+
   return (
     <div
       className={`app-boot-screen app-boot-screen-${phase}`}

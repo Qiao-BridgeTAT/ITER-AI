@@ -1,4 +1,3 @@
-import { gsap } from "gsap";
 import {
   CSSProperties,
   KeyboardEvent,
@@ -8,17 +7,18 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from "react";
+import { gsap } from "gsap";
 
 import type {
   AttractionAccordionItem,
   RecommendationIntent,
-  RecommendationIntentOption,
+  RecommendationIntentOption
 } from "./AttractionAccordionAttachment";
 import { AttractionFeedbackPanel } from "./AttractionFeedbackPanel";
-import { PlaceImage } from "./PlaceImage";
 import { RecommendationImagePlaceholder } from "./RecommendationImagePlaceholder";
+import { PlaceImage } from "./PlaceImage";
 
 type AttractionDepthCarouselAttachmentProps = {
   label: string;
@@ -30,6 +30,7 @@ type AttractionDepthCarouselAttachmentProps = {
   confirmDisabled?: boolean;
   onChange: (itemId: string, intent: RecommendationIntent) => void;
   onConfirm: () => void;
+  onFocusItem?: (id: string) => void;
 };
 
 type CarouselConfig = {
@@ -72,9 +73,14 @@ export function AttractionDepthCarouselAttachment({
   confirmDisabled = false,
   onChange,
   onConfirm,
+  onFocusItem
 }: AttractionDepthCarouselAttachmentProps) {
   const data = useMemo(() => [...items], [items]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const activeItemId = data[activeIndex]?.id;
+  useEffect(() => {
+    if (activeItemId) onFocusItem?.(activeItemId);
+  }, [activeItemId, onFocusItem]);
   const rootRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const imageRefs = useRef<Array<HTMLImageElement | null>>([]);
@@ -98,7 +104,7 @@ export function AttractionDepthCarouselAttachment({
     falloff: 0.2,
     blur: 6,
     duration: 700,
-    loop: true,
+    loop: true
   });
   const activeItem = data[activeIndex] ?? data[0];
 
@@ -142,7 +148,7 @@ export function AttractionDepthCarouselAttachment({
       const brightness = Math.max(0.18, 1 - depthPosition * config.falloff);
       const blur = Math.min(
         config.blur,
-        (depthPosition / Math.max(1, config.visibleCards)) * config.blur,
+        (depthPosition / Math.max(1, config.visibleCards)) * config.blur
       );
 
       card.style.transform = `translate(-50%, -50%) translateY(${translateY.toFixed(2)}px) scale(${cardScale.toFixed(4)}) translateX(${translateX.toFixed(2)}px) translateZ(${translateZ.toFixed(2)}px) rotateY(${rotateY.toFixed(3)}deg)`;
@@ -161,7 +167,7 @@ export function AttractionDepthCarouselAttachment({
         tint.style.opacity = clamp(
           depthPosition * config.falloff * 1.25,
           0,
-          0.86,
+          0.86
         ).toFixed(3);
       }
     });
@@ -191,10 +197,10 @@ export function AttractionDepthCarouselAttachment({
               ((positionRef.current % count) + count) % count;
           }
           layout(positionRef.current);
-        },
+        }
       });
     },
-    [layout],
+    [layout]
   );
 
   const setFocus = useCallback(
@@ -217,12 +223,12 @@ export function AttractionDepthCarouselAttachment({
       focusRef.current = index;
       setActiveIndex(index);
     },
-    [tweenTo],
+    [tweenTo]
   );
 
   const navigateBy = useCallback(
     (step: number) => setFocus(focusRef.current + step, true),
-    [setFocus],
+    [setFocus]
   );
 
   const handleAttachmentKeyDown = (event: KeyboardEvent<HTMLElement>) => {
@@ -263,7 +269,7 @@ export function AttractionDepthCarouselAttachment({
     const observer = new ResizeObserver((entries) => {
       updateScale(
         entries[0]?.contentRect.width ?? 840,
-        entries[0]?.contentRect.height ?? 360,
+        entries[0]?.contentRect.height ?? 360
       );
     });
     observer.observe(root);
@@ -281,7 +287,7 @@ export function AttractionDepthCarouselAttachment({
         window.clearTimeout(wheelTimerRef.current);
       }
     },
-    [],
+    []
   );
 
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
@@ -317,7 +323,7 @@ export function AttractionDepthCarouselAttachment({
       lastTime: performance.now(),
       velocity: 0,
       moved: false,
-      pointerId: event.pointerId,
+      pointerId: event.pointerId
     };
   };
 
@@ -328,7 +334,7 @@ export function AttractionDepthCarouselAttachment({
     }
     const stepPixels = Math.max(
       configRef.current.cardWidth * 0.55 * scaleRef.current,
-      40,
+      40
     );
     const deltaX = event.clientX - drag.x;
     if (!drag.moved && Math.abs(deltaX) > 4) {
@@ -362,7 +368,7 @@ export function AttractionDepthCarouselAttachment({
     }, 0);
     const stepPixels = Math.max(
       configRef.current.cardWidth * 0.55 * scaleRef.current,
-      40,
+      40
     );
     const projected = positionRef.current - (drag.velocity * 160) / stepPixels;
     setFocus(Math.round(projected), true);
@@ -380,7 +386,9 @@ export function AttractionDepthCarouselAttachment({
       onKeyDownCapture={handleAttachmentKeyDown}
     >
       <div className="attraction-accordion-heading">
-        <span>{label}</span>
+        <span className={activeItem.compact ? "visually-hidden" : undefined}>
+          {label}
+        </span>
         <span
           className={activeItem.compact ? "visually-hidden" : undefined}
           aria-live="polite"
@@ -509,6 +517,7 @@ export function AttractionDepthCarouselAttachment({
         confirmDisabled={confirmDisabled}
         onChange={(intent) => onChange(activeItem.id, intent)}
         onConfirm={onConfirm}
+        autoAdvance={itemNoun === "景点"}
         onNext={() => navigateBy(1)}
         nextItemName={data[(activeIndex + 1) % data.length]?.name}
       />

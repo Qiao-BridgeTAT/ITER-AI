@@ -1,0 +1,43 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/dining-search-direction.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "enum": [
+        "representative",
+        "personalized"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "limit": {
+      "maximum": 5,
+      "minimum": 2,
+      "title": "Limit",
+      "type": "integer"
+    },
+    "query": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Query",
+      "type": "string"
+    },
+    "query_key": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Query Key",
+      "type": "string"
+    }
+  },
+  "required": [
+    "query_key",
+    "query",
+    "kind",
+    "limit"
+  ],
+  "title": "DiningSearchDirection",
+  "type": "object"
+}

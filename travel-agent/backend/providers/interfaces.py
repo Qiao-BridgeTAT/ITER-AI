@@ -13,6 +13,7 @@ from backend.providers.contracts import (
     KeywordPlaceSearchRequest,
     NearbyPlaceSearchRequest,
     PlaceDetailRequest,
+    PolygonPlaceSearchRequest,
     ProductSearchRequest,
     ProviderForecastDay,
     ProviderHotelOffer,
@@ -33,6 +34,10 @@ class PlaceProvider(Protocol):
 
     async def search_nearby(
         self, request: NearbyPlaceSearchRequest
+    ) -> ProviderResponse[ProviderPlace]: ...
+
+    async def search_polygon(
+        self, request: PolygonPlaceSearchRequest
     ) -> ProviderResponse[ProviderPlace]: ...
 
     async def get_place(self, request: PlaceDetailRequest) -> ProviderResponse[ProviderPlace]: ...

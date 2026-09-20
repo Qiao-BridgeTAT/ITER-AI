@@ -17,24 +17,24 @@ const MODE_COPY: Record<
   login: {
     title: "欢迎回来",
     action: "登录并保存旅程",
-    codeNotice: "验证码已发送，验证后会恢复你的行程和长期偏好。",
+    codeNotice: "验证码已发送，验证后会恢复你的行程和长期偏好。"
   },
   register: {
     title: "创建账号",
     action: "完成注册",
-    codeNotice: "验证码已发送，验证后会创建账号并保存当前旅程。",
+    codeNotice: "验证码已发送，验证后会创建账号并保存当前旅程。"
   },
   recover: {
     title: "找回账号",
     action: "恢复账号",
-    codeNotice: "验证码已发送，验证原手机号即可恢复账号。",
-  },
+    codeNotice: "验证码已发送，验证原手机号即可恢复账号。"
+  }
 };
 
 export function LoginOverlay({
   onClose,
   onSendCode,
-  onSubmit,
+  onSubmit
 }: LoginOverlayProps) {
   const [mode, setMode] = useState<AccountMode>("login");
   const [phone, setPhone] = useState("");

@@ -1,0 +1,309 @@
+{
+  "$defs": {
+    "ConstraintKind": {
+      "enum": [
+        "mobility",
+        "schedule",
+        "dietary",
+        "accessibility",
+        "companion",
+        "other"
+      ],
+      "title": "ConstraintKind",
+      "type": "string"
+    },
+    "DateInputMode": {
+      "enum": [
+        "suggestion",
+        "natural_language"
+      ],
+      "title": "DateInputMode",
+      "type": "string"
+    },
+    "DateSelection": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "raw_input": {
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "suggestion_kind": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "raw_input"
+            ]
+          },
+          "if": {
+            "properties": {
+              "input_mode": {
+                "const": "suggestion"
+              }
+            },
+            "required": [
+              "input_mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "raw_input": {
+                "type": "null"
+              },
+              "suggestion_kind": {
+                "enum": [
+                  "nearest_weekend",
+                  "nearby_holiday"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "suggestion_kind"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "end_date": {
+          "format": "date",
+          "title": "End Date",
+          "type": "string"
+        },
+        "input_mode": {
+          "$ref": "#/$defs/DateInputMode"
+        },
+        "raw_input": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raw Input"
+        },
+        "start_date": {
+          "format": "date",
+          "title": "Start Date",
+          "type": "string"
+        },
+        "suggestion_kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateSuggestionKind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "input_mode",
+        "start_date",
+        "end_date"
+      ],
+      "title": "DateSelection",
+      "type": "object",
+      "x-travel-date-range": {
+        "endField": "end_date",
+        "maximumDays": 5,
+        "maximumStartYears": 1,
+        "minimumDays": 1,
+        "minimumStartOffsetDays": 0,
+        "startField": "start_date"
+      }
+    },
+    "DateSuggestionKind": {
+      "enum": [
+        "nearest_weekend",
+        "nearby_holiday"
+      ],
+      "title": "DateSuggestionKind",
+      "type": "string"
+    },
+    "FixedEvent": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "end_time": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "start_time": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "start_time"
+            ]
+          },
+          "then": {
+            "properties": {
+              "end_time": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "end_time"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "end_time": {
+          "anyOf": [
+            {
+              "format": "time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Time"
+        },
+        "event_date": {
+          "format": "date",
+          "title": "Event Date",
+          "type": "string"
+        },
+        "event_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/FixedEventKind"
+        },
+        "place_text": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Place Text"
+        },
+        "start_time": {
+          "anyOf": [
+            {
+              "format": "time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Time"
+        },
+        "title": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "kind",
+        "title",
+        "event_date"
+      ],
+      "title": "FixedEvent",
+      "type": "object",
+      "x-travel-time-range": {
+        "endField": "end_time",
+        "startField": "start_time"
+      }
+    },
+    "FixedEventKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "hotel",
+        "activity",
+        "other"
+      ],
+      "title": "FixedEventKind",
+      "type": "string"
+    },
+    "SpecialConstraint": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ConstraintKind"
+        }
+      },
+      "required": [
+        "kind",
+        "description"
+      ],
+      "title": "SpecialConstraint",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/trip-setup-submission.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "date_selection": {
+      "$ref": "#/$defs/DateSelection"
+    },
+    "fixed_events": {
+      "items": {
+        "$ref": "#/$defs/FixedEvent"
+      },
+      "title": "Fixed Events",
+      "type": "array"
+    },
+    "special_constraints": {
+      "items": {
+        "$ref": "#/$defs/SpecialConstraint"
+      },
+      "title": "Special Constraints",
+      "type": "array"
+    }
+  },
+  "required": [
+    "date_selection"
+  ],
+  "title": "TripSetupSubmission",
+  "type": "object",
+  "x-travel-events-within-date-range": {
+    "dateSelectionField": "date_selection",
+    "endField": "end_date",
+    "eventDateField": "event_date",
+    "eventsField": "fixed_events",
+    "startField": "start_date"
+  }
+}

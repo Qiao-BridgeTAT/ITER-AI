@@ -5,7 +5,7 @@ interface MobileDeviceHints {
 
 export function isMobilePhone({
   userAgent = "",
-  userAgentData,
+  userAgentData
 }: MobileDeviceHints): boolean {
   if (userAgentData?.mobile === true) return true;
 

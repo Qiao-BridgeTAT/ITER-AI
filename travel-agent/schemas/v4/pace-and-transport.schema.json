@@ -1,0 +1,54 @@
+{
+  "$defs": {
+    "EvidenceBackedText": {
+      "additionalProperties": false,
+      "properties": {
+        "source_evidence_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Evidence Refs",
+          "type": "array"
+        },
+        "value": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "source_evidence_refs"
+      ],
+      "title": "EvidenceBackedText",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/pace-and-transport.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "pace_preferences": {
+      "items": {
+        "$ref": "#/$defs/EvidenceBackedText"
+      },
+      "title": "Pace Preferences",
+      "type": "array"
+    },
+    "transport_preferences": {
+      "items": {
+        "$ref": "#/$defs/EvidenceBackedText"
+      },
+      "title": "Transport Preferences",
+      "type": "array"
+    }
+  },
+  "title": "PaceAndTransport",
+  "type": "object"
+}

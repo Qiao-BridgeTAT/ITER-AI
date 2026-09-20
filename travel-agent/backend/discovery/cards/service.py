@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import asyncio
 import re
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import TypeAlias
+from typing import Literal, TypeAlias, cast
 from uuid import NAMESPACE_URL, UUID, uuid5
 
 from backend.agent.model_gateway import ModelCancellation
@@ -32,6 +31,7 @@ from backend.contracts.v4.enums import (
     CompositionRole,
     DiscoverySection,
 )
+from backend.contracts.v4.lodging_preferences import HotelQualityTier
 from backend.contracts.v4.state import TripSemanticState
 from backend.discovery.cards.candidate_composition import (
     CandidateCompositionService,
@@ -39,20 +39,22 @@ from backend.discovery.cards.candidate_composition import (
     specific_dependency_fingerprint,
 )
 from backend.discovery.cards.preference_generation import (
+    AttractionDirectionDraft,
+    DiningDirectionDraft,
+    DiningPreferencePlan,
     DirectionDraft,
     LodgingAreaDirectionDraft,
     PreferenceDirectionGenerator,
 )
+from backend.discovery.prepared_evidence import PreparedEvidenceCollector
 from backend.persistence.outbox_repository import canonical_json_hash
 from backend.planning.city_registry import CityRegistry
 from backend.providers.contracts import (
     HotelSearchRequest,
-    KeywordPlaceSearchRequest,
     ProviderCityScope,
     ProviderError,
     ProviderHotelOffer,
     ProviderPlace,
-    ProviderResponse,
 )
 from backend.providers.interfaces import PlaceProvider, TravelProductProvider
 from backend.providers.place_taxonomy import category_from_original_typecodes, original_typecodes
@@ -112,6 +114,7 @@ class PrepareCardService:
         products: TravelProductProvider | None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         lodging_observer: Callable[[dict[str, object]], None] | None = None,
+        evidence_collector: PreparedEvidenceCollector | None = None,
     ) -> None:
         self._directions = directions
         self._candidates = candidates
@@ -120,6 +123,42 @@ class PrepareCardService:
         self._products = products
         self._clock = clock
         self._lodging_observer = lodging_observer
+        self._evidence_collector = evidence_collector
+
+    def start_lodging_prefetch(self, state: TripSemanticState) -> None:
+        from backend.discovery.lodging_search import hotel_requests, start_prefetch
+
+        lodging, basics = state.lodging, state.trip_basics
+        if (
+            self._products is None
+            or lodging.not_applicable
+            or lodging.existing_bookings
+            or not lodging.class_preference_source_operation_refs
+            or not basics.destination_canonical_id
+            or not basics.start_date
+            or not basics.end_date
+            or basics.end_date <= basics.start_date
+        ):
+            return
+        requests = hotel_requests(
+            city=self._registry.provider_scope(basics.destination_canonical_id, ProviderCode.FLYAI),
+            check_in=basics.start_date,
+            check_out=basics.end_date,
+            examples=[
+                example
+                for area in lodging.area_preferences
+                if area.selected
+                for example in area.lodging_examples
+            ],
+            tiers=lodging.hotel_quality_tiers
+            or ([lodging.hotel_quality_tier] if lodging.hotel_quality_tier else []),
+            types=lodging.property_type_preferences,
+        )
+        start_prefetch(self._products, requests)
+
+    def start_attraction_prefetch(self, trip_id: str, city_id: str) -> None:
+        self._candidates.start_attraction_prefetch(trip_id, city_id)
+        self._candidates.start_dining_prefetch(trip_id, city_id)
 
     async def generate(
         self,
@@ -145,6 +184,10 @@ class PrepareCardService:
                 cancellation,
             )
         if section is DiscoverySection.ATTRACTION_SPECIFIC:
+            if state.trip_basics.destination_canonical_id:
+                self._candidates.start_dining_prefetch(
+                    state.trip_id, state.trip_basics.destination_canonical_id, fixed=True
+                )
             result = await self._candidates.compose(
                 state,
                 domain=CardDomain.ATTRACTION,
@@ -152,6 +195,10 @@ class PrepareCardService:
                 attachment_id=attachment_id,
                 cancellation=cancellation,
             )
+            if self._evidence_collector:
+                await self._evidence_collector.remember(
+                    state, turn_id, result.card, result.selected_provider_candidates, cancellation
+                )
             return result.card.model_copy(
                 update={"control_actions": _specific_controls(interaction_id, "attraction")},
                 deep=True,
@@ -171,6 +218,10 @@ class PrepareCardService:
                 attachment_id=attachment_id,
                 cancellation=cancellation,
             )
+            if self._evidence_collector:
+                await self._evidence_collector.remember(
+                    state, turn_id, result.card, result.selected_provider_candidates, cancellation
+                )
             return result.card.model_copy(
                 update={"control_actions": _specific_controls(interaction_id, "dining")},
                 deep=True,
@@ -218,6 +269,10 @@ class PrepareCardService:
         attachment_id: UUID,
         cancellation: ModelCancellation | None,
     ) -> AttractionPreferenceCard:
+        if state.trip_basics.destination_canonical_id is not None:
+            self.start_attraction_prefetch(
+                state.trip_id, state.trip_basics.destination_canonical_id
+            )
         plan, mode = await self._directions.generate_attraction(
             state,
             cancellation=cancellation,
@@ -280,6 +335,9 @@ class PrepareCardService:
                 source_refs=[plan_ref],
                 model_plan_id=plan_ref,
                 generation_mode=mode,
+                strategy_version="dining-v3"
+                if isinstance(plan, DiningPreferencePlan)
+                else "legacy",
             ),
             prompt="挑挑你喜欢的口味；有忌口或过敏，也记得告诉我。",
         )
@@ -293,195 +351,49 @@ class PrepareCardService:
     ) -> LodgingAreaPreferenceCard:
         if state.lodging.not_applicable or state.lodging.existing_bookings:
             raise CardGenerationError("lodging area card is bypassed by current lodging state")
-        plan, mode = await self._directions.generate_lodging_area(
-            state,
-            cancellation=cancellation,
-        )
-        basics = state.trip_basics
-        if basics.destination_canonical_id is None:
-            raise CardGenerationError("lodging area card requires a canonical destination")
-        scope = self._registry.provider_scope(
-            basics.destination_canonical_id,
-            ProviderCode.AMAP,
-        )
-        options: list[CardOption] = []
-        used_places: set[str] = set()
-        used_names: set[str] = set()
-        source_refs: list[str] = []
-        observed: list[datetime] = []
-        resolved: list[dict[str, object]] = []
-        failed: list[dict[str, object]] = []
-        attempted_queries: list[str] = []
-        attempted_query_identities: set[str] = set()
-        used_safe_seed_fallback = mode == "safe_seed_fallback"
-        for attempt in range(_LODGING_AREA_PLAN_ATTEMPTS):
-            new_directions: list[LodgingAreaDirectionDraft] = []
-            for direction in plan.directions:
-                query_identity = _lodging_area_identity(
-                    direction.search_query,
-                    scope.display_name,
+        plan, mode = await self._directions.generate_lodging_area(state, cancellation=cancellation)
+        options = []
+        for key, label in (
+            ("transit", "交通枢纽附近"),
+            ("attraction", "核心景点附近"),
+            ("commercial", "商圈附近"),
+        ):
+            copy = getattr(plan, key)
+            option_id = str(uuid5(NAMESPACE_URL, f"v4-card-option:{interaction_id}:{key}"))
+            options.append(
+                CardOption(
+                    option_id=option_id,
+                    label=label,
+                    description=copy.advantage + " " + copy.tradeoff,
+                    lodging_area_copy=copy,
+                    semantic_value=CardSemanticValue(
+                        root=DirectionSemanticValue(
+                            kind="direction",
+                            direction_id=key,
+                            direction_kind="area_strategy",
+                            lodging_examples=copy.examples,
+                        )
+                    ),
+                    signed_operation_ref=str(
+                        uuid5(NAMESPACE_URL, f"v4-card-operation:{interaction_id}:{option_id}")
+                    ),
                 )
-                if query_identity in attempted_query_identities:
-                    failed.append(
-                        {
-                            "query": direction.search_query,
-                            "label": direction.label,
-                            "reason": "duplicate_or_already_attempted_query",
-                            "observations": [],
-                        }
-                    )
-                    continue
-                attempted_query_identities.add(query_identity)
-                attempted_queries.append(direction.search_query)
-                new_directions.append(direction)
-            results = await asyncio.gather(
-                *(
-                    self._search_lodging_area_with_retry(scope, direction.search_query)
-                    for direction in new_directions
-                ),
-                return_exceptions=True,
             )
-            for direction, response in zip(new_directions, results, strict=True):
-                if len(options) >= _LODGING_AREA_TARGET_COUNT:
-                    break
-                items = [] if isinstance(response, BaseException) else response.items
-                place = _first_unused_lodging_area(
-                    items,
-                    used_places,
-                    used_names=used_names,
-                    query=direction.search_query,
-                    scope=scope,
-                )
-                if place is None:
-                    failed.append(
-                        {
-                            "query": direction.search_query,
-                            "label": direction.label,
-                            "reason": (
-                                "provider_unavailable"
-                                if isinstance(response, BaseException)
-                                else "no_distinct_matching_area"
-                            ),
-                            "observations": [
-                                {
-                                    "name": item.name,
-                                    "original_type": item.provider_typecode,
-                                    "area_kind_valid": _is_lodging_area_place(item),
-                                    "query_identity_matches": _lodging_area_identity(
-                                        item.name, scope.display_name
-                                    )
-                                    == _lodging_area_identity(
-                                        direction.search_query, scope.display_name
-                                    ),
-                                }
-                                for item in items[:12]
-                            ],
-                        }
-                    )
-                    continue
-                used_places.add(place.source_place_id)
-                used_names.add(_lodging_area_identity(place.name, scope.display_name))
-                option = _lodging_area_option(direction, place, interaction_id)
-                options.append(option)
-                source_refs.extend(option.source_refs)
-                observed.append(place.fetched_at)
-                resolved.append(
-                    {
-                        "direction": direction.model_dump(mode="json"),
-                        "name": place.name,
-                        "original_type": place.provider_typecode,
-                        "source_ref": option.source_refs[0],
-                    }
-                )
-            feedback: dict[str, object] = {
-                "target_option_count": _LODGING_AREA_TARGET_COUNT,
-                "missing_option_count": max(
-                    0,
-                    _LODGING_AREA_TARGET_COUNT - len(options),
-                ),
-                "resolved_directions": resolved,
-                "failed_queries": failed,
-                "attempted_queries": attempted_queries,
-            }
-            if self._lodging_observer is not None:
-                self._lodging_observer(
-                    {"city": basics.destination_name, "attempt": attempt + 1, **feedback}
-                )
-            if (
-                len(options) >= _LODGING_AREA_TARGET_COUNT
-                or attempt == _LODGING_AREA_PLAN_ATTEMPTS - 1
-            ):
-                break
-            plan, mode = await self._directions.generate_lodging_area(
-                state,
-                provider_feedback=feedback,
-                cancellation=cancellation,
-            )
-            used_safe_seed_fallback = used_safe_seed_fallback or mode == "safe_seed_fallback"
-        if len(options) < _LODGING_AREA_MINIMUM_COUNT:
-            raise CardGenerationError(
-                "fewer than three distinct real lodging areas were resolved",
-                code="lodging_areas_insufficient",
-                recoverable=True,
-            )
-        options = options[:_LODGING_AREA_TARGET_COUNT]
-        now = max(observed) if observed else self._now()
-        plan_ref = str(uuid5(NAMESPACE_URL, f"v4-direction-plan:{interaction_id}"))
         return LodgingAreaPreferenceCard(
             attachment_id=str(attachment_id),
             interaction_id=str(interaction_id),
-            kind=CardKind.PREFERENCE_CARD,
-            domain=CardDomain.LODGING_AREA,
-            section=DiscoverySection.LODGING_AREA_PREFERENCE,
             based_on_state_version=state.state_version,
             dependency_fingerprint=_preference_fingerprint(state, "lodging_area"),
-            status=(
-                CardStatus.ACTIVE
-                if len(options) == _LODGING_AREA_TARGET_COUNT
-                else CardStatus.PARTIAL_AVAILABILITY
-            ),
+            status=CardStatus.ACTIVE,
             options=options,
             control_actions=_lodging_controls(interaction_id, "lodging_area"),
             generation_metadata=CardGenerationMetadata(
-                generated_at=now,
-                source_refs=list(dict.fromkeys([plan_ref, *source_refs])),
-                model_plan_id=plan_ref,
-                generation_mode=(
-                    "safe_seed_fallback" if used_safe_seed_fallback else "provider_composed"
-                ),
+                generated_at=self._now(),
+                generation_mode=mode,
+                strategy_version="lodging-v2",
             ),
-            prompt="先看看想住在哪一带，具体酒店等路线定好后再选。",
+            prompt="你更倾向住在哪类区域？可以多选。",
         )
-
-    async def _search_lodging_area(
-        self,
-        scope: ProviderCityScope,
-        query: str,
-    ) -> ProviderResponse[ProviderPlace]:
-        return await self._places.search_places(
-            KeywordPlaceSearchRequest(
-                city=scope,
-                query=query,
-                category_hint=PlaceCategory.OTHER,
-                # Coarse types may return unrelated businesses ahead of this
-                # keyword. Validate the original source type after retrieval.
-                typecodes=[],
-                page_size=12,
-            )
-        )
-
-    async def _search_lodging_area_with_retry(
-        self,
-        scope: ProviderCityScope,
-        query: str,
-    ) -> ProviderResponse[ProviderPlace]:
-        try:
-            return await self._search_lodging_area(scope, query)
-        except ProviderError as error:
-            if not error.retryable:
-                raise
-            await asyncio.sleep(0.2)
-            return await self._search_lodging_area(scope, query)
 
     async def _lodging_class(
         self,
@@ -492,72 +404,39 @@ class PrepareCardService:
     ) -> LodgingClassPreferenceCard:
         if state.lodging.not_applicable or state.lodging.existing_bookings:
             raise CardGenerationError("lodging class card is bypassed by current lodging state")
-        plan, mode = await self._directions.generate_lodging_class(
-            state,
-            cancellation=cancellation,
-        )
-        ranges, price_ref, observed_at = await self._hotel_price_buckets(state)
-        plan_ref = str(uuid5(NAMESPACE_URL, f"v4-direction-plan:{interaction_id}"))
-        options: list[CardOption] = []
-        for item in plan.directions:
-            budget = ranges.get(item.direction_id)
-            quality_tier = item.direction_id if item.direction_id != "boutique_resort" else None
-            description = item.description
-            source_refs = [plan_ref]
-            if budget is not None and observed_at is not None and price_ref is not None:
-                description += (
-                    f" 参考 ¥{budget.minimum_fen // 100}–¥{budget.maximum_fen // 100}/晚。"
-                )
-                source_refs.append(price_ref)
-            elif item.direction_id != "boutique_resort":
-                description += " 参考价暂缺。"
-            option_id = str(
-                uuid5(
-                    NAMESPACE_URL,
-                    f"v4-card-option:{interaction_id}:{item.direction_id}",
-                )
-            )
+        options = []
+        for key, label, group, tier, property_type in (
+            ("economy", "二星/经济", "quality", "economy", None),
+            ("comfort", "三星/舒适", "quality", "comfort", None),
+            ("upscale", "四星/高档", "quality", "upscale", None),
+            ("luxury", "五星/豪华", "quality", "luxury", None),
+            ("hotel", "酒店", "property_type", None, "酒店"),
+            ("homestay", "民宿", "property_type", None, "民宿"),
+        ):
+            option_id = str(uuid5(NAMESPACE_URL, f"v4-card-option:{interaction_id}:{key}"))
             options.append(
                 CardOption(
                     option_id=option_id,
-                    label=item.label,
-                    description=description,
+                    label=label,
+                    description="可选择符合心意的住宿档次与类型。",
+                    selection_group=cast(Literal["quality", "property_type"], group),
                     semantic_value=CardSemanticValue(
                         root=DirectionSemanticValue(
                             kind="direction",
-                            direction_id=item.direction_id,
+                            direction_id=key,
                             direction_kind="hotel_class",
-                            hotel_quality_tier=quality_tier,
-                            property_type=(
-                                "boutique_or_resort"
-                                if item.direction_id == "boutique_resort"
-                                else None
-                            ),
-                            nightly_budget_minimum_minor=(
-                                budget.minimum_fen if budget is not None else None
-                            ),
-                            nightly_budget_maximum_minor=(
-                                budget.maximum_fen if budget is not None else None
-                            ),
+                            hotel_quality_tier=cast(HotelQualityTier | None, tier),
+                            property_type=property_type,
                         )
                     ),
                     signed_operation_ref=str(
-                        uuid5(
-                            NAMESPACE_URL,
-                            f"v4-card-operation:{interaction_id}:{option_id}",
-                        )
+                        uuid5(NAMESPACE_URL, f"v4-card-operation:{interaction_id}:{option_id}")
                     ),
-                    source_refs=source_refs,
-                    observed_at=observed_at,
-                    composition_role=CompositionRole.PERSONALIZED_TOP,
                 )
             )
         return LodgingClassPreferenceCard(
             attachment_id=str(attachment_id),
             interaction_id=str(interaction_id),
-            kind=CardKind.PREFERENCE_CARD,
-            domain=CardDomain.LODGING_CLASS,
-            section=DiscoverySection.LODGING_CLASS_PREFERENCE,
             based_on_state_version=state.state_version,
             dependency_fingerprint=_preference_fingerprint(state, "lodging_class"),
             status=CardStatus.ACTIVE,
@@ -565,15 +444,10 @@ class PrepareCardService:
             control_actions=_lodging_controls(interaction_id, "lodging_class"),
             generation_metadata=CardGenerationMetadata(
                 generated_at=self._now(),
-                source_refs=list(
-                    dict.fromkeys([plan_ref, *([price_ref] if price_ref is not None else [])])
-                ),
-                model_plan_id=plan_ref,
-                generation_mode=(
-                    "provider_composed" if mode == "qwen" and price_ref is not None else mode
-                ),
+                generation_mode="static",
+                strategy_version="lodging-v2",
             ),
-            prompt="挑一种住着舒服的类型吧。有每晚预算，也可以直接告诉我。",
+            prompt="你对住宿品质有什么要求？住宿档次和住宿类型均可多选。",
         )
 
     async def _hotel_price_buckets(
@@ -636,7 +510,7 @@ class PrepareCardService:
 
 
 def _direction_option(
-    item: DirectionDraft,
+    item: DirectionDraft | AttractionDirectionDraft,
     *,
     interaction_id: UUID,
     source_refs: list[str],
@@ -655,8 +529,16 @@ def _direction_option(
                     if item.composition_role is CompositionRole.REPRESENTATIVE_EXTRA
                     else "personalized"
                 ),
+                dining_search_hints=item.dining_search_hints
+                if isinstance(item, DiningDirectionDraft)
+                else None,
                 tags=item.tags,
                 search_query=item.search_query,
+                attraction_search_hints=(
+                    item.attraction_search_hints
+                    if isinstance(item, AttractionDirectionDraft)
+                    else None
+                ),
             )
         ),
         signed_operation_ref=str(

@@ -23,6 +23,7 @@ from backend.contracts.v4.planner_decision import (
     PlannerDecision,
     ReviseDraftPayload,
 )
+from backend.contracts.v4.planner_dining import V4_PLANNER_DINING_CONTRACTS, PlannerDiningState
 from backend.contracts.v4.planner_draft import (
     V4_PLANNER_DRAFT_CONTRACTS,
     UnassignedIntent,
@@ -54,6 +55,7 @@ from backend.contracts.v4.planner_observations import (
 )
 from backend.contracts.v4.planner_patch import V4_PLANNER_PATCH_CONTRACTS
 from backend.contracts.v4.planner_publication import V4_PLANNER_PUBLICATION_CONTRACTS
+from backend.contracts.v4.planner_react import PlannerReactState
 from backend.contracts.v4.planner_refs import (
     V4_PLANNER_REF_CONTRACTS,
     PlannerScope,
@@ -94,10 +96,12 @@ class PlannerWorkspaceState(V4ContractModel):
     based_on_task_book_id: Identifier
     based_on_task_book_version: int = Field(ge=1, strict=True)
     workspace_revision: int = Field(ge=0, strict=True)
+    react_state: PlannerReactState | None = Field(default=None, exclude_if=lambda v: v is None)
     planning_strategy: PlanningStrategy | None = None
     candidate_pool: CandidatePoolSummary
     verified_facts: tuple[VerifiedFactSummary, ...] = ()
     candidate_origins: tuple[PlannerCandidateOrigin, ...] = ()
+    dining_state: PlannerDiningState | None = Field(default=None, exclude_if=lambda v: v is None)
     place_evidence: tuple[PlannerPlaceEvidence, ...] = ()
     hours_evidence: tuple[PlannerHoursEvidence, ...] = ()
     weather_evidence: tuple[PlannerWeatherEvidence, ...] = ()
@@ -366,11 +370,12 @@ class PlannerWorkspaceState(V4ContractModel):
                     "ready_to_publish requires draft, materialization, cost and validation"
                 )
             if (
-                self.validation_observation is not None
+                self.react_state is None
+                and self.validation_observation is not None
                 and self.validation_observation.result != "passed"
             ):
                 raise ValueError("ready_to_publish requires passed Planner validation")
-            if self.unresolved_decisions:
+            if self.react_state is None and self.unresolved_decisions:
                 raise ValueError("ready_to_publish cannot contain unresolved decisions")
         return self
 
@@ -450,6 +455,7 @@ V4_PLANNER_CONTRACTS: tuple[type[BaseModel], ...] = (
     *V4_PLANNER_PATCH_CONTRACTS,
     *V4_PLANNER_OBSERVATION_CONTRACTS,
     *V4_PLANNER_EVIDENCE_CONTRACTS,
+    *V4_PLANNER_DINING_CONTRACTS,
     *V4_PLANNER_DECISION_CONTRACTS,
     *V4_PLANNER_PUBLICATION_CONTRACTS,
     *V4_PLANNER_WORKSPACE_CONTRACTS,

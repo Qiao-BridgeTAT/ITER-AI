@@ -3,7 +3,7 @@ import type { AppliedRestoreTimings } from "../backend/useConversationHistory";
 
 /** Local performance diagnostics: timings only, never message or account data. */
 export function TripRestoreTiming({
-  timings,
+  timings
 }: {
   timings: AppliedRestoreTimings | null;
 }) {
@@ -27,9 +27,9 @@ export function TripRestoreTiming({
               timings.parseMs +
               timings.validateMs +
               timings.applyMs +
-              renderMs,
-          ),
-        }),
+              renderMs
+          )
+        })
       );
     });
     return () => cancelAnimationFrame(frame);

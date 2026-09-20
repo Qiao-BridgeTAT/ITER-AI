@@ -1,0 +1,1146 @@
+{
+  "$defs": {
+    "AnchorRole": {
+      "enum": [
+        "fixed_event",
+        "fixed_hotel",
+        "must_attraction",
+        "want_attraction",
+        "destination_restaurant",
+        "convenient_attraction",
+        "convenient_restaurant"
+      ],
+      "title": "AnchorRole",
+      "type": "string"
+    },
+    "ClusterCostSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "average_minutes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Average Minutes"
+        },
+        "known_pair_count": {
+          "minimum": 0,
+          "title": "Known Pair Count",
+          "type": "integer"
+        },
+        "maximum_minutes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum Minutes"
+        },
+        "minimum_minutes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum Minutes"
+        },
+        "pair_count": {
+          "minimum": 0,
+          "title": "Pair Count",
+          "type": "integer"
+        },
+        "partial_pair_count": {
+          "minimum": 0,
+          "title": "Partial Pair Count",
+          "type": "integer"
+        },
+        "unknown_pair_count": {
+          "minimum": 0,
+          "title": "Unknown Pair Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "pair_count",
+        "known_pair_count",
+        "partial_pair_count",
+        "unknown_pair_count"
+      ],
+      "title": "ClusterCostSummary",
+      "type": "object"
+    },
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    },
+    "DataAvailability": {
+      "enum": [
+        "available",
+        "partial",
+        "missing"
+      ],
+      "title": "DataAvailability",
+      "type": "string"
+    },
+    "FixedTimeWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "end_time": {
+          "format": "time",
+          "title": "End Time",
+          "type": "string"
+        },
+        "event_date": {
+          "format": "date",
+          "title": "Event Date",
+          "type": "string"
+        },
+        "start_time": {
+          "format": "time",
+          "title": "Start Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_date",
+        "start_time",
+        "end_time"
+      ],
+      "title": "FixedTimeWindow",
+      "type": "object"
+    },
+    "Gcj02Coordinates": {
+      "additionalProperties": false,
+      "description": "Canonical coordinates used by every internal planning contract.",
+      "properties": {
+        "coord_system": {
+          "const": "gcj_02",
+          "title": "Coord System",
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Gcj02Coordinates",
+      "type": "object"
+    },
+    "InterClusterCost": {
+      "additionalProperties": false,
+      "properties": {
+        "best_edge_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Best Edge Id"
+        },
+        "destination_cluster_id": {
+          "format": "uuid",
+          "title": "Destination Cluster Id",
+          "type": "string"
+        },
+        "distance_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Distance M"
+        },
+        "duration_minutes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Minutes"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "origin_cluster_id": {
+          "format": "uuid",
+          "title": "Origin Cluster Id",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/DataAvailability"
+        }
+      },
+      "required": [
+        "origin_cluster_id",
+        "destination_cluster_id",
+        "status"
+      ],
+      "title": "InterClusterCost",
+      "type": "object"
+    },
+    "LodgingBaseCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_id": {
+          "format": "uuid",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "center": {
+          "$ref": "#/$defs/Gcj02Coordinates"
+        },
+        "city_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "City Id",
+          "type": "string"
+        },
+        "cluster_accesses": {
+          "items": {
+            "$ref": "#/$defs/LodgingClusterAccess"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Cluster Accesses",
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/LodgingBaseKind"
+        },
+        "label": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "quality_level": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quality Level"
+        },
+        "source_reference_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Reference Ids",
+          "type": "array"
+        },
+        "transit_node_place_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transit Node Place Id"
+        },
+        "typical_nightly_price": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "candidate_id",
+        "city_id",
+        "kind",
+        "label",
+        "center",
+        "cluster_accesses",
+        "source_reference_ids"
+      ],
+      "title": "LodgingBaseCandidate",
+      "type": "object"
+    },
+    "LodgingBaseKind": {
+      "enum": [
+        "area",
+        "transit_node",
+        "fixed_hotel"
+      ],
+      "title": "LodgingBaseKind",
+      "type": "string"
+    },
+    "LodgingClusterAccess": {
+      "additionalProperties": false,
+      "description": "Source-backed door-to-cluster access facts for one possible base.",
+      "properties": {
+        "cluster_id": {
+          "format": "uuid",
+          "title": "Cluster Id",
+          "type": "string"
+        },
+        "cycling_minutes": {
+          "anyOf": [
+            {
+              "maximum": 360,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cycling Minutes"
+        },
+        "missing_fields": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Missing Fields",
+          "type": "array"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "source_reference_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Reference Ids",
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/DataAvailability"
+        },
+        "taxi_cost": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "taxi_minutes": {
+          "anyOf": [
+            {
+              "maximum": 360,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Taxi Minutes"
+        },
+        "transit_last_mile_walk_m": {
+          "anyOf": [
+            {
+              "maximum": 20000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transit Last Mile Walk M"
+        },
+        "transit_minutes": {
+          "anyOf": [
+            {
+              "maximum": 360,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transit Minutes"
+        },
+        "transit_transfer_count": {
+          "anyOf": [
+            {
+              "maximum": 12,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transit Transfer Count"
+        }
+      },
+      "required": [
+        "cluster_id",
+        "status",
+        "source_reference_ids"
+      ],
+      "title": "LodgingClusterAccess",
+      "type": "object"
+    },
+    "LodgingStrategyPreferences": {
+      "additionalProperties": false,
+      "description": "Current-trip preference projection; one is low/compact, five is high/relaxed.",
+      "properties": {
+        "cycling_tolerance": {
+          "$ref": "#/$defs/MobilityTolerance"
+        },
+        "pace_level": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Pace Level",
+          "type": "integer"
+        },
+        "quality_level": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Quality Level",
+          "type": "integer"
+        },
+        "transit_taxi_level": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Transit Taxi Level",
+          "type": "integer"
+        },
+        "value_priority_level": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Value Priority Level",
+          "type": "integer"
+        },
+        "walking_tolerance": {
+          "$ref": "#/$defs/MobilityTolerance"
+        }
+      },
+      "required": [
+        "transit_taxi_level",
+        "walking_tolerance",
+        "cycling_tolerance",
+        "pace_level",
+        "quality_level",
+        "value_priority_level"
+      ],
+      "title": "LodgingStrategyPreferences",
+      "type": "object"
+    },
+    "MobilityTolerance": {
+      "enum": [
+        "never",
+        "within_5",
+        "around_10",
+        "15_plus"
+      ],
+      "title": "MobilityTolerance",
+      "type": "string"
+    },
+    "ProviderCode": {
+      "enum": [
+        "amap",
+        "baidu",
+        "flyai",
+        "weather",
+        "city_content",
+        "official",
+        "manual"
+      ],
+      "title": "ProviderCode",
+      "type": "string"
+    },
+    "RouteMode": {
+      "enum": [
+        "walking",
+        "cycling",
+        "transit",
+        "driving"
+      ],
+      "title": "RouteMode",
+      "type": "string"
+    },
+    "SpatialActivityCluster": {
+      "additionalProperties": false,
+      "properties": {
+        "center": {
+          "$ref": "#/$defs/Gcj02Coordinates"
+        },
+        "cluster_id": {
+          "format": "uuid",
+          "title": "Cluster Id",
+          "type": "string"
+        },
+        "intra_cluster_cost": {
+          "$ref": "#/$defs/ClusterCostSummary"
+        },
+        "label": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "member_node_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Member Node Ids",
+          "type": "array"
+        },
+        "suitable_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Suitable Dates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "cluster_id",
+        "label",
+        "member_node_ids",
+        "center",
+        "suitable_dates",
+        "intra_cluster_cost"
+      ],
+      "title": "SpatialActivityCluster",
+      "type": "object"
+    },
+    "SpatialAnchor": {
+      "additionalProperties": false,
+      "properties": {
+        "available_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Available Dates",
+          "type": "array"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "coordinates": {
+          "$ref": "#/$defs/Gcj02Coordinates"
+        },
+        "fixed_time_window": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FixedTimeWindow"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "node_id": {
+          "format": "uuid",
+          "title": "Node Id",
+          "type": "string"
+        },
+        "place_id": {
+          "format": "uuid",
+          "title": "Place Id",
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/AnchorRole"
+        },
+        "source_reference_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Reference Ids",
+          "type": "array"
+        },
+        "strength": {
+          "$ref": "#/$defs/SpatialAnchorStrength"
+        }
+      },
+      "required": [
+        "node_id",
+        "place_id",
+        "role",
+        "strength",
+        "name",
+        "coordinates",
+        "available_dates",
+        "source_reference_ids"
+      ],
+      "title": "SpatialAnchor",
+      "type": "object"
+    },
+    "SpatialAnchorStrength": {
+      "enum": [
+        "strong",
+        "adjustable"
+      ],
+      "title": "SpatialAnchorStrength",
+      "type": "string"
+    },
+    "SpatialIssueCode": {
+      "enum": [
+        "outlier_strong_anchor"
+      ],
+      "title": "SpatialIssueCode",
+      "type": "string"
+    },
+    "SpatialPlanningIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor_node_id": {
+          "format": "uuid",
+          "title": "Anchor Node Id",
+          "type": "string"
+        },
+        "closest_node_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Closest Node Id"
+        },
+        "code": {
+          "$ref": "#/$defs/SpatialIssueCode"
+        },
+        "minimum_known_minutes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum Known Minutes"
+        },
+        "question": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Question",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "anchor_node_id",
+        "reason",
+        "question"
+      ],
+      "title": "SpatialPlanningIssue",
+      "type": "object"
+    },
+    "SpatialPlanningResult": {
+      "additionalProperties": false,
+      "properties": {
+        "algorithm_version": {
+          "pattern": "^[1-9]\\d*\\.\\d+\\.\\d+$",
+          "title": "Algorithm Version",
+          "type": "string"
+        },
+        "anchors": {
+          "items": {
+            "$ref": "#/$defs/SpatialAnchor"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Anchors",
+          "type": "array"
+        },
+        "city_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "City Id",
+          "type": "string"
+        },
+        "clusters": {
+          "items": {
+            "$ref": "#/$defs/SpatialActivityCluster"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Clusters",
+          "type": "array"
+        },
+        "degradation_reasons": {
+          "default": [],
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Degradation Reasons",
+          "type": "array"
+        },
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        },
+        "input_state_version": {
+          "minimum": 0,
+          "title": "Input State Version",
+          "type": "integer"
+        },
+        "inter_cluster_costs": {
+          "items": {
+            "$ref": "#/$defs/InterClusterCost"
+          },
+          "title": "Inter Cluster Costs",
+          "type": "array"
+        },
+        "issues": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SpatialPlanningIssue"
+          },
+          "title": "Issues",
+          "type": "array"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "route_edges": {
+          "items": {
+            "$ref": "#/$defs/SpatialRouteEdge"
+          },
+          "title": "Route Edges",
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/DataAvailability"
+        },
+        "task_book_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Task Book Id"
+        },
+        "task_book_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Task Book Revision"
+        },
+        "trip_id": {
+          "format": "uuid",
+          "title": "Trip Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "algorithm_version",
+        "request_id",
+        "trip_id",
+        "input_state_version",
+        "city_id",
+        "status",
+        "anchors",
+        "route_edges",
+        "clusters",
+        "inter_cluster_costs",
+        "generated_at"
+      ],
+      "title": "SpatialPlanningResult",
+      "type": "object"
+    },
+    "SpatialRouteEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "destination_node_id": {
+          "format": "uuid",
+          "title": "Destination Node Id",
+          "type": "string"
+        },
+        "edge_id": {
+          "format": "uuid",
+          "title": "Edge Id",
+          "type": "string"
+        },
+        "missing_fields": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Missing Fields",
+          "type": "array"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "origin_node_id": {
+          "format": "uuid",
+          "title": "Origin Node Id",
+          "type": "string"
+        },
+        "routes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SpatialRouteOption"
+          },
+          "title": "Routes",
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/DataAvailability"
+        }
+      },
+      "required": [
+        "edge_id",
+        "origin_node_id",
+        "destination_node_id",
+        "status"
+      ],
+      "title": "SpatialRouteEdge",
+      "type": "object"
+    },
+    "SpatialRouteOption": {
+      "additionalProperties": false,
+      "properties": {
+        "distance_m": {
+          "minimum": 0,
+          "title": "Distance M",
+          "type": "integer"
+        },
+        "duration_seconds": {
+          "minimum": 0,
+          "title": "Duration Seconds",
+          "type": "integer"
+        },
+        "fetched_at": {
+          "format": "date-time",
+          "title": "Fetched At",
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/$defs/RouteMode"
+        },
+        "polyline": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Gcj02Coordinates"
+          },
+          "maxItems": 20000,
+          "title": "Polyline",
+          "type": "array"
+        },
+        "provider": {
+          "$ref": "#/$defs/ProviderCode"
+        },
+        "source_route_index": {
+          "minimum": 0,
+          "title": "Source Route Index",
+          "type": "integer"
+        },
+        "transfer_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transfer Count"
+        },
+        "walking_distance_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Walking Distance M"
+        }
+      },
+      "required": [
+        "provider",
+        "mode",
+        "distance_m",
+        "duration_seconds",
+        "source_route_index",
+        "fetched_at"
+      ],
+      "title": "SpatialRouteOption",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/lodging-strategy-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "candidates": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/LodgingBaseCandidate"
+      },
+      "maxItems": 8,
+      "title": "Candidates",
+      "type": "array"
+    },
+    "city_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "City Id",
+      "type": "string"
+    },
+    "end_date": {
+      "format": "date",
+      "title": "End Date",
+      "type": "string"
+    },
+    "fixed_hotel_accesses": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/LodgingClusterAccess"
+      },
+      "maxItems": 16,
+      "title": "Fixed Hotel Accesses",
+      "type": "array"
+    },
+    "fixed_hotel_node_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fixed Hotel Node Id"
+    },
+    "input_state_version": {
+      "minimum": 0,
+      "title": "Input State Version",
+      "type": "integer"
+    },
+    "preferences": {
+      "$ref": "#/$defs/LodgingStrategyPreferences"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "spatial_result": {
+      "$ref": "#/$defs/SpatialPlanningResult"
+    },
+    "start_date": {
+      "format": "date",
+      "title": "Start Date",
+      "type": "string"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "trip_id",
+    "input_state_version",
+    "city_id",
+    "start_date",
+    "end_date",
+    "spatial_result",
+    "preferences"
+  ],
+  "title": "LodgingStrategyRequest",
+  "type": "object"
+}

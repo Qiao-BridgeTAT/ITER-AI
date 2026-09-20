@@ -1,4 +1,4 @@
-"""AMap Web Service v3 place search and geocoding adapter."""
+"""AMap Web Service place search (v3/v5) and geocoding adapter."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from uuid import UUID
 import httpx
 from pydantic import HttpUrl, TypeAdapter
 
-from backend.config.settings import AmapSearchProxySettings
+from backend.config.settings import AmapPolygonProxySettings, AmapSearchProxySettings
 from backend.contracts.common import CnyAmountRange
 from backend.contracts.enums import CityCode, CoordinateSystem, PlaceCategory, ProviderCode
 from backend.contracts.places import CanonicalPlace, Gcj02Coordinates, PlaceSourceMapping
@@ -22,6 +22,7 @@ from backend.providers.contracts import (
     KeywordPlaceSearchRequest,
     NearbyPlaceSearchRequest,
     PlaceDetailRequest,
+    PolygonPlaceSearchRequest,
     ProviderError,
     ProviderPlace,
     ProviderResponse,
@@ -31,12 +32,13 @@ from backend.providers.place_taxonomy import category_from_original_typecodes
 
 AMAP_TEXT_PATH = "/v3/place/text"
 AMAP_AROUND_PATH = "/v3/place/around"
+AMAP_POLYGON_PATH = "/v5/place/polygon"
 AMAP_DETAIL_PATH = "/v3/place/detail"
 AMAP_GEOCODE_PATH = "/v3/geocode/geo"
 
 
 class AmapPlaceProvider:
-    """Translate AMap v3 responses into vendor-neutral provider contracts."""
+    """Translate AMap responses into vendor-neutral provider contracts."""
 
     def __init__(
         self,
@@ -46,11 +48,13 @@ class AmapPlaceProvider:
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         timeout_seconds: float = 5.0,
         search_proxy: AmapSearchProxySettings | None = None,
+        polygon_proxy: AmapPolygonProxySettings | None = None,
     ) -> None:
         if not api_key.strip():
             raise ValueError("AMAP_WEB_SERVICE_KEY must not be empty")
         self._api_key = api_key
         self._search_proxy = search_proxy
+        self._polygon_proxy = polygon_proxy
         self._client = client or httpx.AsyncClient(
             base_url=AMAP_BASE_URL,
             timeout=timeout_seconds,
@@ -106,6 +110,29 @@ class AmapPlaceProvider:
             "place_nearby",
             search_proxy=self._search_proxy,
         )
+        return self._parse_places(payload, request.city.city_id, request.category_hint)
+
+    async def search_polygon(
+        self, request: PolygonPlaceSearchRequest
+    ) -> ProviderResponse[ProviderPlace]:
+        payload = await request_amap_json(
+            self._client,
+            self._api_key,
+            AMAP_POLYGON_PATH,
+            {
+                "polygon": "|".join(_format_location(point) for point in request.polygon),
+                "types": "|".join(request.typecodes),
+                **({"keywords": request.query} if request.query else {}),
+                "page_num": str(request.page),
+                "page_size": str(request.page_size),
+                "show_fields": "business,navi,photos",
+            },
+            "place_polygon",
+            search_proxy=self._search_proxy,
+            polygon_proxy=self._polygon_proxy,
+        )
+        # This endpoint has no city or sortrule parameter. Its native order is
+        # the search service's composite ranking, not a rating sort.
         return self._parse_places(payload, request.city.city_id, request.category_hint)
 
     async def get_place(self, request: PlaceDetailRequest) -> ProviderResponse[ProviderPlace]:
@@ -201,8 +228,12 @@ class AmapPlaceProvider:
             typecode = _optional_text(record.get("typecode"), "place_parse")
             parent_place_id = _optional_text(record.get("parent"), "place_parse")
             image_url = _first_photo_url(record.get("photos"))
-            business = record.get("biz_ext")
+            business = record.get("business")
+            if not isinstance(business, dict):
+                business = record.get("biz_ext")
             business = business if isinstance(business, dict) else {}
+            navigation = record.get("navi")
+            navigation = navigation if isinstance(navigation, dict) else {}
             rating = _business_number(business.get("rating"))
             cost = _business_number(business.get("cost"))
             if address is None:
@@ -221,6 +252,8 @@ class AmapPlaceProvider:
                     category=_resolved_category(typecode, category_hint),
                     address=address,
                     coordinates=coordinates,
+                    entrance_coordinates=_optional_location(navigation.get("entr_location")),
+                    exit_coordinates=_optional_location(navigation.get("exit_location")),
                     provider_typecode=typecode,
                     provider_parent_place_id=parent_place_id,
                     image_url=image_url,
@@ -353,6 +386,16 @@ def _parse_location(value: Any, operation: str) -> Gcj02Coordinates:
 
 def _format_location(coordinates: Gcj02Coordinates) -> str:
     return f"{coordinates.longitude:.6f},{coordinates.latitude:.6f}"
+
+
+def _optional_location(value: Any) -> Gcj02Coordinates | None:
+    if not value:
+        return None
+    try:
+        return _parse_location(value, "place_parse")
+    except ProviderError:
+        # Optional navigation must not replace or invalidate the primary POI.
+        return None
 
 
 def _category_from_typecode(typecode: str | None) -> PlaceCategory:

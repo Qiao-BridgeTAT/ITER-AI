@@ -1,0 +1,199 @@
+{
+  "$defs": {
+    "MultiChoiceAnswer": {
+      "additionalProperties": false,
+      "properties": {
+        "answer_type": {
+          "const": "multi_choice",
+          "title": "Answer Type",
+          "type": "string"
+        },
+        "free_text": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Free Text"
+        },
+        "option_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 12,
+          "minItems": 1,
+          "title": "Option Ids",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "answer_type",
+        "option_ids"
+      ],
+      "title": "MultiChoiceAnswer",
+      "type": "object"
+    },
+    "RecommendationFeedback": {
+      "additionalProperties": false,
+      "properties": {
+        "intent": {
+          "$ref": "#/$defs/RecommendationIntent"
+        },
+        "recommendation_id": {
+          "format": "uuid",
+          "title": "Recommendation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "recommendation_id",
+        "intent"
+      ],
+      "title": "RecommendationFeedback",
+      "type": "object"
+    },
+    "RecommendationFeedbackAnswer": {
+      "additionalProperties": false,
+      "properties": {
+        "answer_type": {
+          "const": "recommendation_feedback",
+          "title": "Answer Type",
+          "type": "string"
+        },
+        "feedback": {
+          "items": {
+            "$ref": "#/$defs/RecommendationFeedback"
+          },
+          "maxItems": 20,
+          "title": "Feedback",
+          "type": "array"
+        }
+      },
+      "required": [
+        "answer_type",
+        "feedback"
+      ],
+      "title": "RecommendationFeedbackAnswer",
+      "type": "object",
+      "x-travel-unique-by": {
+        "arrayField": "feedback",
+        "itemField": "recommendation_id"
+      }
+    },
+    "RecommendationIntent": {
+      "enum": [
+        "must",
+        "want",
+        "if_convenient",
+        "avoid"
+      ],
+      "title": "RecommendationIntent",
+      "type": "string"
+    },
+    "SingleChoiceAnswer": {
+      "additionalProperties": false,
+      "properties": {
+        "answer_type": {
+          "const": "single_choice",
+          "title": "Answer Type",
+          "type": "string"
+        },
+        "option_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Option Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "answer_type",
+        "option_id"
+      ],
+      "title": "SingleChoiceAnswer",
+      "type": "object"
+    },
+    "SliderAnswer": {
+      "additionalProperties": false,
+      "properties": {
+        "answer_type": {
+          "const": "slider",
+          "title": "Answer Type",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "answer_type",
+        "value"
+      ],
+      "title": "SliderAnswer",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/attachment-answer-record.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Stable server-confirmed answer for one message attachment.",
+  "properties": {
+    "answer": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SingleChoiceAnswer"
+        },
+        {
+          "$ref": "#/$defs/MultiChoiceAnswer"
+        },
+        {
+          "$ref": "#/$defs/SliderAnswer"
+        },
+        {
+          "$ref": "#/$defs/RecommendationFeedbackAnswer"
+        }
+      ],
+      "title": "Answer",
+      "type": "object"
+    },
+    "answered_at": {
+      "format": "date-time",
+      "title": "Answered At",
+      "type": "string"
+    },
+    "attachment_id": {
+      "format": "uuid",
+      "title": "Attachment Id",
+      "type": "string"
+    },
+    "state_version": {
+      "minimum": 0,
+      "title": "State Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "attachment_id",
+    "answer",
+    "answered_at",
+    "state_version"
+  ],
+  "title": "AttachmentAnswerRecord",
+  "type": "object"
+}

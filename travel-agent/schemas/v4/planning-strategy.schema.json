@@ -1,0 +1,969 @@
+{
+  "$defs": {
+    "ActivityTargetRange": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum": {
+          "maximum": 4,
+          "minimum": 0,
+          "title": "Maximum",
+          "type": "integer"
+        },
+        "minimum": {
+          "maximum": 4,
+          "minimum": 0,
+          "title": "Minimum",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum",
+        "maximum"
+      ],
+      "title": "ActivityTargetRange",
+      "type": "object"
+    },
+    "AskUserReasonCode": {
+      "enum": [
+        "incompatible_strong_commitments",
+        "fixed_booking_conflict",
+        "permission_to_relax_constraint",
+        "material_tradeoff_outside_delegation",
+        "missing_user_owned_booking_detail",
+        "revision_budget_exhausted"
+      ],
+      "title": "AskUserReasonCode",
+      "type": "string"
+    },
+    "CandidateEntityKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "activity"
+      ],
+      "title": "CandidateEntityKind",
+      "type": "string"
+    },
+    "CandidatePriority": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_ref": {
+          "$ref": "#/$defs/CandidateRef"
+        },
+        "priority_band": {
+          "enum": [
+            "preserve_first",
+            "normal",
+            "drop_first"
+          ],
+          "title": "Priority Band",
+          "type": "string"
+        },
+        "reason_code": {
+          "enum": [
+            "user_commitment",
+            "trip_theme",
+            "spatial_fit",
+            "dining_role",
+            "delegated_choice"
+          ],
+          "title": "Reason Code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_ref",
+        "priority_band",
+        "reason_code"
+      ],
+      "title": "CandidatePriority",
+      "type": "object"
+    },
+    "CandidateRef": {
+      "additionalProperties": false,
+      "description": "Revision-bound reference to one candidate in the current pool.",
+      "properties": {
+        "candidate_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "candidate_pool_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Pool Id",
+          "type": "string"
+        },
+        "candidate_pool_revision": {
+          "minimum": 1,
+          "title": "Candidate Pool Revision",
+          "type": "integer"
+        },
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "entity_kind": {
+          "$ref": "#/$defs/CandidateEntityKind"
+        },
+        "kind": {
+          "const": "candidate",
+          "default": "candidate",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_pool_id",
+        "candidate_pool_revision",
+        "candidate_id",
+        "entity_kind",
+        "canonical_entity_id"
+      ],
+      "title": "CandidateRef",
+      "type": "object"
+    },
+    "ConflictPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "ask_user_trigger_codes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/AskUserReasonCode"
+          },
+          "title": "Ask User Trigger Codes",
+          "type": "array"
+        },
+        "flexible_tradeoff_order": {
+          "items": {
+            "enum": [
+              "retain_soft_attractions",
+              "retain_destination_meals",
+              "minimize_walking",
+              "minimize_transfers",
+              "minimize_total_cost",
+              "preserve_late_start",
+              "maximize_local_distinctiveness",
+              "minimize_cross_cluster",
+              "lodging_experience"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Flexible Tradeoff Order",
+          "type": "array"
+        },
+        "hard_guard_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Hard Guard Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "flexible_tradeoff_order"
+      ],
+      "title": "ConflictPolicy",
+      "type": "object"
+    },
+    "CrossClusterReasonCode": {
+      "enum": [
+        "reservation_or_fixed_commitment",
+        "date_specific_availability",
+        "strong_user_intent",
+        "lodging_or_transport_anchor",
+        "verified_global_route_improvement"
+      ],
+      "title": "CrossClusterReasonCode",
+      "type": "string"
+    },
+    "DailyCapacityPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "major_activity_target": {
+          "$ref": "#/$defs/ActivityTargetRange"
+        },
+        "pace_profile": {
+          "enum": [
+            "relaxed",
+            "balanced",
+            "intensive",
+            "custom"
+          ],
+          "title": "Pace Profile",
+          "type": "string"
+        },
+        "per_date_overrides": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PerDateCapacityOverride"
+          },
+          "title": "Per Date Overrides",
+          "type": "array"
+        },
+        "preferred_end_window": {
+          "$ref": "#/$defs/PreferredTimeWindow"
+        },
+        "preferred_start_window": {
+          "$ref": "#/$defs/PreferredTimeWindow"
+        },
+        "rest_policy": {
+          "$ref": "#/$defs/RestPolicy"
+        },
+        "source_constraint_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Constraint Refs",
+          "type": "array"
+        },
+        "walking_policy": {
+          "$ref": "#/$defs/WalkingPolicy"
+        }
+      },
+      "required": [
+        "pace_profile",
+        "preferred_start_window",
+        "preferred_end_window",
+        "major_activity_target",
+        "walking_policy",
+        "rest_policy"
+      ],
+      "title": "DailyCapacityPolicy",
+      "type": "object"
+    },
+    "DiningPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "destination_restaurant_refs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CandidateRef"
+          },
+          "title": "Destination Restaurant Refs",
+          "type": "array"
+        },
+        "dietary_constraint_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Dietary Constraint Refs",
+          "type": "array"
+        },
+        "flexible_meal_placement": {
+          "enum": [
+            "near_route",
+            "near_primary_cluster",
+            "near_hotel",
+            "delegated"
+          ],
+          "title": "Flexible Meal Placement",
+          "type": "string"
+        },
+        "required_meal_windows": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RequiredMealWindow"
+          },
+          "title": "Required Meal Windows",
+          "type": "array"
+        }
+      },
+      "required": [
+        "flexible_meal_placement"
+      ],
+      "title": "DiningPolicy",
+      "type": "object"
+    },
+    "FixedCommitmentRef": {
+      "additionalProperties": false,
+      "description": "Reference to a user-owned immutable commitment in the task book.",
+      "properties": {
+        "commitment_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Commitment Id",
+          "type": "string"
+        },
+        "commitment_kind": {
+          "enum": [
+            "reservation",
+            "arrival",
+            "departure",
+            "named_hotel",
+            "existing_booking"
+          ],
+          "title": "Commitment Kind",
+          "type": "string"
+        },
+        "kind": {
+          "const": "fixed_commitment",
+          "default": "fixed_commitment",
+          "title": "Kind",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "task_book_id",
+        "task_book_version",
+        "commitment_id",
+        "commitment_kind"
+      ],
+      "title": "FixedCommitmentRef",
+      "type": "object"
+    },
+    "LodgingPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "budget_constraint_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Budget Constraint Ref"
+        },
+        "facility_constraint_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Facility Constraint Refs",
+          "type": "array"
+        },
+        "fixed_commitment_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FixedCommitmentRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "mode": {
+          "enum": [
+            "not_applicable",
+            "fixed",
+            "search"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "preferred_area_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Preferred Area Refs",
+          "type": "array"
+        },
+        "selection_objectives": {
+          "default": [],
+          "items": {
+            "enum": [
+              "minimize_total_commute",
+              "minimize_walking",
+              "transit_convenience",
+              "better_value",
+              "preferred_atmosphere",
+              "facility_fit"
+            ],
+            "type": "string"
+          },
+          "title": "Selection Objectives",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "LodgingPolicy",
+      "type": "object"
+    },
+    "NonBlockingAssumption": {
+      "additionalProperties": false,
+      "properties": {
+        "assumption_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Assumption Id",
+          "type": "string"
+        },
+        "source_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source Ref",
+          "type": "string"
+        },
+        "summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "assumption_id",
+        "summary",
+        "source_ref"
+      ],
+      "title": "NonBlockingAssumption",
+      "type": "object"
+    },
+    "PendingEvidenceNeed": {
+      "additionalProperties": false,
+      "properties": {
+        "affected_dates": {
+          "default": [],
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "title": "Affected Dates",
+          "type": "array"
+        },
+        "blocking": {
+          "title": "Blocking",
+          "type": "boolean"
+        },
+        "capability": {
+          "$ref": "#/$defs/PlannerCapability"
+        },
+        "evidence_need_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Evidence Need Id",
+          "type": "string"
+        },
+        "target_refs": {
+          "default": [],
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/CandidateRef"
+              },
+              {
+                "$ref": "#/$defs/FixedCommitmentRef"
+              }
+            ],
+            "type": "object"
+          },
+          "title": "Target Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "evidence_need_id",
+        "capability",
+        "blocking"
+      ],
+      "title": "PendingEvidenceNeed",
+      "type": "object"
+    },
+    "PerDateCapacityOverride": {
+      "additionalProperties": false,
+      "properties": {
+        "activity_load": {
+          "enum": [
+            "light",
+            "normal",
+            "full"
+          ],
+          "title": "Activity Load",
+          "type": "string"
+        },
+        "available_window_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Available Window Ref"
+        },
+        "day_kind": {
+          "enum": [
+            "active",
+            "arrival_departure",
+            "rest"
+          ],
+          "title": "Day Kind",
+          "type": "string"
+        },
+        "service_date": {
+          "format": "date",
+          "title": "Service Date",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_date",
+        "day_kind",
+        "activity_load"
+      ],
+      "title": "PerDateCapacityOverride",
+      "type": "object"
+    },
+    "PlannerCapability": {
+      "enum": [
+        "candidate_recall",
+        "place_facts",
+        "opening_hours",
+        "ticket_availability",
+        "weather_forecast",
+        "spatial_routes",
+        "hotel_search",
+        "hotel_offer_refresh"
+      ],
+      "title": "PlannerCapability",
+      "type": "string"
+    },
+    "PlannerScope": {
+      "additionalProperties": false,
+      "description": "Optimistic-concurrency scope shared by one Planner decision round.",
+      "properties": {
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_state_version": {
+          "minimum": 0,
+          "title": "Task Book State Version",
+          "type": "integer"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "workspace_revision": {
+          "minimum": 0,
+          "title": "Workspace Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "trip_id",
+        "generation_id",
+        "task_book_id",
+        "task_book_version",
+        "task_book_state_version",
+        "workspace_revision"
+      ],
+      "title": "PlannerScope",
+      "type": "object"
+    },
+    "PreferredTimeWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "earliest": {
+          "anyOf": [
+            {
+              "format": "time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Earliest"
+        },
+        "latest": {
+          "anyOf": [
+            {
+              "format": "time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Latest"
+        }
+      },
+      "title": "PreferredTimeWindow",
+      "type": "object"
+    },
+    "RequiredMealWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "meal": {
+          "enum": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "title": "Meal",
+          "type": "string"
+        },
+        "service_date": {
+          "format": "date",
+          "title": "Service Date",
+          "type": "string"
+        },
+        "window_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Window Ref"
+        }
+      },
+      "required": [
+        "service_date",
+        "meal"
+      ],
+      "title": "RequiredMealWindow",
+      "type": "object"
+    },
+    "RestPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "hard_requirement_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Hard Requirement Refs",
+          "type": "array"
+        },
+        "mode": {
+          "enum": [
+            "regular",
+            "as_needed",
+            "minimal"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "preferred_windows": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Preferred Windows",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "RestPolicy",
+      "type": "object"
+    },
+    "SpatialPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_cross_cluster_reasons": {
+          "items": {
+            "$ref": "#/$defs/CrossClusterReasonCode"
+          },
+          "title": "Allowed Cross Cluster Reasons",
+          "type": "array"
+        },
+        "merge_adjacent_clusters": {
+          "title": "Merge Adjacent Clusters",
+          "type": "boolean"
+        },
+        "prefer_single_primary_cluster": {
+          "title": "Prefer Single Primary Cluster",
+          "type": "boolean"
+        },
+        "preferred_transport_modes": {
+          "items": {
+            "enum": [
+              "public_transit",
+              "taxi",
+              "walking",
+              "driving"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Preferred Transport Modes",
+          "type": "array"
+        },
+        "split_large_cluster": {
+          "title": "Split Large Cluster",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "preferred_transport_modes",
+        "prefer_single_primary_cluster",
+        "split_large_cluster",
+        "merge_adjacent_clusters",
+        "allowed_cross_cluster_reasons"
+      ],
+      "title": "SpatialPolicy",
+      "type": "object"
+    },
+    "StrategyAnchorPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "filler_candidate_refs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CandidateRef"
+          },
+          "title": "Filler Candidate Refs",
+          "type": "array"
+        },
+        "immutable_refs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/FixedCommitmentRef"
+          },
+          "title": "Immutable Refs",
+          "type": "array"
+        },
+        "soft_candidate_refs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CandidateRef"
+          },
+          "title": "Soft Candidate Refs",
+          "type": "array"
+        },
+        "strong_candidate_refs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CandidateRef"
+          },
+          "title": "Strong Candidate Refs",
+          "type": "array"
+        }
+      },
+      "title": "StrategyAnchorPolicy",
+      "type": "object"
+    },
+    "WalkingPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "goal": {
+          "enum": [
+            "minimize",
+            "balanced",
+            "no_preference"
+          ],
+          "title": "Goal",
+          "type": "string"
+        },
+        "hard_limit_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hard Limit Ref"
+        }
+      },
+      "required": [
+        "goal"
+      ],
+      "title": "WalkingPolicy",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/planning-strategy.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Complete, auditable Planner strategy snapshot.",
+  "properties": {
+    "anchor_policy": {
+      "$ref": "#/$defs/StrategyAnchorPolicy"
+    },
+    "candidate_pool_revision": {
+      "minimum": 1,
+      "title": "Candidate Pool Revision",
+      "type": "integer"
+    },
+    "candidate_priority": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CandidatePriority"
+      },
+      "title": "Candidate Priority",
+      "type": "array"
+    },
+    "conflict_policy": {
+      "$ref": "#/$defs/ConflictPolicy"
+    },
+    "core_experience_summary": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Core Experience Summary",
+      "type": "string"
+    },
+    "daily_capacity_policy": {
+      "$ref": "#/$defs/DailyCapacityPolicy"
+    },
+    "dining_policy": {
+      "$ref": "#/$defs/DiningPolicy"
+    },
+    "lodging_policy": {
+      "$ref": "#/$defs/LodgingPolicy"
+    },
+    "non_blocking_assumptions": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/NonBlockingAssumption"
+      },
+      "title": "Non Blocking Assumptions",
+      "type": "array"
+    },
+    "pending_evidence": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/PendingEvidenceNeed"
+      },
+      "title": "Pending Evidence",
+      "type": "array"
+    },
+    "reason_summary": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Reason Summary",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/PlannerScope"
+    },
+    "spatial_policy": {
+      "$ref": "#/$defs/SpatialPolicy"
+    },
+    "strategy_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Strategy Id",
+      "type": "string"
+    },
+    "strategy_revision": {
+      "minimum": 1,
+      "title": "Strategy Revision",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "strategy_id",
+    "strategy_revision",
+    "scope",
+    "candidate_pool_revision",
+    "core_experience_summary",
+    "anchor_policy",
+    "daily_capacity_policy",
+    "spatial_policy",
+    "lodging_policy",
+    "dining_policy",
+    "conflict_policy",
+    "reason_summary"
+  ],
+  "title": "PlanningStrategy",
+  "type": "object"
+}

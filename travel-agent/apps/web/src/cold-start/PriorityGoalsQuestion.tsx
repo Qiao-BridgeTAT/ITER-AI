@@ -10,7 +10,7 @@ const MAX_PRIORITY_GOALS = 2;
 
 export function PriorityGoalsQuestion({
   value,
-  onChange,
+  onChange
 }: PriorityGoalsQuestionProps) {
   const atLimit = value.length >= MAX_PRIORITY_GOALS;
 

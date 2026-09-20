@@ -3,7 +3,7 @@ import type { DiningDisplayFacts } from "../generated/v4/contracts";
 
 export function DiningFacts({
   facts,
-  showRating = true,
+  showRating = true
 }: {
   facts?: DiningDisplayFacts | null;
   showRating?: boolean;

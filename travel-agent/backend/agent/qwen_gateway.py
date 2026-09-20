@@ -30,6 +30,7 @@ from backend.agent.model_gateway import (
     ModelRuntimeConfig,
     ModelStreamChunk,
     ModelStructuredResult,
+    ModelToolDelta,
     ModelUsage,
     StructuredValue,
 )
@@ -76,7 +77,7 @@ class QwenModelGateway:
             request,
             operation=operation,
             request_payload=payload,
-            output_schema=None,
+            output_schema=request.output_schema_override,
         )
         started = time.monotonic()
         response: httpx.Response | None = None
@@ -91,7 +92,7 @@ class QwenModelGateway:
             self._endpoint,
             headers=self._headers,
             json=payload,
-            timeout=self._config.timeout_seconds,
+            timeout=request.request_timeout_seconds or self._config.timeout_seconds,
         )
         try:
             _check_cancellation(cancellation, operation)
@@ -278,7 +279,7 @@ class QwenModelGateway:
                 "json_schema": {
                     "name": _schema_name(output_type),
                     "strict": True,
-                    "schema": output_type.model_json_schema(),
+                    "schema": request.output_schema_override or output_type.model_json_schema(),
                 },
             }
         else:
@@ -324,7 +325,11 @@ class QwenModelGateway:
                     self._endpoint,
                     headers=self._headers,
                     json=payload,
-                    timeout=request.reasoning_timeout_seconds or self._config.timeout_seconds,
+                    timeout=(
+                        request.request_timeout_seconds
+                        or request.reasoning_timeout_seconds
+                        or self._config.timeout_seconds
+                    ),
                 ),
                 cancellation,
                 operation,
@@ -484,6 +489,31 @@ class QwenModelGateway:
             # and grounded observations. A second reasoning pass only adds latency
             # and cost, so request Qwen's direct-answer mode explicitly.
             payload["enable_thinking"] = False
+            # Explicit opt-in only: ordinary prose streams and the legacy
+            # native tool protocol must not acquire a response format.
+            if request.output_schema_override is not None:
+                if request.tools or request.structured_output_mode != "json_schema":
+                    raise ValueError("schema streams require json_schema without native tools")
+                payload["response_format"] = {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "agent_turn",
+                        "strict": True,
+                        "schema": request.output_schema_override,
+                    },
+                }
+        if request.tools:
+            payload["tools"] = [
+                {"type": "function", "function": tool.model_dump(mode="json")}
+                for tool in request.tools
+            ]
+            payload["parallel_tool_calls"] = request.parallel_tool_calls
+            payload["enable_thinking"] = False
+            if request.forced_tool_name is not None:
+                payload["tool_choice"] = {
+                    "type": "function",
+                    "function": {"name": request.forced_tool_name},
+                }
         return payload
 
     async def _start_audit_call(
@@ -527,7 +557,9 @@ class QwenModelGateway:
                 "enable_thinking": request_payload.get("enable_thinking"),
                 "thinking_budget": request_payload.get("thinking_budget"),
                 "timeout_seconds": (
-                    request.reasoning_timeout_seconds or self._config.timeout_seconds
+                    request.request_timeout_seconds
+                    or request.reasoning_timeout_seconds
+                    or self._config.timeout_seconds
                 ),
             },
             "request_messages_full": request_payload.get("messages"),
@@ -703,10 +735,30 @@ def _parse_stream_event(data: str, operation: str) -> ModelStreamChunk:
     finish_reason = choice.get("finish_reason")
     if finish_reason is not None and not isinstance(finish_reason, str):
         raise _model_error(ModelFailureCode.MALFORMED_RESPONSE, operation)
+    calls = delta.get("tool_calls") or []
+    if not isinstance(calls, list):
+        raise _model_error(ModelFailureCode.MALFORMED_RESPONSE, operation)
+    tool_deltas = []
+    try:
+        for call in calls:
+            if not isinstance(call, dict) or call.get("type", "function") != "function":
+                raise ValueError("invalid tool delta")
+            function = call.get("function") or {}
+            tool_deltas.append(
+                ModelToolDelta(
+                    index=call["index"],
+                    id=call.get("id"),
+                    name=function.get("name") or "",
+                    arguments=function.get("arguments") or "",
+                )
+            )
+    except (ValueError, KeyError, TypeError, AttributeError):
+        raise _model_error(ModelFailureCode.MALFORMED_RESPONSE, operation) from None
     return ModelStreamChunk(
         delta=content or "",
         finish_reason=finish_reason,
         usage=usage,
+        tool_call_deltas=tuple(tool_deltas),
     )
 
 

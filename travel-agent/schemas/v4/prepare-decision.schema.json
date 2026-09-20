@@ -1,0 +1,2642 @@
+{
+  "$defs": {
+    "AddConditionalRequirementOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "condition": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Condition",
+          "type": "string"
+        },
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "domain": {
+          "$ref": "#/$defs/SemanticDomainV4"
+        },
+        "entity_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entity Ref"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "operation_type": {
+          "const": "add_conditional_requirement",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "required_outcome": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Required Outcome",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/$defs/SemanticTargetV4"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "domain",
+        "condition",
+        "required_outcome"
+      ],
+      "title": "AddConditionalRequirementOperation",
+      "type": "object"
+    },
+    "AskClarificationAction": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PrepareDomain"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "const": "ask_clarification",
+          "title": "Kind",
+          "type": "string"
+        },
+        "requested_targets": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Requested Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "requested_targets"
+      ],
+      "title": "AskClarificationAction",
+      "type": "object"
+    },
+    "AttractionSearchHints": {
+      "additionalProperties": false,
+      "properties": {
+        "representative_places": {
+          "items": {
+            "$ref": "#/$defs/AttractionSearchPlace"
+          },
+          "maxItems": 4,
+          "title": "Representative Places",
+          "type": "array"
+        },
+        "search_queries": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Search Queries",
+          "type": "array"
+        }
+      },
+      "title": "AttractionSearchHints",
+      "type": "object"
+    },
+    "AttractionSearchPlace": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "subcategory": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Subcategory",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "subcategory"
+      ],
+      "title": "AttractionSearchPlace",
+      "type": "object"
+    },
+    "ClarificationContract": {
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Target",
+          "type": "string"
+        },
+        "why_blocking": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Why Blocking",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target",
+        "why_blocking"
+      ],
+      "title": "ClarificationContract",
+      "type": "object"
+    },
+    "ConfidenceLevel": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "title": "ConfidenceLevel",
+      "type": "string"
+    },
+    "ConfirmFinalSupplementOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "explicitly_no_more_requirements": {
+          "title": "Explicitly No More Requirements",
+          "type": "boolean"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "operation_type": {
+          "const": "confirm_final_supplement",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "supplement_text": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Supplement Text"
+        },
+        "target": {
+          "const": "final_supplement",
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "explicitly_no_more_requirements"
+      ],
+      "title": "ConfirmFinalSupplementOperation",
+      "type": "object"
+    },
+    "ConfirmTaskBookOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "based_on_state_version": {
+          "minimum": 0,
+          "title": "Based On State Version",
+          "type": "integer"
+        },
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "confirmed_at": {
+          "format": "date-time",
+          "title": "Confirmed At",
+          "type": "string"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "operation_type": {
+          "const": "confirm_task_book",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "target": {
+          "const": "task_book_confirmation",
+          "title": "Target",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "task_book_id",
+        "task_book_version",
+        "based_on_state_version",
+        "confirmed_at"
+      ],
+      "title": "ConfirmTaskBookOperation",
+      "type": "object"
+    },
+    "DiningSearchHints": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "local_specialty",
+            "regular"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "representative_restaurants": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 1,
+          "title": "Representative Restaurants",
+          "type": "array"
+        },
+        "search_keywords": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 1,
+          "title": "Search Keywords",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "DiningSearchHints",
+      "type": "object"
+    },
+    "DiscoverySection": {
+      "enum": [
+        "other",
+        "attraction_preference",
+        "attraction_specific",
+        "dining_preference",
+        "dining_specific",
+        "lodging_area_preference",
+        "lodging_class_preference",
+        "final_supplement",
+        "task_book_review"
+      ],
+      "title": "DiscoverySection",
+      "type": "string"
+    },
+    "ExcludeConcreteEntityOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "display_name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Display Name",
+          "type": "string"
+        },
+        "domain": {
+          "enum": [
+            "attraction",
+            "dining"
+          ],
+          "title": "Domain",
+          "type": "string"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "operation_type": {
+          "const": "exclude_concrete_entity",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/$defs/SemanticTargetV4"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "domain",
+        "canonical_entity_id",
+        "display_name"
+      ],
+      "title": "ExcludeConcreteEntityOperation",
+      "type": "object"
+    },
+    "ExcludePreferenceDirectionOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "attraction_search_hints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttractionSearchHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "dining_search_hints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiningSearchHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "direction_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Direction Id",
+          "type": "string"
+        },
+        "domain": {
+          "$ref": "#/$defs/SemanticDomainV4"
+        },
+        "label": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "lodging_examples": {
+          "items": {
+            "$ref": "#/$defs/LodgingExample"
+          },
+          "maxItems": 3,
+          "title": "Lodging Examples",
+          "type": "array"
+        },
+        "operation_type": {
+          "const": "exclude_preference_direction",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "replace_lodging_area_choices": {
+          "default": false,
+          "title": "Replace Lodging Area Choices",
+          "type": "boolean"
+        },
+        "search_query": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Search Query"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Tags",
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/$defs/SemanticTargetV4"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "domain",
+        "direction_id",
+        "label"
+      ],
+      "title": "ExcludePreferenceDirectionOperation",
+      "type": "object"
+    },
+    "FinalSupplementAction": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "const": "general",
+          "default": "general",
+          "title": "Domain",
+          "type": "string"
+        },
+        "kind": {
+          "const": "final_supplement",
+          "title": "Kind",
+          "type": "string"
+        },
+        "requested_targets": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Requested Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "requested_targets"
+      ],
+      "title": "FinalSupplementAction",
+      "type": "object"
+    },
+    "GenerateTaskBookAction": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "const": "general",
+          "default": "general",
+          "title": "Domain",
+          "type": "string"
+        },
+        "kind": {
+          "const": "generate_task_book",
+          "title": "Kind",
+          "type": "string"
+        },
+        "requested_targets": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Requested Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "GenerateTaskBookAction",
+      "type": "object"
+    },
+    "HotelBookingFactsRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "hotel_booking_facts",
+          "title": "Capability",
+          "type": "string"
+        },
+        "city": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "City",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "user_booking_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "User Booking Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "user_booking_ref",
+        "city"
+      ],
+      "title": "HotelBookingFactsRequest",
+      "type": "object"
+    },
+    "LodgingExample": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 80,
+          "minLength": 2,
+          "title": "Name",
+          "type": "string"
+        },
+        "search_keyword": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Search Keyword",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "search_keyword"
+      ],
+      "title": "LodgingExample",
+      "type": "object"
+    },
+    "OpeningHoursRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_entity_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Canonical Entity Ids",
+          "type": "array"
+        },
+        "capability": {
+          "const": "opening_hours",
+          "title": "Capability",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "service_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Service Dates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "canonical_entity_ids",
+        "service_dates"
+      ],
+      "title": "OpeningHoursRequest",
+      "type": "object"
+    },
+    "PlaceFactsRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_entity_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Canonical Entity Ids",
+          "type": "array"
+        },
+        "capability": {
+          "const": "place_facts",
+          "title": "Capability",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "fact_kinds": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Fact Kinds",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "canonical_entity_ids",
+        "fact_kinds"
+      ],
+      "title": "PlaceFactsRequest",
+      "type": "object"
+    },
+    "PlaceProductsRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_entity_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Canonical Entity Ids",
+          "type": "array"
+        },
+        "capability": {
+          "const": "place_products",
+          "title": "Capability",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "service_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "title": "Service Dates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "canonical_entity_ids"
+      ],
+      "title": "PlaceProductsRequest",
+      "type": "object"
+    },
+    "PrepareDomain": {
+      "enum": [
+        "attraction",
+        "dining",
+        "lodging",
+        "general"
+      ],
+      "title": "PrepareDomain",
+      "type": "string"
+    },
+    "ReplyGoal": {
+      "additionalProperties": false,
+      "properties": {
+        "acknowledge": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Acknowledge",
+          "type": "array"
+        },
+        "answer_questions": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Answer Questions",
+          "type": "array"
+        },
+        "explain_next_step": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Explain Next Step"
+        },
+        "fact_requirements": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Fact Requirements",
+          "type": "array"
+        }
+      },
+      "title": "ReplyGoal",
+      "type": "object"
+    },
+    "ReplyOnlyAction": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PrepareDomain"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "const": "reply_only",
+          "title": "Kind",
+          "type": "string"
+        },
+        "requested_targets": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Requested Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "ReplyOnlyAction",
+      "type": "object"
+    },
+    "ResolveConflictOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted_operation_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Accepted Operation Ids",
+          "type": "array"
+        },
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "conflict_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Conflict Id",
+          "type": "string"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "operation_type": {
+          "const": "resolve_conflict",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "rejected_operation_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Rejected Operation Ids",
+          "type": "array"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/$defs/SemanticTargetV4"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "conflict_id",
+        "accepted_operation_ids"
+      ],
+      "title": "ResolveConflictOperation",
+      "type": "object"
+    },
+    "ResolvePlaceRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "resolve_place",
+          "title": "Capability",
+          "type": "string"
+        },
+        "city": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "City",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "query": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Query",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "query",
+        "city"
+      ],
+      "title": "ResolvePlaceRequest",
+      "type": "object"
+    },
+    "RevokePriorIntentOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "operation_type": {
+          "const": "revoke_prior_intent",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "prior_operation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Prior Operation Id",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/$defs/SemanticTargetV4"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "prior_operation_id",
+        "reason"
+      ],
+      "title": "RevokePriorIntentOperation",
+      "type": "object"
+    },
+    "SectionProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/SectionProposalKind"
+        },
+        "reopen_sections": {
+          "items": {
+            "$ref": "#/$defs/DiscoverySection"
+          },
+          "title": "Reopen Sections",
+          "type": "array"
+        },
+        "section": {
+          "$ref": "#/$defs/DiscoverySection"
+        }
+      },
+      "required": [
+        "kind",
+        "section"
+      ],
+      "title": "SectionProposal",
+      "type": "object"
+    },
+    "SectionProposalKind": {
+      "enum": [
+        "stay",
+        "complete_and_advance",
+        "reopen"
+      ],
+      "title": "SectionProposalKind",
+      "type": "string"
+    },
+    "SelectConcreteEntityOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "display_name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Display Name",
+          "type": "string"
+        },
+        "disposition": {
+          "enum": [
+            "must",
+            "want",
+            "destination",
+            "if_convenient",
+            "avoid"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "domain": {
+          "enum": [
+            "attraction",
+            "dining"
+          ],
+          "title": "Domain",
+          "type": "string"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "operation_type": {
+          "const": "select_concrete_entity",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/$defs/SemanticTargetV4"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "domain",
+        "canonical_entity_id",
+        "display_name",
+        "disposition"
+      ],
+      "title": "SelectConcreteEntityOperation",
+      "type": "object"
+    },
+    "SelectPreferenceDirectionOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "attraction_search_hints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttractionSearchHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "dining_search_hints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiningSearchHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "direction_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Direction Id",
+          "type": "string"
+        },
+        "domain": {
+          "$ref": "#/$defs/SemanticDomainV4"
+        },
+        "label": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "lodging_examples": {
+          "items": {
+            "$ref": "#/$defs/LodgingExample"
+          },
+          "maxItems": 3,
+          "title": "Lodging Examples",
+          "type": "array"
+        },
+        "operation_type": {
+          "const": "select_preference_direction",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "replace_lodging_area_choices": {
+          "default": false,
+          "title": "Replace Lodging Area Choices",
+          "type": "boolean"
+        },
+        "search_query": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Search Query"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Tags",
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/$defs/SemanticTargetV4"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "domain",
+        "direction_id",
+        "label"
+      ],
+      "title": "SelectPreferenceDirectionOperation",
+      "type": "object"
+    },
+    "SemanticDomainV4": {
+      "enum": [
+        "general",
+        "attraction",
+        "dining",
+        "lodging",
+        "transport"
+      ],
+      "title": "SemanticDomainV4",
+      "type": "string"
+    },
+    "SemanticOperationProposal": {
+      "description": "One strict LLM/signed-card operation proposal.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SetTripBasicsOperation"
+        },
+        {
+          "$ref": "#/$defs/SetNoPreferenceOperation"
+        },
+        {
+          "$ref": "#/$defs/SetNotApplicableOperation"
+        },
+        {
+          "$ref": "#/$defs/SetDelegationScopeOperation"
+        },
+        {
+          "$ref": "#/$defs/SetExistingBookingOperation"
+        },
+        {
+          "$ref": "#/$defs/SelectPreferenceDirectionOperation"
+        },
+        {
+          "$ref": "#/$defs/ExcludePreferenceDirectionOperation"
+        },
+        {
+          "$ref": "#/$defs/SetLodgingClassPreferenceOperation"
+        },
+        {
+          "$ref": "#/$defs/SelectConcreteEntityOperation"
+        },
+        {
+          "$ref": "#/$defs/ExcludeConcreteEntityOperation"
+        },
+        {
+          "$ref": "#/$defs/RevokePriorIntentOperation"
+        },
+        {
+          "$ref": "#/$defs/AddConditionalRequirementOperation"
+        },
+        {
+          "$ref": "#/$defs/ResolveConflictOperation"
+        },
+        {
+          "$ref": "#/$defs/ConfirmFinalSupplementOperation"
+        },
+        {
+          "$ref": "#/$defs/ConfirmTaskBookOperation"
+        }
+      ],
+      "title": "SemanticOperationProposal",
+      "type": "object"
+    },
+    "SemanticTargetV4": {
+      "enum": [
+        "trip_basics",
+        "attraction_preference",
+        "attraction_entity",
+        "dining_preference",
+        "dining_requirement",
+        "dining_entity",
+        "lodging_area",
+        "lodging_class",
+        "lodging_booking",
+        "transport_and_pace",
+        "general_constraint",
+        "final_supplement",
+        "task_book_confirmation",
+        "conflict"
+      ],
+      "title": "SemanticTargetV4",
+      "type": "string"
+    },
+    "SetDelegationScopeOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "boundary_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Boundary Refs",
+          "type": "array"
+        },
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "delegated_targets": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Delegated Targets",
+          "type": "array"
+        },
+        "domain": {
+          "$ref": "#/$defs/SemanticDomainV4"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "operation_type": {
+          "const": "set_delegation_scope",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/$defs/SemanticTargetV4"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "domain",
+        "delegated_targets"
+      ],
+      "title": "SetDelegationScopeOperation",
+      "type": "object"
+    },
+    "SetExistingBookingOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "booking_kind": {
+          "enum": [
+            "transport",
+            "lodging",
+            "restaurant",
+            "attraction",
+            "activity"
+          ],
+          "title": "Booking Kind",
+          "type": "string"
+        },
+        "canonical_entity_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Canonical Entity Id"
+        },
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "domain": {
+          "$ref": "#/$defs/SemanticDomainV4"
+        },
+        "end_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Date"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "operation_type": {
+          "const": "set_existing_booking",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "start_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Date"
+        },
+        "target": {
+          "$ref": "#/$defs/SemanticTargetV4"
+        },
+        "user_description": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "User Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "domain",
+        "booking_kind",
+        "user_description"
+      ],
+      "title": "SetExistingBookingOperation",
+      "type": "object"
+    },
+    "SetLodgingClassPreferenceOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "domain": {
+          "const": "lodging",
+          "title": "Domain",
+          "type": "string"
+        },
+        "hotel_quality_tier": {
+          "anyOf": [
+            {
+              "enum": [
+                "economy",
+                "comfort",
+                "upscale",
+                "luxury"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hotel Quality Tier"
+        },
+        "hotel_quality_tiers": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "economy",
+                  "comfort",
+                  "upscale",
+                  "luxury"
+                ],
+                "type": "string"
+              },
+              "maxItems": 4,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hotel Quality Tiers"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "nightly_budget_maximum_minor": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nightly Budget Maximum Minor"
+        },
+        "nightly_budget_minimum_minor": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nightly Budget Minimum Minor"
+        },
+        "operation_type": {
+          "const": "set_lodging_class_preference",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "property_type": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Property Type"
+        },
+        "property_types": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "酒店",
+                  "民宿"
+                ],
+                "type": "string"
+              },
+              "maxItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Property Types"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/$defs/SemanticTargetV4"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "domain"
+      ],
+      "title": "SetLodgingClassPreferenceOperation",
+      "type": "object"
+    },
+    "SetNoPreferenceOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "domain": {
+          "$ref": "#/$defs/SemanticDomainV4"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "operation_type": {
+          "const": "set_no_preference",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/$defs/SemanticTargetV4"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "domain"
+      ],
+      "title": "SetNoPreferenceOperation",
+      "type": "object"
+    },
+    "SetNotApplicableOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "operation_type": {
+          "const": "set_not_applicable",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/$defs/SemanticTargetV4"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "reason"
+      ],
+      "title": "SetNotApplicableOperation",
+      "type": "object"
+    },
+    "SetTripBasicsOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel"
+        },
+        "destination_canonical_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Destination Canonical Id"
+        },
+        "destination_name": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Destination Name"
+        },
+        "domain": {
+          "const": "general",
+          "title": "Domain",
+          "type": "string"
+        },
+        "duration_days": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Days"
+        },
+        "end_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Date"
+        },
+        "local_operation_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Local Operation Key",
+          "type": "string"
+        },
+        "operation_type": {
+          "const": "set_trip_basics",
+          "title": "Operation Type",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "start_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Date"
+        },
+        "target": {
+          "const": "trip_basics",
+          "title": "Target",
+          "type": "string"
+        },
+        "travelers": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 2000,
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "maxItems": 20,
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Travelers"
+        },
+        "trip_goals": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 2000,
+                "minLength": 2,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "maxItems": 20,
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trip Goals"
+        }
+      },
+      "required": [
+        "local_operation_key",
+        "target",
+        "source_refs",
+        "confidence",
+        "operation_type",
+        "domain"
+      ],
+      "title": "SetTripBasicsOperation",
+      "type": "object"
+    },
+    "ShowPreferenceCardAction": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "enum": [
+            "attraction",
+            "dining",
+            "lodging"
+          ],
+          "title": "Domain",
+          "type": "string"
+        },
+        "kind": {
+          "const": "show_preference_card",
+          "title": "Kind",
+          "type": "string"
+        },
+        "requested_targets": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Requested Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "domain",
+        "requested_targets"
+      ],
+      "title": "ShowPreferenceCardAction",
+      "type": "object"
+    },
+    "ShowSpecificCardAction": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "enum": [
+            "attraction",
+            "dining"
+          ],
+          "title": "Domain",
+          "type": "string"
+        },
+        "kind": {
+          "const": "show_specific_card",
+          "title": "Kind",
+          "type": "string"
+        },
+        "requested_targets": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Requested Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "domain",
+        "requested_targets"
+      ],
+      "title": "ShowSpecificCardAction",
+      "type": "object"
+    },
+    "SpatialRoutesRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "spatial_routes",
+          "title": "Capability",
+          "type": "string"
+        },
+        "departure_at_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Departure At Ref"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "destination_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Destination Ref",
+          "type": "string"
+        },
+        "origin_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Origin Ref",
+          "type": "string"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "transport_modes": {
+          "items": {
+            "enum": [
+              "public_transit",
+              "taxi",
+              "walking",
+              "driving"
+            ],
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Transport Modes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "origin_ref",
+        "destination_ref",
+        "transport_modes"
+      ],
+      "title": "SpatialRoutesRequest",
+      "type": "object"
+    },
+    "TicketAvailabilityRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_entity_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Canonical Entity Ids",
+          "type": "array"
+        },
+        "capability": {
+          "const": "ticket_availability",
+          "title": "Capability",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "service_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Service Dates",
+          "type": "array"
+        },
+        "traveler_count_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Traveler Count Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "canonical_entity_ids",
+        "service_dates",
+        "traveler_count_ref"
+      ],
+      "title": "TicketAvailabilityRequest",
+      "type": "object"
+    },
+    "ToolRequest": {
+      "description": "One typed, whitelisted Prepare tool request.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ResolvePlaceRequest"
+        },
+        {
+          "$ref": "#/$defs/PlaceFactsRequest"
+        },
+        {
+          "$ref": "#/$defs/OpeningHoursRequest"
+        },
+        {
+          "$ref": "#/$defs/TicketAvailabilityRequest"
+        },
+        {
+          "$ref": "#/$defs/WeatherForecastRequest"
+        },
+        {
+          "$ref": "#/$defs/SpatialRoutesRequest"
+        },
+        {
+          "$ref": "#/$defs/HotelBookingFactsRequest"
+        },
+        {
+          "$ref": "#/$defs/PlaceProductsRequest"
+        }
+      ],
+      "title": "ToolRequest",
+      "type": "object"
+    },
+    "ToolRequestPurpose": {
+      "enum": [
+        "answer_user",
+        "validate_operation",
+        "build_card"
+      ],
+      "title": "ToolRequestPurpose",
+      "type": "string"
+    },
+    "UseToolAction": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PrepareDomain"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "const": "use_tool",
+          "title": "Kind",
+          "type": "string"
+        },
+        "requested_targets": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Requested Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "requested_targets"
+      ],
+      "title": "UseToolAction",
+      "type": "object"
+    },
+    "WeatherForecastRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "weather_forecast",
+          "title": "Capability",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "destination_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Destination Ref",
+          "type": "string"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ToolRequestPurpose"
+        },
+        "request_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "service_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Service Dates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "request_id",
+        "purpose",
+        "required",
+        "capability",
+        "destination_ref",
+        "service_dates"
+      ],
+      "title": "WeatherForecastRequest",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/prepare-decision.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "based_on_state_version": {
+      "minimum": 0,
+      "title": "Based On State Version",
+      "type": "integer"
+    },
+    "clarification": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ClarificationContract"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "decision_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Decision Id",
+      "type": "string"
+    },
+    "next_action": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ReplyOnlyAction"
+        },
+        {
+          "$ref": "#/$defs/UseToolAction"
+        },
+        {
+          "$ref": "#/$defs/ShowPreferenceCardAction"
+        },
+        {
+          "$ref": "#/$defs/ShowSpecificCardAction"
+        },
+        {
+          "$ref": "#/$defs/AskClarificationAction"
+        },
+        {
+          "$ref": "#/$defs/FinalSupplementAction"
+        },
+        {
+          "$ref": "#/$defs/GenerateTaskBookAction"
+        }
+      ],
+      "title": "Next Action",
+      "type": "object"
+    },
+    "published_plan_intent": {
+      "anyOf": [
+        {
+          "enum": [
+            "reply_only",
+            "local_replan",
+            "full_replan",
+            "task_book_change"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Published Plan Intent"
+    },
+    "reply_goal": {
+      "$ref": "#/$defs/ReplyGoal"
+    },
+    "section_proposal": {
+      "$ref": "#/$defs/SectionProposal"
+    },
+    "semantic_operations": {
+      "items": {
+        "$ref": "#/$defs/SemanticOperationProposal"
+      },
+      "title": "Semantic Operations",
+      "type": "array"
+    },
+    "tool_requests": {
+      "items": {
+        "$ref": "#/$defs/ToolRequest"
+      },
+      "maxItems": 4,
+      "title": "Tool Requests",
+      "type": "array"
+    }
+  },
+  "required": [
+    "decision_id",
+    "based_on_state_version",
+    "next_action",
+    "section_proposal",
+    "reply_goal"
+  ],
+  "title": "PrepareDecision",
+  "type": "object"
+}

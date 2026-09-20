@@ -1,0 +1,37 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/model-dining-search-plan.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "city_representative_queries": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "City Representative Queries",
+      "type": "array"
+    },
+    "exploration_queries": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Exploration Queries",
+      "type": "array"
+    }
+  },
+  "required": [
+    "city_representative_queries",
+    "exploration_queries"
+  ],
+  "title": "ModelDiningSearchPlan",
+  "type": "object"
+}

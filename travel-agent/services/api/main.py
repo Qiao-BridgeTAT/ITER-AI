@@ -17,6 +17,7 @@ from backend.agent.factory import ModelGatewayRuntime, build_model_gateway
 from backend.agent.planner.evidence import PlannerEvidenceBackend
 from backend.agent.planner.graph import PlannerAgentGraph
 from backend.agent.prepare.graph import PrepareAgentGraph
+from backend.agent.schema_gateway import SchemaModelGateway
 from backend.application.auth_service import AuthenticationService
 from backend.application.place_introduction_service import PlaceIntroductionService
 from backend.application.plan_preview_service import PlanPreviewService
@@ -42,8 +43,10 @@ from backend.contracts.v4.place_introduction import PlaceIntroductionView
 from backend.contracts.v4.plan_preview import PlannerPlanPreview
 from backend.discovery.cards import PrepareCardService
 from backend.discovery.cards.attraction_media import AttractionMediaResolver
+from backend.discovery.cards.attraction_recall import AttractionRecallService
 from backend.discovery.cards.attraction_selection import AttractionCandidateSelector
 from backend.discovery.cards.candidate_composition import CandidateCompositionService
+from backend.discovery.cards.dining.pipeline import DiningDiscovery
 from backend.discovery.cards.preference_generation import PreferenceDirectionGenerator
 from backend.discovery.tools.registry import PrepareToolExecutor
 from backend.domain.authorization import RequestActor
@@ -59,7 +62,9 @@ from backend.planning.candidate_ranking import CandidateRankingService
 from backend.planning.candidate_recall import CandidateRecallService
 from backend.planning.city_registry import default_city_registry
 from backend.planning.recall_plan import ModelRecallPlanGenerator
-from backend.providers.planning_set import PlanningProviderSet
+from backend.planning.runtime_backend import (
+    PlanningProviderSet,
+)
 from backend.providers.factory import ProviderGatewayRuntime, build_provider_gateway
 from services.api.errors import ServiceError, install_error_handlers
 from services.api.middleware import RequestCorrelationMiddleware
@@ -95,6 +100,8 @@ def create_app(
     rest_runtime: RestServiceRuntime | None = None
     provider_runtime: ProviderGatewayRuntime | None = None
     model_runtime: ModelGatewayRuntime = build_model_gateway(settings)
+    prepared_evidence = None
+    planning_pool = None
     if rest_service is None:
         rest_runtime = build_rest_runtime(settings)
         rest_service = rest_runtime.service
@@ -115,6 +122,16 @@ def create_app(
             )
 
         prepare_cards = None
+        from backend.discovery.prepared_evidence import PreparedEvidenceCollector
+        from backend.persistence.prepared_evidence_repository import PreparedEvidenceRepository
+
+        prepared_evidence = PreparedEvidenceCollector(
+            PreparedEvidenceRepository(rest_runtime.session_factory),
+            default_city_registry(),
+            provider_runtime.hours,
+            provider_runtime.products,
+        )
+        provider_runtime.closeables = (prepared_evidence, *provider_runtime.closeables)
         if provider_runtime.places is not None:
             prepare_recall = CandidateRecallService(
                 registry=default_city_registry(),
@@ -124,12 +141,47 @@ def create_app(
                     provider_only=True,
                 ),
             )
+            attraction_gateway = model_runtime.attraction_gateway or model_runtime.gateway
+            from backend.discovery.planning_candidates import PreparedPlanningPoolService
+            from backend.persistence.prepared_candidates_repository import (
+                PreparedCandidatesRepository,
+            )
+
+            planning_pool = PreparedPlanningPoolService(
+                repository=PreparedCandidatesRepository(rest_runtime.session_factory),
+                turns=TurnRepository(rest_runtime.session_factory),
+                facts=prepared_evidence,
+                gateway=attraction_gateway,
+                places=provider_runtime.places,
+                registry=default_city_registry(),
+            )
+            provider_runtime.closeables = (planning_pool, *provider_runtime.closeables)
+            attraction_recall = AttractionRecallService(
+                gateway=attraction_gateway,
+                places=provider_runtime.places,
+                registry=default_city_registry(),
+                store=rest_runtime.redis_store,
+            )
+            dining_discovery = DiningDiscovery(
+                gateway=attraction_gateway,
+                places=provider_runtime.places,
+                registry=default_city_registry(),
+                store=rest_runtime.redis_store,
+            )
             prepare_cards = PrepareCardService(
-                directions=PreferenceDirectionGenerator(model_runtime.gateway),
+                directions=PreferenceDirectionGenerator(
+                    model_runtime.gateway,
+                    attraction_gateway=attraction_gateway,
+                    dining_gateway=attraction_gateway,
+                ),
                 candidates=CandidateCompositionService(
                     recall=prepare_recall,
                     ranking=CandidateRankingService(),
-                    attraction_selector=AttractionCandidateSelector(model_runtime.gateway),
+                    attraction_selector=AttractionCandidateSelector(
+                        attraction_gateway, parallel_discovery=True
+                    ),
+                    attraction_recall=attraction_recall,
+                    dining_discovery=dining_discovery,
                     attraction_media=AttractionMediaResolver(
                         registry=default_city_registry(),
                         places=provider_runtime.places,
@@ -139,6 +191,7 @@ def create_app(
                 registry=default_city_registry(),
                 places=provider_runtime.places,
                 products=provider_runtime.products,
+                evidence_collector=prepared_evidence,
             )
 
         v4_owner_resolver = V4OwnerResolver(
@@ -147,12 +200,19 @@ def create_app(
             anonymous_ttl_seconds=settings.anonymous_session_ttl_seconds,
         )
         prepare_service = PrepareJourneyService(
-            graph=PrepareAgentGraph(model_runtime.gateway),
+            graph=PrepareAgentGraph(
+                model_runtime.gateway,
+                attraction_gateway=model_runtime.attraction_gateway,
+                dining_gateway=SchemaModelGateway(
+                    model_runtime.attraction_gateway or model_runtime.gateway
+                ),
+            ),
             turns=TurnRepository(rest_runtime.session_factory),
             outbox=OutboxRepository(rest_runtime.session_factory),
             temporary=rest_runtime.redis_store,
             tool_executor_factory=prepare_tools,
             card_service=prepare_cards,
+            planning_pool=planning_pool,
             timezone=settings.values.get("DEFAULT_TIMEZONE", "Asia/Shanghai"),
             owner_resolver=v4_owner_resolver.resolve,
             model_audit=model_runtime.audit_recorder,
@@ -171,25 +231,72 @@ def create_app(
         and provider_runtime.hours is not None
         and provider_runtime.products is not None
     ):
+        from backend.agent.planner.react_graph import PlannerEngineRouter
+        from backend.providers.amap_mcp import AmapMcpClient, AmapMcpRouter
+        from backend.providers.amap_mcp_adapters import AmapMcpPlaceProvider, AmapMcpRouteProvider
+        from backend.providers.tavily_mcp import TavilyMcpClient
+
+        mcp_client = AmapMcpClient(
+            settings.values["AMAP_WEB_SERVICE_KEY"], rate_limiter=rest_runtime.redis_store
+        )
+        provider_runtime.closeables = (*provider_runtime.closeables, mcp_client)
+        local_search = None
+        if endpoint := settings.values.get("AMAP_SEARCH_MCP_URL", "").strip():
+            local_search = AmapMcpClient("", endpoint=endpoint)
+            provider_runtime.closeables = (*provider_runtime.closeables, local_search)
+        mcp_router = AmapMcpRouter(mcp_client, local_search)
+        legacy_planner = PlannerAgentGraph(
+            model_runtime.gateway,
+            PlannerEvidenceBackend(
+                PlanningProviderSet(
+                    places=provider_runtime.places,
+                    routes=provider_runtime.routes,
+                    hours=provider_runtime.hours,
+                    products=provider_runtime.products,
+                    weather=provider_runtime.weather,
+                ),
+                model_runtime.gateway,
+                dining_review_gateway=model_runtime.dining_review_gateway,
+            ),
+            complete_plan=True,
+            compact_planning=True,
+            estimate_visit_durations=True,
+            optimize_timing=True,
+        )
+        if model_runtime.planner_gateway is None:
+            raise ValueError("Planner Flash gateway was not configured")
+        planner_gateway = SchemaModelGateway(model_runtime.planner_gateway)
+        react_evidence = PlannerEvidenceBackend(
+            PlanningProviderSet(
+                places=AmapMcpPlaceProvider(mcp_router),
+                routes=AmapMcpRouteProvider(mcp_router),
+                hours=provider_runtime.hours,
+                products=provider_runtime.products,
+                weather=provider_runtime.weather,
+            ),
+            planner_gateway,
+        )
         planner_service = PlannerJourneyService(
             prepare=prepare_service,
-            graph=PlannerAgentGraph(
-                model_runtime.gateway,
-                PlannerEvidenceBackend(
-                    PlanningProviderSet(
-                        places=provider_runtime.places,
-                        routes=provider_runtime.routes,
-                        hours=provider_runtime.hours,
-                        products=provider_runtime.products,
-                        weather=provider_runtime.weather,
-                    ),
-                    model_runtime.gateway,
-                ),
-                complete_plan=True,
-                compact_planning=True,
-                estimate_visit_durations=True,
-                optimize_timing=True,
+            graph=PlannerEngineRouter(
+                legacy_planner,
+                react_evidence,
+                mcp=mcp_router,
+                react_gateway=planner_gateway,
+                web_search=TavilyMcpClient(
+                    api_key=settings.tavily_mcp.api_key,
+                    auth_mode=settings.tavily_mcp.auth_mode,
+                )
+                if settings.tavily_mcp
+                else None,
+                new_engine=settings.values.get("V4_PLANNER_ENGINE", "legacy")
+                == "langgraph-react-2",
+                time_limit_enabled=settings.values.get("V4_PLANNER_TIME_LIMIT_ENABLED", "true")
+                == "true",
+                max_decisions=int(settings.values.get("V4_PLANNER_MAX_DECISIONS", "12")),
             ),
+            prepared_evidence=prepared_evidence,
+            planning_pool=planning_pool,
             turns=TurnRepository(rest_runtime.session_factory),
             checkpoints=CheckpointRepository(rest_runtime.session_factory),
             temporary=rest_runtime.redis_store,
@@ -212,7 +319,7 @@ def create_app(
                 await rest_runtime.close()
             await registry.close()
 
-    app = FastAPI(title="Travel Agent API", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="Travel Agent API", version="2.0.0", lifespan=lifespan)
     app.state.prepare_agent_wired = prepare_service is not None
     app.state.planner_agent_wired = planner_service is not None
     plan_preview_service = (
@@ -222,7 +329,10 @@ def create_app(
         if provider_runtime is not None and provider_runtime.places is not None
         else None
     )
-    place_introductions = PlaceIntroductionService(model_runtime.gateway)
+    place_introductions = PlaceIntroductionService(
+        model_runtime.gateway,
+        card_gateway=model_runtime.attraction_gateway or model_runtime.gateway,
+    )
     app.add_middleware(RequestCorrelationMiddleware)
     install_error_handlers(app)
     effective_actor_resolver = actor_resolver
@@ -457,11 +567,13 @@ def create_app(
                         on_admitted=admitted.set,
                     )
                     return
-                await enqueue({
-                    "type": "transport.error",
-                    "code": "unsupported_protocol",
-                    "retryable": False,
-                })
+                await enqueue(
+                    {
+                        "type": "transport.error",
+                        "code": "unsupported_protocol",
+                        "retryable": False,
+                    }
+                )
             except ServiceError as exc:
                 logger.warning(
                     "Realtime command rejected for trip %s: %s",

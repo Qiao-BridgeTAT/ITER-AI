@@ -1,0 +1,36 @@
+{
+  "$defs": {
+    "ConstraintKind": {
+      "enum": [
+        "mobility",
+        "schedule",
+        "dietary",
+        "accessibility",
+        "companion",
+        "other"
+      ],
+      "title": "ConstraintKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/special-constraint.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "description": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Description",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/ConstraintKind"
+    }
+  },
+  "required": [
+    "kind",
+    "description"
+  ],
+  "title": "SpecialConstraint",
+  "type": "object"
+}

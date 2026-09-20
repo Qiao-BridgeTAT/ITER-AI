@@ -1,0 +1,50 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/hotel-offer-ref.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Inventory-snapshot-bound reference to a normalized hotel offer.",
+  "properties": {
+    "hotel_observation_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Hotel Observation Id",
+      "type": "string"
+    },
+    "inventory_snapshot_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Inventory Snapshot Id",
+      "type": "string"
+    },
+    "kind": {
+      "const": "hotel_offer",
+      "default": "hotel_offer",
+      "title": "Kind",
+      "type": "string"
+    },
+    "offer_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Offer Id",
+      "type": "string"
+    },
+    "property_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Property Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "hotel_observation_id",
+    "offer_id",
+    "property_id",
+    "inventory_snapshot_id"
+  ],
+  "title": "HotelOfferRef",
+  "type": "object"
+}

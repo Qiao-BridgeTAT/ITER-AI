@@ -1,0 +1,365 @@
+.destination-date-entry {
+  padding: 12px 0;
+}
+.destination-date-entry > button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #c5d5e9;
+  border-radius: 8px;
+  background: #fff;
+  color: #1764f5;
+  cursor: pointer;
+}
+.destination-date-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgb(26 43 63 / 20%);
+}
+.destination-date-dialog {
+  width: min(380px, 100%);
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  background: #fff;
+  color: #101a2e;
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgb(27 45 69 / 16%);
+  text-align: left;
+}
+.destination-date-heading {
+  position: relative;
+  padding: 18px 44px 0 18px;
+}
+.destination-date-heading h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.45;
+  letter-spacing: -0.3px;
+}
+.destination-date-heading p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #68788e;
+}
+.destination-date-close {
+  position: absolute;
+  right: 4px;
+  top: 9px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #758499;
+  cursor: pointer;
+}
+.destination-date-close svg {
+  width: 18px;
+  height: 18px;
+}
+.destination-date-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 18px 12px;
+}
+.destination-date-details > label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 12px;
+  font-weight: 550;
+  color: #68788e;
+}
+.destination-date-city-control {
+  position: relative;
+}
+.destination-date-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid #b8c6da;
+  border-radius: 7px;
+  color: #7a879a;
+}
+.destination-date-input:focus-within {
+  border-color: #1764f5;
+}
+.destination-date-input > svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+.destination-date-input input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding: 8px 0;
+  font: inherit;
+  font-size: 16px;
+  color: #101a2e;
+}
+.destination-date-input button {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 40px;
+  margin-right: -6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #9aa7ba;
+  cursor: pointer;
+}
+.destination-date-input button svg {
+  width: 17px;
+  height: 17px;
+}
+.destination-city-results {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  padding: 4px;
+  border: 1px solid #e0e6ef;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgb(27 45 69 / 14%);
+}
+.destination-city-results ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.destination-city-results li {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px;
+  border-radius: 5px;
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.destination-city-results li[aria-selected="true"] {
+  background: #edf3ff;
+  color: #1255c7;
+}
+.destination-city-results p {
+  margin: 0;
+  padding: 10px 8px;
+  font-size: 13px;
+  color: #68788e;
+}
+.destination-date-summary {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+.destination-date-caption {
+  margin: 0;
+  font-size: 12px;
+  color: #68788e;
+}
+.destination-date-range {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 550;
+  line-height: 1.5;
+}
+.destination-date-count {
+  margin: 0 0 0 auto;
+  font-size: 13px;
+  color: #1764f5;
+  line-height: 1.5;
+}
+.destination-date-empty {
+  margin: 0;
+  font-size: 13px;
+  color: #68788e;
+}
+.destination-date-error {
+  margin: 7px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #b33e3e;
+}
+.destination-date-calendar {
+  min-width: 0;
+}
+.destination-date-month {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+.destination-date-month h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.destination-date-month button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 38px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #101a2e;
+  cursor: pointer;
+}
+.destination-date-month button svg {
+  width: 18px;
+  height: 18px;
+}
+.destination-date-month button:disabled {
+  color: #a7b1bf;
+  cursor: default;
+}
+.destination-date-weekdays,
+.destination-date-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+.destination-date-weekdays {
+  margin-bottom: 4px;
+  color: #687d98;
+  font-size: 12px;
+  text-align: center;
+}
+.destination-date-weekdays span {
+  padding: 5px 0;
+}
+.destination-date-day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #111c30;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.destination-date-day > span {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+.destination-date-day:disabled {
+  color: #a6b0bf;
+  cursor: default;
+}
+.destination-date-day.is-today > span {
+  background: #eaf1ff;
+}
+.destination-date-day.is-today i {
+  position: absolute;
+  z-index: 2;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  bottom: 6px;
+  background: #1764f5;
+}
+.destination-date-day.is-in-range {
+  background: #e9f0ff;
+  color: #1764f5;
+}
+.destination-date-day.is-preview {
+  background: #f1f5fd;
+}
+.destination-date-day.is-endpoint {
+  background: #1764f5;
+  color: #fff;
+}
+.destination-date-day.is-endpoint.is-today > span {
+  background: transparent;
+}
+.destination-date-day.is-endpoint.is-today i {
+  background: #fff;
+}
+.destination-date-day:not(:disabled):not(.is-endpoint):not(.is-today):hover {
+  background: #edf3fd;
+}
+.destination-date-dialog button:focus-visible {
+  outline: 2px solid #1764f5;
+  outline-offset: 2px;
+}
+.destination-date-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 18px 14px;
+  border-top: 1px solid #edf0f5;
+}
+.destination-date-footer > span {
+  margin-right: auto;
+  font-size: 12px;
+  color: #68788e;
+}
+.destination-date-submit {
+  min-height: 42px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 7px;
+  background: #1764f5;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 550;
+  cursor: pointer;
+}
+.destination-date-submit:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+@media (pointer: coarse) {
+  .destination-date-day,
+  .destination-date-submit {
+    min-height: 44px;
+  }
+}
+@media (max-width: 360px) {
+  .destination-date-heading {
+    padding-left: 14px;
+  }
+  .destination-date-heading h2 {
+    font-size: 16px;
+  }
+  .destination-date-body {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .destination-date-caption {
+    display: none;
+  }
+}

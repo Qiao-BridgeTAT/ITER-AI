@@ -1,0 +1,17 @@
+{
+  "$id": "https://travel-agent.local/schemas/v1/sms-send-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "phone": {
+      "pattern": "^\\+[1-9]\\d{7,14}$",
+      "title": "Phone",
+      "type": "string"
+    }
+  },
+  "required": [
+    "phone"
+  ],
+  "title": "SmsSendRequest",
+  "type": "object"
+}

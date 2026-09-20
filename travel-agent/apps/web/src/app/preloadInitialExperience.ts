@@ -6,6 +6,7 @@ const STATIC_BOOT_ASSETS = [
   "/icons/menu-figma.svg",
   "/icons/attachment-figma.svg",
   "/icons/send-figma.svg",
+  "/chat-map-figma.png"
 ] as const;
 
 function waitForImage(image: HTMLImageElement, signal: AbortSignal) {
@@ -49,10 +50,38 @@ function nextPaint(signal: AbortSignal) {
   });
 }
 
+function waitForCurrentPage(signal: AbortSignal) {
+  const contentRoot = document.querySelector(".app-content-root");
+  if (
+    signal.aborted ||
+    !contentRoot ||
+    contentRoot.firstElementChild !== null
+  ) {
+    return Promise.resolve();
+  }
+
+  return new Promise<void>((resolve) => {
+    const finish = () => {
+      observer.disconnect();
+      signal.removeEventListener("abort", finish);
+      resolve();
+    };
+    const observer = new MutationObserver(() => {
+      if (contentRoot.firstElementChild !== null) finish();
+    });
+
+    observer.observe(contentRoot, { childList: true, subtree: true });
+    signal.addEventListener("abort", finish, { once: true });
+  });
+}
+
 export async function preloadInitialExperience(
   signal: AbortSignal,
-  attempt = 0,
+  attempt = 0
 ) {
+  // AppBootScreen is mounted before the routed page. On a cold load its layout
+  // effect can therefore run before LandingPage has committed any media.
+  await waitForCurrentPage(signal);
   await nextPaint(signal);
   if (signal.aborted) return;
 
@@ -61,7 +90,7 @@ export async function preloadInitialExperience(
         document.fonts.ready,
         document.fonts.load("400 1rem Geist"),
         document.fonts.load("500 1rem Geist"),
-        document.fonts.load("700 1rem Geist"),
+        document.fonts.load("700 1rem Geist")
       ])
     : Promise.resolve();
 
@@ -74,14 +103,17 @@ export async function preloadInitialExperience(
     (video) =>
       waitForVideoFrame(video, signal, {
         retry: attempt > 0,
-        reducedMotion,
-      }),
+        reducedMotion
+      })
   );
   const staticAssets = STATIC_BOOT_ASSETS.map((source) =>
-    preloadStaticImage(source, signal),
+    preloadStaticImage(source, signal)
   );
 
   // Warm likely next-page assets without making them block the current page.
   void Promise.allSettled(staticAssets);
   await Promise.all([fontReady, ...visibleImages, ...visibleVideos]);
+  // Let the ready media and page styles reach a rendered frame before the
+  // overlay starts fading and the entrance animation is released.
+  await nextPaint(signal);
 }

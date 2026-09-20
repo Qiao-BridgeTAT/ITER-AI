@@ -10,7 +10,7 @@ type ReferencePreviewDialogProps = {
 
 export function ReferencePreviewDialog({
   attachment,
-  onClose,
+  onClose
 }: ReferencePreviewDialogProps) {
   const close = useCallback(() => onClose(), [onClose]);
   const dialogRef = useModalFocus<HTMLElement>(close);

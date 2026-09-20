@@ -1,0 +1,59 @@
+{
+  "$defs": {
+    "DateSuggestionKind": {
+      "enum": [
+        "nearest_weekend",
+        "nearby_holiday"
+      ],
+      "title": "DateSuggestionKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/date-suggestion.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "end_date": {
+      "format": "date",
+      "title": "End Date",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/DateSuggestionKind"
+    },
+    "label": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Label",
+      "type": "string"
+    },
+    "start_date": {
+      "format": "date",
+      "title": "Start Date",
+      "type": "string"
+    },
+    "suggestion_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Suggestion Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "suggestion_id",
+    "kind",
+    "label",
+    "start_date",
+    "end_date"
+  ],
+  "title": "DateSuggestion",
+  "type": "object",
+  "x-travel-date-range": {
+    "endField": "end_date",
+    "maximumDays": 5,
+    "maximumStartYears": 1,
+    "minimumDays": 1,
+    "minimumStartOffsetDays": 0,
+    "startField": "start_date"
+  }
+}

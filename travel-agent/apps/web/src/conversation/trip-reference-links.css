@@ -1,0 +1,66 @@
+.trip-reference-links {
+  min-width: 0;
+  margin-top: 14px;
+}
+.trip-reference-links h3 {
+  margin: 0 0 4px;
+  color: #526079;
+  font-size: 12px;
+  font-weight: 500;
+}
+.trip-reference-links ul {
+  max-height: 280px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.trip-reference-links li + li {
+  border-top: 1px solid #e2e8f0;
+}
+.trip-reference-links a {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 10px 4px;
+  color: #294c7c;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.trip-reference-links a > svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+}
+.trip-reference-links a > span:not(.visually-hidden) {
+  flex: 1;
+  min-width: 0;
+}
+.trip-reference-links strong {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.65;
+}
+.trip-reference-links small {
+  display: block;
+  margin-top: 3px;
+  color: #5b6575;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.trip-reference-links a:hover {
+  background: #eaf0f8;
+}
+.trip-reference-links a:hover strong {
+  text-decoration: underline;
+}
+.trip-reference-links a:focus-visible {
+  outline: 2px solid #176bff;
+  outline-offset: -2px;
+}

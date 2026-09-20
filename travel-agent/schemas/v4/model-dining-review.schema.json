@@ -1,0 +1,23 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/model-dining-review.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "candidate_keys": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Candidate Keys",
+      "type": "array"
+    }
+  },
+  "required": [
+    "candidate_keys"
+  ],
+  "title": "ModelDiningReview",
+  "type": "object"
+}

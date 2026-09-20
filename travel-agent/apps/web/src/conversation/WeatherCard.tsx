@@ -23,7 +23,7 @@ export function WeatherCard({
   forceReducedMotion = false,
   simulateIconFailure = false,
   style,
-  onExpandedChange,
+  onExpandedChange
 }: WeatherCardProps) {
   const conditionLabel =
     weather.conditionLabel ?? weatherIconMap[weather.condition].label;
@@ -31,7 +31,7 @@ export function WeatherCard({
     weather.precipitationProbability,
     weather.humidityPercent,
     weather.wind,
-    weather.travelNote,
+    weather.travelNote
   ].filter((value) => value != null && value !== "").length;
 
   return (

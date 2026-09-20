@@ -20,7 +20,6 @@
 
 .conversation-workspace[data-plan-ready="true"] .conversation-composer {
   min-height: 84px;
-  margin-bottom: 16px;
 }
 
 .conversation-workspace[data-plan-ready="true"]
@@ -35,53 +34,90 @@
   height: 39px;
 }
 
-.message-bubble-loading {
-  display: grid;
-  width: 58px;
-  min-width: 58px;
-  height: 42px;
-  padding: 0;
-  place-items: center;
-}
-
-.agent-loading-indicator {
-  display: inline-flex;
-  height: 22px;
+.message-bubble.message-bubble-loading {
+  display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 5px;
+  gap: 12px;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.agent-loading-bar {
-  width: 4px;
-  height: 18px;
-  border-radius: 999px;
-  background: #176de5;
-  opacity: 0.45;
-  transform: scaleY(0.56);
-  transform-origin: center;
-  animation: agent-loading-pulse 800ms infinite ease-in-out;
-  will-change: transform, opacity;
+.agent-loading-animation {
+  display: block;
+  flex: 0 0 144px;
+  width: 144px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #f0f3f6;
 }
 
-.agent-loading-bar:nth-child(2) {
-  animation-delay: 160ms;
+.agent-loading-label {
+  display: grid;
+  align-items: center;
+  min-width: 0;
+  color: #44536a;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
-.agent-loading-bar:nth-child(3) {
-  animation-delay: 320ms;
+.agent-loading-label > span {
+  grid-area: 1 / 1;
 }
 
-@keyframes agent-loading-pulse {
-  0%,
-  80%,
-  100% {
-    opacity: 0.45;
-    transform: translateY(0) scaleY(0.56);
+.agent-loading-copy-measure {
+  visibility: hidden;
+  padding-inline-end: 2px;
+}
+
+.agent-loading-copy {
+  display: block;
+  min-width: 0;
+  /* The unsplit measuring copies own width; per-letter rounding must not move it. */
+  contain: inline-size;
+}
+
+.agent-loading-shiny-text {
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* The user-supplied React Bits ShinyText treatment, across the whole sentence. */
+.agent-loading-shiny-text.is-shining {
+  background-image: linear-gradient(
+    120deg,
+    #44536a 0%,
+    #44536a 35%,
+    #d4e0ef 50%,
+    #44536a 65%,
+    #44536a 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce), (forced-colors: active) {
+  .agent-loading-shiny-text.is-shining {
+    background: none;
+    -webkit-text-fill-color: currentColor;
   }
+}
 
-  40% {
-    opacity: 1;
-    transform: translateY(-2px) scaleY(1.16);
+@media (max-width: 480px) {
+  .agent-loading-animation {
+    flex-basis: 120px;
+    width: 120px;
+    height: 37px;
   }
 }
 
@@ -95,14 +131,6 @@
   background: #fff;
   box-shadow: 0 5px 18px rgb(28 53 88 / 4%);
   font-family: "Noto Sans SC", "PingFang SC", sans-serif;
-}
-
-.conversation-agent-label {
-  margin: 0 0 1px 7px;
-  color: #61728a;
-  font-size: 11px;
-  font-weight: 650;
-  letter-spacing: 0.05em;
 }
 
 .inline-plan-header {
@@ -851,6 +879,7 @@
 }
 
 .inline-plan-notices {
+  margin-top: 20px;
   padding: 16px 18px;
   border: 1px solid #e3dbc5;
   border-radius: 10px;
@@ -870,8 +899,12 @@
 .inline-plan-notices header p,
 .inline-plan-notices li {
   color: #6f6146;
-  font-size: 10px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.inline-plan-notices summary {
+  cursor: pointer;
 }
 
 .inline-plan-notices header p {
@@ -1205,18 +1238,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .agent-loading-bar {
-    animation: none;
-    opacity: 0.72;
-    transform: scaleY(0.72);
-  }
-
-  .agent-loading-bar:nth-child(2) {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-}
 .inline-plan-budget > header > div:first-child {
   display: flex;
   align-items: center;

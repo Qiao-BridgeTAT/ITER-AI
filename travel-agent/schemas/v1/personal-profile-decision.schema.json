@@ -1,0 +1,73 @@
+{
+  "$defs": {
+    "PreferenceDecisionMode": {
+      "enum": [
+        "use_defaults",
+        "adjust_for_trip",
+        "use_neutral"
+      ],
+      "title": "PreferenceDecisionMode",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/personal-profile-decision.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "else": {
+        "properties": {
+          "edited_profile_text": {
+            "type": "null"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "adjust_for_trip"
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "then": {
+        "properties": {
+          "edited_profile_text": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          }
+        },
+        "required": [
+          "edited_profile_text"
+        ]
+      }
+    }
+  ],
+  "properties": {
+    "edited_profile_text": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Edited Profile Text"
+    },
+    "mode": {
+      "$ref": "#/$defs/PreferenceDecisionMode"
+    }
+  },
+  "required": [
+    "mode"
+  ],
+  "title": "PersonalProfileDecision",
+  "type": "object"
+}

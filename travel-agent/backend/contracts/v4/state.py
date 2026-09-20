@@ -15,6 +15,7 @@ from backend.agent.state_merge import (
     SemanticStateEntry,
 )
 from backend.contracts.cold_start import ColdStartSubmission
+from backend.contracts.v4.attraction_search import AttractionSearchHints
 from backend.contracts.v4.base import (
     DisplayText,
     Identifier,
@@ -26,6 +27,7 @@ from backend.contracts.v4.content_quality import (
     require_meaningful_label,
     require_meaningful_trip_goal,
 )
+from backend.contracts.v4.dining_search import DiningSearchHints
 from backend.contracts.v4.enums import (
     CompletionMode,
     CoverageStatus,
@@ -34,6 +36,11 @@ from backend.contracts.v4.enums import (
     PendingInteractionKind,
     TaskBookStatus,
 )
+from backend.contracts.v4.lodging_preferences import (
+    HotelQualityTier,
+    LodgingExample,
+)
+from backend.contracts.v4.memory import UserMemoryView
 from backend.contracts.v4.planner_publication import PlannerPublishedPlan
 from backend.contracts.v4.task_book import BookingReference, DelegatedScope, MoneyRange, TaskBookV4
 
@@ -117,6 +124,9 @@ class PreferenceDirectionState(V4ContractModel):
     description: DisplayText | None = None
     tags: list[Identifier] = Field(default_factory=list, max_length=8)
     search_query: DisplayText | None = None
+    attraction_search_hints: AttractionSearchHints | None = None
+    dining_search_hints: DiningSearchHints | None = None
+    lodging_examples: list[LodgingExample] = Field(default_factory=list, max_length=3)
     selected: bool
     source_operation_refs: list[Identifier] = Field(min_length=1)
     coverage_eligible: bool = True
@@ -158,6 +168,7 @@ class DiningSemanticProjection(V4ContractModel):
 
 class LodgingSemanticProjection(V4ContractModel):
     area_preferences: list[PreferenceDirectionState] = Field(default_factory=list)
+    hotel_quality_tiers: list[HotelQualityTier] = Field(default_factory=list, max_length=4)
     hotel_quality_tier: str | None = Field(
         default=None,
         pattern=r"^(economy|comfort|upscale|luxury)$",
@@ -197,6 +208,9 @@ class TripSemanticState(V4ContractModel):
     trip_id: Identifier
     state_version: int = Field(default=0, ge=0, strict=True)
     cold_start_profile_snapshot: ColdStartProfileSnapshot | None = None
+    long_term_memory_snapshot: tuple[UserMemoryView, ...] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     trip_basics: TripBasicsProjection = Field(default_factory=TripBasicsProjection)
     attractions: AttractionSemanticProjection = Field(default_factory=AttractionSemanticProjection)
     dining: DiningSemanticProjection = Field(default_factory=DiningSemanticProjection)

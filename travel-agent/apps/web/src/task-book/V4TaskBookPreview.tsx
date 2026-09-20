@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "motion/react";
 import { useCallback, useId, useMemo, useState } from "react";
 
@@ -6,6 +7,7 @@ import type { TaskBookV4, TripSemanticState } from "../generated/v4/contracts";
 import { buildCompactTaskBookSummary } from "./v4TaskBookSummary";
 
 type V4TaskBookPreviewProps = {
+  triggerVariant?: "reference" | "conversation";
   taskBook: TaskBookV4;
   semanticState?: TripSemanticState | null;
   disabled?: boolean;
@@ -17,12 +19,13 @@ type V4TaskBookPreviewProps = {
 
 export function V4TaskBookPreview({
   taskBook,
+  triggerVariant = "reference",
   semanticState = null,
   disabled = false,
   conflictMessage,
   onConfirm,
   onModify,
-  onReload,
+  onReload
 }: V4TaskBookPreviewProps) {
   const [open, setOpen] = useState(false);
   const prefersReducedMotion = useReducedMotion();
@@ -32,7 +35,7 @@ export function V4TaskBookPreview({
   const isConfirmed = taskBook.status === "confirmed";
   const summary = useMemo(
     () => buildCompactTaskBookSummary(taskBook, semanticState),
-    [semanticState, taskBook],
+    [semanticState, taskBook]
   );
   const close = useCallback(() => setOpen(false), []);
   const dialogRef = useModalFocus<HTMLElement>(open ? close : () => undefined);
@@ -54,9 +57,19 @@ export function V4TaskBookPreview({
   return (
     <>
       <button
-        className="task-book-reference-link"
+        className={
+          triggerVariant === "conversation"
+            ? "v4-task-book-open v4-card-primary-action"
+            : "task-book-reference-link"
+        }
         type="button"
-        aria-label={isConfirmed ? "查看已确认的旅行任务书" : "查看旅行任务书"}
+        aria-label={
+          triggerVariant === "conversation"
+            ? "打开本次旅行任务书"
+            : isConfirmed
+              ? "查看已确认的旅行任务书"
+              : "查看旅行任务书"
+        }
         aria-expanded={open}
         aria-controls={panelId}
         data-v4-attachment-kind="task_book"
@@ -66,116 +79,127 @@ export function V4TaskBookPreview({
         data-task-book-state-version={taskBook.based_on_state_version}
         onClick={() => setOpen((current) => !current)}
       >
-        <span>旅行任务书</span>
-        <small>{isConfirmed ? "已确认" : "查看"}</small>
+        {triggerVariant === "conversation" ? (
+          "打开本次旅行任务书"
+        ) : (
+          <>
+            <span>旅行任务书</span>
+            <small>{isConfirmed ? "已确认" : "查看"}</small>
+          </>
+        )}
       </button>
 
-      {open ? (
-        <motion.div
-          className="task-book-overlay"
-          initial={prefersReducedMotion ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: prefersReducedMotion ? 0 : 0.14 }}
-          role="presentation"
-          onMouseDown={close}
-        >
-          <motion.section
-            id={panelId}
-            ref={dialogRef}
-            className="travel-task-book-panel v4-task-book-preview"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-            tabIndex={-1}
-            data-task-book-status={taskBook.status}
-            initial={
-              prefersReducedMotion ? false : { opacity: 0, scale: 0.965, y: -8 }
-            }
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={openTransition}
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <header className="travel-task-book-header">
-              <div className="travel-task-book-identity">
-                <img src="/brand/iter-mark-black-64.png" alt="" />
-                <h2 id={titleId}>旅行任务书</h2>
-              </div>
-              <div className="travel-task-book-header-actions">
-                <span
-                  className={`travel-task-book-status${
-                    isConfirmed ? " is-confirmed" : ""
-                  }`}
-                >
-                  {isConfirmed ? "已确认" : "待确认"}
-                </span>
-                <button
-                  type="button"
-                  onClick={close}
-                  aria-label="关闭旅行任务书"
-                >
-                  关闭
-                </button>
-              </div>
-            </header>
-
-            <div className="travel-task-book-content">
-              <dl className="travel-task-book-summary">
-                <TaskBookFact
-                  label="目的地与时间"
-                  value={summary.destinationAndDates}
-                />
-                <TaskBookFact
-                  label="景点偏好"
-                  value={summary.attractionPreference}
-                />
-                <TaskBookFact
-                  label="饮食偏好"
-                  value={summary.diningPreference}
-                />
-                <TaskBookFact
-                  label="住宿偏好"
-                  value={summary.lodgingPreference}
-                />
-              </dl>
-
-              {conflictMessage ? (
-                <div className="attachment-submit-conflict" role="alert">
-                  <span>{conflictMessage}</span>
-                  {onReload ? (
-                    <button type="button" onClick={onReload}>
-                      刷新最新任务书
+      {open
+        ? createPortal(
+            <motion.div
+              className="task-book-overlay"
+              initial={prefersReducedMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.14 }}
+              role="presentation"
+              onMouseDown={close}
+            >
+              <motion.section
+                id={panelId}
+                ref={dialogRef}
+                className="travel-task-book-panel v4-task-book-preview"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                tabIndex={-1}
+                data-task-book-status={taskBook.status}
+                initial={
+                  prefersReducedMotion
+                    ? false
+                    : { opacity: 0, scale: 0.965, y: -8 }
+                }
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={openTransition}
+                onMouseDown={(event) => event.stopPropagation()}
+              >
+                <header className="travel-task-book-header">
+                  <div className="travel-task-book-identity">
+                    <img src="/brand/iter-mark-black-64.png" alt="" />
+                    <h2 id={titleId}>旅行任务书</h2>
+                  </div>
+                  <div className="travel-task-book-header-actions">
+                    <span
+                      className={`travel-task-book-status${
+                        isConfirmed ? " is-confirmed" : ""
+                      }`}
+                    >
+                      {isConfirmed ? "已确认" : "待确认"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={close}
+                      aria-label="关闭旅行任务书"
+                    >
+                      关闭
                     </button>
+                  </div>
+                </header>
+
+                <div className="travel-task-book-content">
+                  <dl className="travel-task-book-summary">
+                    <TaskBookFact
+                      label="目的地与时间"
+                      value={summary.destinationAndDates}
+                    />
+                    <TaskBookFact
+                      label="景点偏好"
+                      value={summary.attractionPreference}
+                    />
+                    <TaskBookFact
+                      label="饮食偏好"
+                      value={summary.diningPreference}
+                    />
+                    <TaskBookFact
+                      label="住宿偏好"
+                      value={summary.lodgingPreference}
+                    />
+                  </dl>
+
+                  {conflictMessage ? (
+                    <div className="attachment-submit-conflict" role="alert">
+                      <span>{conflictMessage}</span>
+                      {onReload ? (
+                        <button type="button" onClick={onReload}>
+                          刷新最新任务书
+                        </button>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
-              ) : null}
-            </div>
 
-            <footer className="travel-task-book-actions is-compact">
-              <div>
-                {onModify ? (
-                  <button
-                    className="travel-task-book-modify"
-                    type="button"
-                    onClick={modify}
-                  >
-                    返回对话修改
-                  </button>
-                ) : null}
-                {!isConfirmed ? (
-                  <button
-                    className="travel-task-book-confirm"
-                    type="button"
-                    disabled={disabled}
-                    onClick={confirm}
-                  >
-                    确认任务书
-                  </button>
-                ) : null}
-              </div>
-            </footer>
-          </motion.section>
-        </motion.div>
-      ) : null}
+                <footer className="travel-task-book-actions is-compact">
+                  <div>
+                    {onModify ? (
+                      <button
+                        className="travel-task-book-modify"
+                        type="button"
+                        onClick={modify}
+                      >
+                        返回对话修改
+                      </button>
+                    ) : null}
+                    {!isConfirmed ? (
+                      <button
+                        className="travel-task-book-confirm"
+                        type="button"
+                        disabled={disabled}
+                        onClick={confirm}
+                      >
+                        确认任务书
+                      </button>
+                    ) : null}
+                  </div>
+                </footer>
+              </motion.section>
+            </motion.div>,
+            document.body
+          )
+        : null}
     </>
   );
 }

@@ -8,7 +8,7 @@ from pydantic import Field
 
 from backend.agent.model_gateway import ModelAuditMetadata, ModelMessage, ModelRequest, ModelRole
 from backend.agent.planner.decision_contracts import CandidateKey, ModelPlanIntent
-from backend.agent.planner.gap_infill import fits_known_visit_hours
+from backend.agent.planner.dining_slots import fits_known_meal_hours
 from backend.agent.planner.proposals import PlannerReferenceCatalog
 from backend.agent.planner.timing_quality import missing_concrete_meals
 from backend.agent.planner.workspace import PlannerGuardError
@@ -91,9 +91,7 @@ def missing_meal_options(
                 for value in evidence.days
                 if value.service_date == day.service_date
             ]
-            if max(distances) > 3000 or not fits_known_visit_hours(
-                hours, (11 if meal["meal"] == "lunch" else 17) * 60, 60
-            ):
+            if not fits_known_meal_hours(hours, (11 if meal["meal"] == "lunch" else 17) * 60, 60):
                 continue
             options.append(
                 {

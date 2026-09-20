@@ -1,0 +1,775 @@
+{
+  "$defs": {
+    "CandidateEntityKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "activity"
+      ],
+      "title": "CandidateEntityKind",
+      "type": "string"
+    },
+    "CandidateRecallArguments": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "$ref": "#/$defs/CandidateEntityKind"
+        },
+        "gap_code": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Gap Code",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "nearby_candidate_refs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CandidateRef"
+          },
+          "title": "Nearby Candidate Refs",
+          "type": "array"
+        },
+        "nearby_cluster_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Nearby Cluster Refs",
+          "type": "array"
+        },
+        "task_book_preference_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Task Book Preference Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "domain",
+        "gap_code",
+        "task_book_preference_refs",
+        "limit"
+      ],
+      "title": "CandidateRecallArguments",
+      "type": "object"
+    },
+    "CandidateRef": {
+      "additionalProperties": false,
+      "description": "Revision-bound reference to one candidate in the current pool.",
+      "properties": {
+        "candidate_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "candidate_pool_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Pool Id",
+          "type": "string"
+        },
+        "candidate_pool_revision": {
+          "minimum": 1,
+          "title": "Candidate Pool Revision",
+          "type": "integer"
+        },
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "entity_kind": {
+          "$ref": "#/$defs/CandidateEntityKind"
+        },
+        "kind": {
+          "const": "candidate",
+          "default": "candidate",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_pool_id",
+        "candidate_pool_revision",
+        "candidate_id",
+        "entity_kind",
+        "canonical_entity_id"
+      ],
+      "title": "CandidateRef",
+      "type": "object"
+    },
+    "HotelOfferRef": {
+      "additionalProperties": false,
+      "description": "Inventory-snapshot-bound reference to a normalized hotel offer.",
+      "properties": {
+        "hotel_observation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Hotel Observation Id",
+          "type": "string"
+        },
+        "inventory_snapshot_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Inventory Snapshot Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "hotel_offer",
+          "default": "hotel_offer",
+          "title": "Kind",
+          "type": "string"
+        },
+        "offer_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Offer Id",
+          "type": "string"
+        },
+        "property_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Property Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hotel_observation_id",
+        "offer_id",
+        "property_id",
+        "inventory_snapshot_id"
+      ],
+      "title": "HotelOfferRef",
+      "type": "object"
+    },
+    "HotelOfferRefreshArguments": {
+      "additionalProperties": false,
+      "properties": {
+        "check_in_date": {
+          "format": "date",
+          "title": "Check In Date",
+          "type": "string"
+        },
+        "check_out_date": {
+          "format": "date",
+          "title": "Check Out Date",
+          "type": "string"
+        },
+        "offer_ref": {
+          "$ref": "#/$defs/HotelOfferRef"
+        }
+      },
+      "required": [
+        "offer_ref",
+        "check_in_date",
+        "check_out_date"
+      ],
+      "title": "HotelOfferRefreshArguments",
+      "type": "object"
+    },
+    "HotelSearchArguments": {
+      "additionalProperties": false,
+      "properties": {
+        "activity_cluster_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Activity Cluster Refs",
+          "type": "array"
+        },
+        "budget_constraint_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Budget Constraint Ref"
+        },
+        "check_in_date": {
+          "format": "date",
+          "title": "Check In Date",
+          "type": "string"
+        },
+        "check_out_date": {
+          "format": "date",
+          "title": "Check Out Date",
+          "type": "string"
+        },
+        "facility_constraint_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Facility Constraint Refs",
+          "type": "array"
+        },
+        "lodging_preference_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Lodging Preference Refs",
+          "type": "array"
+        },
+        "party_size_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Party Size Ref",
+          "type": "string"
+        },
+        "search_keyword": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Search Keyword"
+        }
+      },
+      "required": [
+        "check_in_date",
+        "check_out_date",
+        "party_size_ref",
+        "activity_cluster_refs"
+      ],
+      "title": "HotelSearchArguments",
+      "type": "object"
+    },
+    "OpeningHoursArguments": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_refs": {
+          "items": {
+            "$ref": "#/$defs/CandidateRef"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Candidate Refs",
+          "type": "array"
+        },
+        "service_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Service Dates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "candidate_refs",
+        "service_dates"
+      ],
+      "title": "OpeningHoursArguments",
+      "type": "object"
+    },
+    "PlaceFactsArguments": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_refs": {
+          "items": {
+            "$ref": "#/$defs/CandidateRef"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Candidate Refs",
+          "type": "array"
+        },
+        "fact_kinds": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Fact Kinds",
+          "type": "array"
+        }
+      },
+      "required": [
+        "candidate_refs",
+        "fact_kinds"
+      ],
+      "title": "PlaceFactsArguments",
+      "type": "object"
+    },
+    "PlannerCapability": {
+      "enum": [
+        "candidate_recall",
+        "place_facts",
+        "opening_hours",
+        "ticket_availability",
+        "weather_forecast",
+        "spatial_routes",
+        "hotel_search",
+        "hotel_offer_refresh"
+      ],
+      "title": "PlannerCapability",
+      "type": "string"
+    },
+    "PlannerScope": {
+      "additionalProperties": false,
+      "description": "Optimistic-concurrency scope shared by one Planner decision round.",
+      "properties": {
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_state_version": {
+          "minimum": 0,
+          "title": "Task Book State Version",
+          "type": "integer"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "workspace_revision": {
+          "minimum": 0,
+          "title": "Workspace Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "trip_id",
+        "generation_id",
+        "task_book_id",
+        "task_book_version",
+        "task_book_state_version",
+        "workspace_revision"
+      ],
+      "title": "PlannerScope",
+      "type": "object"
+    },
+    "RouteComparisonDay": {
+      "additionalProperties": false,
+      "properties": {
+        "ordered_endpoints": {
+          "items": {
+            "$ref": "#/$defs/SpatialRouteEndpoint"
+          },
+          "maxItems": 24,
+          "title": "Ordered Endpoints",
+          "type": "array"
+        },
+        "service_date": {
+          "format": "date",
+          "title": "Service Date",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_date",
+        "ordered_endpoints"
+      ],
+      "title": "RouteComparisonDay",
+      "type": "object"
+    },
+    "RouteComparisonInput": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline_days": {
+          "items": {
+            "$ref": "#/$defs/RouteComparisonDay"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Baseline Days",
+          "type": "array"
+        },
+        "proposed_days": {
+          "items": {
+            "$ref": "#/$defs/RouteComparisonDay"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Proposed Days",
+          "type": "array"
+        },
+        "transport_mode": {
+          "enum": [
+            "public_transit",
+            "taxi",
+            "walking",
+            "driving"
+          ],
+          "title": "Transport Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "baseline_days",
+        "proposed_days",
+        "transport_mode"
+      ],
+      "title": "RouteComparisonInput",
+      "type": "object"
+    },
+    "SpatialRouteEndpoint": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "candidate",
+            "cluster",
+            "hotel_offer",
+            "fixed_commitment"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "reference_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reference Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reference_id"
+      ],
+      "title": "SpatialRouteEndpoint",
+      "type": "object"
+    },
+    "SpatialRoutePair": {
+      "additionalProperties": false,
+      "properties": {
+        "destination": {
+          "$ref": "#/$defs/SpatialRouteEndpoint"
+        },
+        "origin": {
+          "$ref": "#/$defs/SpatialRouteEndpoint"
+        }
+      },
+      "required": [
+        "origin",
+        "destination"
+      ],
+      "title": "SpatialRoutePair",
+      "type": "object"
+    },
+    "SpatialRoutesArguments": {
+      "additionalProperties": false,
+      "properties": {
+        "comparison": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RouteComparisonInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "departure_service_date": {
+          "format": "date",
+          "title": "Departure Service Date",
+          "type": "string"
+        },
+        "departure_window": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "format": "time",
+                  "type": "string"
+                },
+                {
+                  "format": "time",
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Departure Window"
+        },
+        "endpoint_pairs": {
+          "items": {
+            "$ref": "#/$defs/SpatialRoutePair"
+          },
+          "maxItems": 40,
+          "minItems": 1,
+          "title": "Endpoint Pairs",
+          "type": "array"
+        },
+        "transport_modes": {
+          "items": {
+            "enum": [
+              "public_transit",
+              "taxi",
+              "walking",
+              "driving"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Transport Modes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "endpoint_pairs",
+        "transport_modes",
+        "departure_service_date"
+      ],
+      "title": "SpatialRoutesArguments",
+      "type": "object"
+    },
+    "TicketAvailabilityArguments": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_refs": {
+          "items": {
+            "$ref": "#/$defs/CandidateRef"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Candidate Refs",
+          "type": "array"
+        },
+        "party_size_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Party Size Ref",
+          "type": "string"
+        },
+        "service_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Service Dates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "candidate_refs",
+        "service_dates",
+        "party_size_ref"
+      ],
+      "title": "TicketAvailabilityArguments",
+      "type": "object"
+    },
+    "WeatherForecastArguments": {
+      "additionalProperties": false,
+      "properties": {
+        "destination_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Destination Ref",
+          "type": "string"
+        },
+        "service_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Service Dates",
+          "type": "array"
+        },
+        "weather_fields": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Weather Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "destination_ref",
+        "service_dates",
+        "weather_fields"
+      ],
+      "title": "WeatherForecastArguments",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/planner-capability-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "arguments": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CandidateRecallArguments"
+        },
+        {
+          "$ref": "#/$defs/PlaceFactsArguments"
+        },
+        {
+          "$ref": "#/$defs/OpeningHoursArguments"
+        },
+        {
+          "$ref": "#/$defs/TicketAvailabilityArguments"
+        },
+        {
+          "$ref": "#/$defs/WeatherForecastArguments"
+        },
+        {
+          "$ref": "#/$defs/SpatialRoutesArguments"
+        },
+        {
+          "$ref": "#/$defs/HotelSearchArguments"
+        },
+        {
+          "$ref": "#/$defs/HotelOfferRefreshArguments"
+        }
+      ],
+      "title": "Arguments"
+    },
+    "based_on_issue_ids": {
+      "default": [],
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Based On Issue Ids",
+      "type": "array"
+    },
+    "blocking": {
+      "title": "Blocking",
+      "type": "boolean"
+    },
+    "capability": {
+      "$ref": "#/$defs/PlannerCapability"
+    },
+    "purpose": {
+      "enum": [
+        "complete_initial_evidence",
+        "resolve_validation_issue",
+        "compare_route_alternatives",
+        "verify_fixed_commitment",
+        "refresh_stale_hotel_offer",
+        "expand_candidate_gap"
+      ],
+      "title": "Purpose",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/PlannerScope"
+    },
+    "service_dates": {
+      "default": [],
+      "items": {
+        "format": "date",
+        "type": "string"
+      },
+      "title": "Service Dates",
+      "type": "array"
+    }
+  },
+  "required": [
+    "request_id",
+    "scope",
+    "capability",
+    "purpose",
+    "blocking",
+    "arguments"
+  ],
+  "title": "PlannerCapabilityRequest",
+  "type": "object"
+}

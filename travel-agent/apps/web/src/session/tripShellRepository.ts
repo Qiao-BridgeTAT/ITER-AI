@@ -1,5 +1,5 @@
-import { validatePublicContract } from "../contracts/validation";
 import type { TripShell, TripState } from "../generated/contracts";
+import { validatePublicContract } from "../contracts/validation";
 import type { ViewerSession } from "./viewerSession";
 
 export const ANONYMOUS_SHELL_STORAGE_KEY =
@@ -47,7 +47,7 @@ export class TripShellRepository {
 
   resolve(
     viewer: ViewerSession,
-    requestedTripId?: string,
+    requestedTripId?: string
   ): TripShellResolution {
     const storage =
       viewer.kind === "anonymous"
@@ -64,7 +64,7 @@ export class TripShellRepository {
         shell: previous.record.shell,
         created: false,
         expiredPrevious: false,
-        needsBackendCreation: previous.record.backend_creation_pending === true,
+        needsBackendCreation: previous.record.backend_creation_pending === true
       };
     }
 
@@ -73,7 +73,7 @@ export class TripShellRepository {
         shell: this.createShell(viewer, requestedTripId),
         created: false,
         expiredPrevious: false,
-        needsBackendCreation: false,
+        needsBackendCreation: false
       };
     }
 
@@ -89,19 +89,19 @@ export class TripShellRepository {
       // Only locally initiated trips may be created. An arbitrary signed-in
       // history/deep link must never become a new empty trip after a 404.
       backend_creation_pending:
-        requestedTripId === undefined || viewer.kind === "anonymous",
+        requestedTripId === undefined || viewer.kind === "anonymous"
     };
     storage.setItem(key, JSON.stringify(record));
     return {
       shell,
       created: true,
       expiredPrevious: previous.expired,
-      needsBackendCreation: record.backend_creation_pending === true,
+      needsBackendCreation: record.backend_creation_pending === true
     };
   }
 
   acknowledgeBackendCreation(
-    shell: Pick<TripShell, "trip_id" | "owner_type" | "owner_id">,
+    shell: Pick<TripShell, "trip_id" | "owner_type" | "owner_id">
   ): void {
     const storage =
       shell.owner_type === "anonymous"
@@ -126,8 +126,8 @@ export class TripShellRepository {
         key,
         JSON.stringify({
           ...record,
-          backend_creation_pending: false,
-        }),
+          backend_creation_pending: false
+        })
       );
     } catch {
       // Invalid local storage is handled by resolve; never alter another shell.
@@ -147,7 +147,7 @@ export class TripShellRepository {
           ? new Date(this.now().getTime() + this.anonymousTtlMs).toISOString()
           : null,
       shell,
-      backend_creation_pending: true,
+      backend_creation_pending: true
     };
     storage.setItem(storageKey(viewer), JSON.stringify(record));
     return shell;
@@ -172,11 +172,11 @@ export class TripShellRepository {
     const record: StoredTripShell = {
       record_version: "1",
       expires_at: null,
-      shell: structuredClone(shell),
+      shell: structuredClone(shell)
     };
     this.persistentStorage.setItem(
       userShellStorageKey(userId),
-      JSON.stringify(record),
+      JSON.stringify(record)
     );
     return true;
   }
@@ -195,19 +195,19 @@ export class TripShellRepository {
       owner_id: sessionId,
       city: state.city,
       phase: state.phase,
-      state_version: state.state_version,
+      state_version: state.state_version
     };
     if (!validatePublicContract("trip_shell", shell).success) return false;
     const record: StoredTripShell = {
       record_version: "1",
       expires_at: new Date(
-        this.now().getTime() + this.anonymousTtlMs,
+        this.now().getTime() + this.anonymousTtlMs
       ).toISOString(),
-      shell,
+      shell
     };
     this.sessionStorage.setItem(
       ANONYMOUS_SHELL_STORAGE_KEY,
-      JSON.stringify(record),
+      JSON.stringify(record)
     );
     return true;
   }
@@ -215,7 +215,7 @@ export class TripShellRepository {
   private read(
     storage: Storage,
     key: string,
-    viewer: ViewerSession,
+    viewer: ViewerSession
   ): { record: StoredTripShell | null; expired: boolean } {
     const raw = storage.getItem(key);
     if (raw === null) {
@@ -243,7 +243,7 @@ export class TripShellRepository {
 
   private createShell(
     viewer: ViewerSession,
-    requestedTripId?: string,
+    requestedTripId?: string
   ): TripShell {
     const shell: TripShell = {
       trip_id: requestedTripId ?? this.createId(),
@@ -257,7 +257,7 @@ export class TripShellRepository {
         viewer.kind === "user" && viewer.hasPersonalDefaults
           ? "city_selection"
           : "cold_start",
-      state_version: 0,
+      state_version: 0
     };
     if (!validatePublicContract("trip_shell", shell).success) {
       throw new Error("Unable to create a valid trip shell");
@@ -278,7 +278,7 @@ export function userShellStorageKey(userId: string): string {
 
 function isStoredTripShell(
   value: unknown,
-  viewer: ViewerSession,
+  viewer: ViewerSession
 ): value is StoredTripShell {
   if (!isRecord(value) || value.record_version !== "1") {
     return false;

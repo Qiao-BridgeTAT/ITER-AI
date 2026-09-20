@@ -144,6 +144,10 @@ class PlannerPublishedPlan(V4ContractModel):
         default=None, max_length=180, exclude_if=lambda v: v is None
     )
     best_effort_reasons: tuple[str, ...] = Field(default=(), exclude_if=lambda v: not v)
+    verification_status: Literal["verified", "with_issues", "not_reviewed"] = Field(
+        default="verified", exclude_if=lambda v: v == "verified"
+    )
+    planning_notes: tuple[str, ...] = Field(default=(), exclude_if=lambda v: not v)
     schedule_quality_status: Literal["complete", "partial"] | None = Field(
         default=None, exclude_if=lambda v: v is None
     )
@@ -215,15 +219,22 @@ class PlannerPublishedPlan(V4ContractModel):
             raise ValueError("published Planner artifacts must use one input state version")
         if cost.schedule_request_id != schedule.request_id:
             raise ValueError("published cost must reference the materialized schedule")
-        if (
+        if self.verification_status == "verified" and (
             observation.result != "passed"
             or self.validation_report.status is ValidationStatus.BLOCKED
-            or observation.draft_id != draft.draft_id
+        ):
+            raise ValueError("verified Planner publication must pass current validation")
+        if self.verification_status != "verified" and not self.planning_notes:
+            raise ValueError("unchecked Planner publication must disclose its remaining issues")
+        if (
+            observation.draft_id != draft.draft_id
             or observation.draft_revision != draft.draft_revision
             or observation.materialized_schedule_id != str(schedule.request_id)
+            or observation.materialized_schedule_revision != draft.draft_revision
             or observation.cost_draft_id != str(cost.request_id)
+            or observation.cost_draft_revision != draft.draft_revision
         ):
-            raise ValueError("published Planner validation must pass current artifacts")
+            raise ValueError("published Planner validation must reference current artifacts")
         selected_mode = draft.lodging_baseline.mode == "selected_offer"
         selection_count = sum(
             value is not None for value in (self.selected_hotel, self.hotel_recommendations)

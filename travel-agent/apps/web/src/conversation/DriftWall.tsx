@@ -6,7 +6,7 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from "react";
 
 import "./DriftWall.css";
@@ -15,7 +15,7 @@ import {
   getLoopPlaneHeight,
   getLoopTrackLayout,
   getPlaneHorizontalOffset,
-  wrapLoopOffset,
+  wrapLoopOffset
 } from "./driftWallLayout";
 import { shuffledWallColumns } from "./driftWallShuffle";
 import { PlaceImage } from "./PlaceImage";
@@ -104,7 +104,7 @@ export default function DriftWall({
   className = "",
   style,
   ariaLabel = "行程景点概览",
-  onItemSelect,
+  onItemSelect
 }: DriftWallProps) {
   const safeColumns = Math.max(1, Math.floor(columns));
   const containerRef = useRef<HTMLDivElement>(null);
@@ -143,20 +143,20 @@ export default function DriftWall({
       shuffledWallColumns(
         JSON.parse(itemsKey) as DriftWallItem[],
         safeColumns,
-        shuffleSeed,
+        shuffleSeed
       ),
-    [itemsKey, safeColumns, shuffleSeed],
+    [itemsKey, safeColumns, shuffleSeed]
   );
 
   const planeScale = useMemo(
     () => getFittedPlaneScale(containerWidth, safeColumns, tileWidth, gap),
-    [containerWidth, gap, safeColumns, tileWidth],
+    [containerWidth, gap, safeColumns, tileWidth]
   );
   const planeHeight = getLoopPlaneHeight(
     containerHeight,
     planeScale,
     tileHeight,
-    gap,
+    gap
   );
   const planeWidth = safeColumns * (tileWidth + gap);
   const horizontalOffset = useMemo(
@@ -169,16 +169,16 @@ export default function DriftWall({
         turn,
         roll,
         depth,
-        perspective,
+        perspective
       }),
-    [depth, perspective, planeHeight, planeScale, planeWidth, roll, tilt, turn],
+    [depth, perspective, planeHeight, planeScale, planeWidth, roll, tilt, turn]
   );
   const columnMeta = useMemo(
     () =>
       columnItems.map((column) =>
-        getLoopTrackLayout(planeHeight, column.length, tileHeight, gap),
+        getLoopTrackLayout(planeHeight, column.length, tileHeight, gap)
       ),
-    [columnItems, gap, planeHeight, tileHeight],
+    [columnItems, gap, planeHeight, tileHeight]
   );
 
   useLayoutEffect(() => {
@@ -216,11 +216,11 @@ export default function DriftWall({
       wrapLoopOffset(
         offsetsRef.current[columnIndex] ??
           meta.copyHeight * ((columnIndex * 0.37) % 1),
-        meta.copyHeight,
-      ),
+        meta.copyHeight
+      )
     );
     velocitiesRef.current = columnMeta.map(
-      (_, columnIndex) => velocitiesRef.current[columnIndex] ?? 0,
+      (_, columnIndex) => velocitiesRef.current[columnIndex] ?? 0
     );
     // Position every column before paint, including resize, reduced motion,
     // and environments without animation frames. Resizing keeps its phase.
@@ -242,7 +242,7 @@ export default function DriftWall({
         `rotateX(${tilt + pointerY}deg) rotateY(${turn + pointerX}deg) ` +
         `rotateZ(${roll}deg) translateZ(${-depth}px)`;
     },
-    [depth, horizontalOffset, planeScale, roll, tilt, turn],
+    [depth, horizontalOffset, planeScale, roll, tilt, turn]
   );
 
   useLayoutEffect(() => {
@@ -259,7 +259,7 @@ export default function DriftWall({
       if (lastTsRef.current === null) lastTsRef.current = timestamp;
       const delta = Math.min(
         0.05,
-        Math.max(0, timestamp - lastTsRef.current) / 1000,
+        Math.max(0, timestamp - lastTsRef.current) / 1000
       );
       lastTsRef.current = timestamp;
 
@@ -273,7 +273,7 @@ export default function DriftWall({
         (targetY - pointerDampedRef.current.y) * damp;
       applyPlaneTransform(
         pointerDampedRef.current.x,
-        pointerDampedRef.current.y,
+        pointerDampedRef.current.y
       );
 
       columnMeta.forEach((meta, columnIndex) => {
@@ -290,7 +290,7 @@ export default function DriftWall({
         const next = wrapLoopOffset(
           (offsetsRef.current[columnIndex] ?? 0) +
             velocitiesRef.current[columnIndex] * delta,
-          meta.copyHeight,
+          meta.copyHeight
         );
         offsetsRef.current[columnIndex] = next;
         track.style.transform = `translate3d(0, ${-next}px, 0)`;
@@ -313,7 +313,7 @@ export default function DriftWall({
     columnMeta,
     parallax,
     pauseOnHover,
-    reduced,
+    reduced
   ]);
 
   const activate = useCallback((id: string, columnIndex: number) => {
@@ -337,7 +337,7 @@ export default function DriftWall({
       if (rect && parallax > 0 && !reduced) {
         pointerRef.current = {
           x: (event.clientX - rect.left) / rect.width - 0.5,
-          y: (event.clientY - rect.top) / rect.height - 0.5,
+          y: (event.clientY - rect.top) / rect.height - 0.5
         };
       }
 
@@ -349,7 +349,7 @@ export default function DriftWall({
       if (!tile) return;
       activate(tile.dataset.tileId ?? "", Number(tile.dataset.col));
     },
-    [activate, parallax, reduced],
+    [activate, parallax, reduced]
   );
 
   const cssVariables = useMemo<DriftWallVariables>(
@@ -364,7 +364,7 @@ export default function DriftWall({
       "--dw-gray": grayscale ? 1 : 0,
       "--dw-overlay": overlayColor,
       "--dw-edge": `${Math.max(0, (1 - fade) * 100)}%`,
-      ...style,
+      ...style
     }),
     [
       dim,
@@ -377,14 +377,14 @@ export default function DriftWall({
       radius,
       style,
       tileHeight,
-      tileWidth,
-    ],
+      tileWidth
+    ]
   );
 
   const rootClassName = [
     "drift-wall",
     reduced ? "drift-wall--reduced" : "",
-    className,
+    className
   ]
     .filter(Boolean)
     .join(" ");
@@ -460,7 +460,7 @@ export default function DriftWall({
                         </span>
                       </button>
                     );
-                  }),
+                  })
                 )}
               </div>
             </div>

@@ -1,0 +1,79 @@
+{
+  "$defs": {
+    "CityThemeMode": {
+      "enum": [
+        "selected",
+        "open_to_any"
+      ],
+      "title": "CityThemeMode",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/city-theme-selection.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "else": {
+        "properties": {
+          "selected_theme_ids": {
+            "maxItems": 0,
+            "type": "array"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "selected"
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "then": {
+        "properties": {
+          "selected_theme_ids": {
+            "minItems": 1,
+            "type": "array"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "free_text": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Free Text"
+    },
+    "mode": {
+      "$ref": "#/$defs/CityThemeMode"
+    },
+    "selected_theme_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Selected Theme Ids",
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "mode"
+  ],
+  "title": "CityThemeSelection",
+  "type": "object"
+}

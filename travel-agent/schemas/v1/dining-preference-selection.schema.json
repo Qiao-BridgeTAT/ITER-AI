@@ -1,0 +1,86 @@
+{
+  "$id": "https://travel-agent.local/schemas/v1/dining-preference-selection.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "else": {
+        "anyOf": [
+          {
+            "properties": {
+              "selected_option_ids": {
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "selected_option_ids"
+            ]
+          },
+          {
+            "properties": {
+              "free_text": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "free_text"
+            ]
+          }
+        ]
+      },
+      "if": {
+        "properties": {
+          "open_to_any": {
+            "const": true
+          }
+        },
+        "required": [
+          "open_to_any"
+        ]
+      },
+      "then": {
+        "properties": {
+          "selected_option_ids": {
+            "maxItems": 0,
+            "type": "array"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "free_text": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Free Text"
+    },
+    "open_to_any": {
+      "default": false,
+      "title": "Open To Any",
+      "type": "boolean"
+    },
+    "selected_option_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Selected Option Ids",
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "title": "DiningPreferenceSelection",
+  "type": "object"
+}

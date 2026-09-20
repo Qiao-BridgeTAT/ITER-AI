@@ -1,0 +1,186 @@
+{
+  "$defs": {
+    "CoordinateSystem": {
+      "enum": [
+        "gcj_02",
+        "wgs_84",
+        "bd_09"
+      ],
+      "title": "CoordinateSystem",
+      "type": "string"
+    },
+    "Coordinates": {
+      "additionalProperties": false,
+      "properties": {
+        "coord_system": {
+          "$ref": "#/$defs/CoordinateSystem"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Coordinates",
+      "type": "object"
+    },
+    "PlaceIdentityEvidence": {
+      "additionalProperties": false,
+      "description": "Evidence that may support a source record merge.\n\nName similarity is useful but never sufficient. Address agreement or an\nalready-evaluated coordinate-proximity signal is mandatory.",
+      "properties": {
+        "city_match": {
+          "title": "City Match",
+          "type": "boolean"
+        },
+        "coordinate_distance_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Coordinate Distance M"
+        },
+        "coordinate_proximity_match": {
+          "default": false,
+          "title": "Coordinate Proximity Match",
+          "type": "boolean"
+        },
+        "name_similarity": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name Similarity"
+        },
+        "normalized_address_match": {
+          "default": false,
+          "title": "Normalized Address Match",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "city_match"
+      ],
+      "title": "PlaceIdentityEvidence",
+      "type": "object"
+    },
+    "PlaceSourceMapping": {
+      "additionalProperties": false,
+      "properties": {
+        "fetched_at": {
+          "format": "date-time",
+          "title": "Fetched At",
+          "type": "string"
+        },
+        "provider": {
+          "$ref": "#/$defs/ProviderCode"
+        },
+        "raw_address": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raw Address"
+        },
+        "raw_coordinates": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Coordinates"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "raw_name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Raw Name",
+          "type": "string"
+        },
+        "source_place_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source Place Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "source_place_id",
+        "raw_name",
+        "fetched_at"
+      ],
+      "title": "PlaceSourceMapping",
+      "type": "object"
+    },
+    "ProviderCode": {
+      "enum": [
+        "amap",
+        "baidu",
+        "flyai",
+        "weather",
+        "city_content",
+        "official",
+        "manual"
+      ],
+      "title": "ProviderCode",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/place-match-proposal.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "evidence": {
+      "$ref": "#/$defs/PlaceIdentityEvidence"
+    },
+    "existing_place_id": {
+      "format": "uuid",
+      "title": "Existing Place Id",
+      "type": "string"
+    },
+    "incoming": {
+      "$ref": "#/$defs/PlaceSourceMapping"
+    }
+  },
+  "required": [
+    "existing_place_id",
+    "incoming",
+    "evidence"
+  ],
+  "title": "PlaceMatchProposal",
+  "type": "object"
+}

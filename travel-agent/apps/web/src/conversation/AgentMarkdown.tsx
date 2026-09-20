@@ -23,7 +23,7 @@ export function AgentMarkdown({ text }: { text: string }) {
             <div className="agent-markdown-table">
               <table>{children}</table>
             </div>
-          ),
+          )
         }}
       >
         {content}

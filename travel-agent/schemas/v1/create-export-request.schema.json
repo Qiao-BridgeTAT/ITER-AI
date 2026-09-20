@@ -1,0 +1,17 @@
+{
+  "$id": "https://travel-agent.local/schemas/v1/create-export-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "plan_version_id": {
+      "format": "uuid",
+      "title": "Plan Version Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "plan_version_id"
+  ],
+  "title": "CreateExportRequest",
+  "type": "object"
+}

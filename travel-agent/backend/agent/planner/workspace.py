@@ -228,6 +228,12 @@ def refresh_pool(
         "avoid": CommitmentLevel.FORBIDDEN,
     }
     for place in workspace.place_evidence:
+        if (
+            place.entity_kind is CandidateEntityKind.RESTAURANT
+            and workspace.dining_state is not None
+            and place.canonical_entity_id not in workspace.dining_state.admitted_canonical_ids
+        ):
+            continue
         existing_ref = existing_refs.get(place.canonical_entity_id)
         intent = intents.get(place.canonical_entity_id)
         level = levels[intent[0].disposition.value] if intent else CommitmentLevel.NEUTRAL

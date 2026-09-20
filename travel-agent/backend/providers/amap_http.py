@@ -8,9 +8,10 @@ from typing import Any, cast
 
 import httpx
 
-from backend.config.settings import AmapSearchProxySettings
+from backend.config.settings import AmapPolygonProxySettings, AmapSearchProxySettings
 from backend.contracts.enums import ProviderCode
 from backend.providers.contracts import ProviderError, ProviderFailureCode
+from backend.providers.request_budget import budgeted_external_request
 
 AMAP_BASE_URL = "https://restapi.amap.com"
 AMAP_PROXY_SEARCH_TIMEOUT_SECONDS = 15.0
@@ -22,6 +23,7 @@ AMAP_SEARCH_PATHS = frozenset(
         "/v5/place/text",
         "/v5/place/around",
         "/v5/place/detail",
+        "/v5/place/polygon",
     }
 )
 _AUTH_PARAMETER_NAMES = frozenset({"key", "ak"})
@@ -73,6 +75,7 @@ _UNAVAILABLE_CODES = frozenset({"10016", "10017"})
 _NON_RECOVERABLE_QUOTA_CODES = frozenset({"10003", "10010", "10044", "10045"})
 
 
+@budgeted_external_request
 async def request_amap_json(
     client: httpx.AsyncClient,
     api_key: str,
@@ -81,15 +84,22 @@ async def request_amap_json(
     operation: str,
     *,
     search_proxy: AmapSearchProxySettings | None = None,
+    polygon_proxy: AmapPolygonProxySettings | None = None,
 ) -> dict[str, Any]:
-    use_proxy = search_proxy is not None and path in AMAP_SEARCH_PATHS
-    base_url = search_proxy.base_url if use_proxy and search_proxy else AMAP_BASE_URL
-    auth_name = search_proxy.key_parameter if use_proxy and search_proxy else "key"
-    auth_value = search_proxy.api_key if use_proxy and search_proxy else api_key
+    selected_proxy: AmapPolygonProxySettings | AmapSearchProxySettings | None = (
+        polygon_proxy
+        if path == "/v5/place/polygon" and polygon_proxy is not None
+        else search_proxy
+        if path in AMAP_SEARCH_PATHS
+        else None
+    )
+    base_url = selected_proxy.base_url if selected_proxy else AMAP_BASE_URL
+    auth_name = selected_proxy.key_parameter if selected_proxy else "key"
+    auth_value = selected_proxy.api_key if selected_proxy else api_key
     request = client.build_request(
         "GET", f"{base_url}{path}", params={"output": "JSON", **parameters}
     )
-    if use_proxy:
+    if selected_proxy is not None:
         request.extensions["timeout"] = httpx.Timeout(AMAP_PROXY_SEARCH_TIMEOUT_SECONDS).as_dict()
     # Strip auth aliases after HTTPX merges client-level defaults, then add exactly
     # one credential for the selected host. Business parameters remain unchanged.

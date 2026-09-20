@@ -131,6 +131,8 @@ class WorkingItineraryDay(V4ContractModel):
     service_date: date
     day_kind: Literal["active", "arrival_departure", "rest"]
     day_theme: DisplayText
+    start_time: time | None = Field(default=None, exclude_if=lambda v: v is None)
+    end_time: time | None = Field(default=None, exclude_if=lambda v: v is None)
     primary_cluster_id: Identifier | None = None
     ordered_items: tuple[DraftItem, ...] = ()
     cross_cluster_segments: tuple[CrossClusterSegment, ...] = ()
@@ -144,6 +146,12 @@ class WorkingItineraryDay(V4ContractModel):
 
     @model_validator(mode="after")
     def ordering_and_cross_cluster_coverage_are_exact(self) -> WorkingItineraryDay:
+        if (
+            self.start_time is not None
+            and self.end_time is not None
+            and self.start_time >= self.end_time
+        ):
+            raise ValueError("daily start_time must precede end_time")
         onsite_count = sum(item.onsite_lunch for item in self.ordered_items)
         if onsite_count > 1 or (
             onsite_count and any(item.meal_slot == "lunch" for item in self.ordered_items)
@@ -213,7 +221,12 @@ class LodgingBaseline(V4ContractModel):
     mode: Literal["not_applicable", "fixed", "selected_offer", "unresolved"]
     fixed_commitment_ref: FixedCommitmentRef | None = None
     selected_offer_ref: HotelOfferRef | None = None
-    unresolved_reason: Literal["provider_unavailable", "no_verified_hotel"] | None = Field(
+    unresolved_reason: (
+        Literal[
+            "provider_unavailable", "no_verified_hotel", "not_queried", "no_results", "query_failed"
+        ]
+        | None
+    ) = Field(
         default=None,
         exclude_if=lambda value: value is None,
     )
@@ -284,11 +297,26 @@ class UnassignedIntent(V4ContractModel):
     ]
     supporting_observation_refs: tuple[Identifier, ...] = Field(min_length=1)
     requires_user_resolution: bool
+    planner_reason: DisplayText | None = Field(
+        default=None,
+        max_length=160,
+        exclude_if=lambda value: value is None,
+        description=(
+            "Agent 在已授权景点容量或餐厅整体安排取舍下给出的具体原因，不代表用户逐项确认。"
+        ),
+    )
 
     @model_validator(mode="after")
     def strong_intent_requires_user_resolution(self) -> UnassignedIntent:
         require_unique(self.supporting_observation_refs, "unassigned intent observations")
-        if self.commitment_level == "strong" and not self.requires_user_resolution:
+        if self.planner_reason is not None and self.reason_code != "capacity_conflict":
+            raise ValueError("planner_reason is only used for an explicit capacity tradeoff")
+        if (
+            self.commitment_level == "strong"
+            and not self.requires_user_resolution
+            and self.reason_code != "user_requested"
+            and not (self.reason_code == "capacity_conflict" and self.planner_reason)
+        ):
             raise ValueError("an unassigned strong intent requires user resolution")
         return self
 
@@ -443,6 +471,10 @@ def canonical_planning_projection(draft: WorkingItineraryDraft) -> dict[str, Any
         days.append(
             {
                 "service_date": day.service_date.isoformat(),
+                **(
+                    {"start_time": day.start_time.isoformat()} if day.start_time is not None else {}
+                ),
+                **({"end_time": day.end_time.isoformat()} if day.end_time is not None else {}),
                 "day_kind": day.day_kind,
                 "primary_cluster_id": day.primary_cluster_id,
                 "ordered_items": [
@@ -499,6 +531,7 @@ def canonical_planning_projection(draft: WorkingItineraryDraft) -> dict[str, Any
                     "reason_code": item.reason_code,
                     "supporting_observation_refs": sorted(item.supporting_observation_refs),
                     "requires_user_resolution": item.requires_user_resolution,
+                    **({"planner_reason": item.planner_reason} if item.planner_reason else {}),
                 }
                 for item in draft.unassigned_intents
             ],

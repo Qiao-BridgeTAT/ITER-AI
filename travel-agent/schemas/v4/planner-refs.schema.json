@@ -1,0 +1,177 @@
+{
+  "$defs": {
+    "CandidateEntityKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "activity"
+      ],
+      "title": "CandidateEntityKind",
+      "type": "string"
+    },
+    "CandidateRef": {
+      "additionalProperties": false,
+      "description": "Revision-bound reference to one candidate in the current pool.",
+      "properties": {
+        "candidate_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "candidate_pool_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Pool Id",
+          "type": "string"
+        },
+        "candidate_pool_revision": {
+          "minimum": 1,
+          "title": "Candidate Pool Revision",
+          "type": "integer"
+        },
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "entity_kind": {
+          "$ref": "#/$defs/CandidateEntityKind"
+        },
+        "kind": {
+          "const": "candidate",
+          "default": "candidate",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_pool_id",
+        "candidate_pool_revision",
+        "candidate_id",
+        "entity_kind",
+        "canonical_entity_id"
+      ],
+      "title": "CandidateRef",
+      "type": "object"
+    },
+    "FixedCommitmentRef": {
+      "additionalProperties": false,
+      "description": "Reference to a user-owned immutable commitment in the task book.",
+      "properties": {
+        "commitment_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Commitment Id",
+          "type": "string"
+        },
+        "commitment_kind": {
+          "enum": [
+            "reservation",
+            "arrival",
+            "departure",
+            "named_hotel",
+            "existing_booking"
+          ],
+          "title": "Commitment Kind",
+          "type": "string"
+        },
+        "kind": {
+          "const": "fixed_commitment",
+          "default": "fixed_commitment",
+          "title": "Kind",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "task_book_id",
+        "task_book_version",
+        "commitment_id",
+        "commitment_kind"
+      ],
+      "title": "FixedCommitmentRef",
+      "type": "object"
+    },
+    "HotelOfferRef": {
+      "additionalProperties": false,
+      "description": "Inventory-snapshot-bound reference to a normalized hotel offer.",
+      "properties": {
+        "hotel_observation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Hotel Observation Id",
+          "type": "string"
+        },
+        "inventory_snapshot_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Inventory Snapshot Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "hotel_offer",
+          "default": "hotel_offer",
+          "title": "Kind",
+          "type": "string"
+        },
+        "offer_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Offer Id",
+          "type": "string"
+        },
+        "property_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Property Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hotel_observation_id",
+        "offer_id",
+        "property_id",
+        "inventory_snapshot_id"
+      ],
+      "title": "HotelOfferRef",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/planner-refs.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Public aggregate schema for the three stable Planner reference kinds.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CandidateRef"
+    },
+    {
+      "$ref": "#/$defs/FixedCommitmentRef"
+    },
+    {
+      "$ref": "#/$defs/HotelOfferRef"
+    }
+  ],
+  "title": "PlannerRefs",
+  "type": "object"
+}

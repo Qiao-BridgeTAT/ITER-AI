@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import Any, Literal
-from uuid import UUID, uuid4
+from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from pydantic import Field, JsonValue, ValidationError, model_validator
 from sqlalchemy import case, func, or_, select, update
@@ -315,50 +315,144 @@ class TurnRepository:
         """Restore either a lossless legacy row or a complete V4 dual-state commit."""
 
         async with self._session_factory() as session:
-            snapshot = await session.scalar(
-                select(TripSnapshot)
+            return await self._read_projection(session, owner_user_id, trip_id)
+
+    async def _read_projection(
+        self, session: AsyncSession, owner_user_id: UUID, trip_id: UUID
+    ) -> PersistedTripProjection:
+        row = (
+            await session.execute(
+                select(TripSnapshot, TripSemanticStateVersion, DiscoveryRuntimeStateVersion)
                 .join(Trip, Trip.id == TripSnapshot.trip_id)
+                .outerjoin(
+                    TripSemanticStateVersion,
+                    (TripSemanticStateVersion.trip_id == TripSnapshot.trip_id)
+                    & (TripSemanticStateVersion.state_version == TripSnapshot.state_version),
+                )
+                .outerjoin(
+                    DiscoveryRuntimeStateVersion,
+                    (DiscoveryRuntimeStateVersion.trip_id == TripSnapshot.trip_id)
+                    & (DiscoveryRuntimeStateVersion.state_version == TripSnapshot.state_version),
+                )
                 .where(TripSnapshot.trip_id == trip_id, Trip.owner_user_id == owner_user_id)
                 .order_by(TripSnapshot.state_version.desc())
                 .limit(1)
             )
-            if snapshot is None:
-                raise TurnNotFoundError("trip was not found")
-            semantic_state = None
-            discovery_runtime_state = None
-            if snapshot.snapshot_kind == "v4":
-                semantic_state = await session.scalar(
-                    select(TripSemanticStateVersion).where(
-                        TripSemanticStateVersion.trip_id == trip_id,
-                        TripSemanticStateVersion.state_version == snapshot.state_version,
-                    )
+        ).one_or_none()
+        if row is None:
+            raise TurnNotFoundError("trip was not found")
+        snapshot, semantic, runtime = row
+        return replace(
+            decode_persisted_snapshot(
+                snapshot, semantic_state=semantic, discovery_runtime_state=runtime
+            ),
+            owner_user_id=owner_user_id,
+        )
+
+    async def append_setup_feedback(
+        self,
+        owner_user_id: UUID,
+        trip_id: UUID,
+        turn_id: UUID,
+        generation_id: UUID,
+        *,
+        ordinal: int,
+        text: str,
+        created_at: datetime,
+    ) -> ConversationMessageV4 | None:
+        """Commit program feedback independently of the still-running model turn."""
+        if ordinal not in (0, 1):
+            raise InvalidTurnWriteError("setup feedback ordinal must be zero or one")
+        message_id = uuid5(NAMESPACE_URL, f"trip-setup-feedback:{generation_id}:{ordinal}")
+        async with self._session_factory() as session, session.begin():
+            turn = await session.scalar(
+                select(AgentTurn)
+                .join(Trip, Trip.id == AgentTurn.trip_id)
+                .where(
+                    AgentTurn.id == turn_id,
+                    AgentTurn.trip_id == trip_id,
+                    Trip.owner_user_id == owner_user_id,
                 )
-                discovery_runtime_state = await session.scalar(
-                    select(DiscoveryRuntimeStateVersion).where(
-                        DiscoveryRuntimeStateVersion.trip_id == trip_id,
-                        DiscoveryRuntimeStateVersion.state_version == snapshot.state_version,
-                    )
-                )
-            return decode_persisted_snapshot(
-                snapshot,
-                semantic_state=semantic_state,
-                discovery_runtime_state=discovery_runtime_state,
+                .with_for_update()
             )
+            if turn is None or turn.generation_id != generation_id:
+                raise TurnNotFoundError("setup feedback turn was not found")
+            existing = await session.get(Message, message_id)
+            if existing is not None:
+                return _conversation_message_from_row(existing)
+            if turn.status not in {"accepted", "running"}:
+                return None
+            row = Message(
+                id=message_id,
+                trip_id=trip_id,
+                turn_id=turn_id,
+                generation_id=generation_id,
+                request_id=turn.request_id,
+                state_version=turn.base_state_version,
+                ordinal=ordinal,
+                status="committed",
+                role="system",
+                message_type="status",
+                text=text,
+                attachments=[],
+                message_metadata={"command_type": "trip_setup"},
+                protocol_version=V4_PROTOCOL_VERSION,
+                schema_version=V4_SCHEMA_VERSION,
+                generation_mode="system",
+                content_hash=canonical_json_hash({"text": text}),
+                created_at=created_at,
+            )
+            session.add(row)
+            await session.flush()
+            return _conversation_message_from_row(row)
+
+    async def load_setup_feedback(
+        self,
+        owner_user_id: UUID,
+        trip_id: UUID,
+    ) -> list[ConversationMessageV4]:
+        # A first turn can still have a legacy/empty trip snapshot while its
+        # program feedback is already committed. Restore those messages too.
+        async with self._session_factory() as session:
+            rows = (
+                await session.scalars(
+                    select(Message)
+                    .join(Trip, Trip.id == Message.trip_id)
+                    .where(
+                        Message.trip_id == trip_id,
+                        Trip.owner_user_id == owner_user_id,
+                        Message.role == "system",
+                        Message.message_type == "status",
+                        Message.status == "committed",
+                        Message.protocol_version == V4_PROTOCOL_VERSION,
+                    )
+                    .order_by(Message.created_at, Message.ordinal)
+                )
+            ).all()
+            return [_conversation_message_from_row(row) for row in rows]
 
     async def load_conversation_snapshot(
         self,
         owner_user_id: UUID,
         trip_id: UUID,
+        *,
+        projection: PersistedTripProjection | None = None,
     ) -> ConversationSnapshotV4:
         """Rebuild the complete committed V4 conversation after a process restart."""
-        return (await self._load_conversation(owner_user_id, trip_id)).snapshot
+        return (
+            await self._load_conversation(owner_user_id, trip_id, projection=projection)
+        ).snapshot
 
     async def load_conversation_view(
         self,
         owner_user_id: UUID,
         trip_id: UUID,
+        *,
+        projection: PersistedTripProjection | None = None,
     ) -> ConversationView:
-        return await self._load_conversation(owner_user_id, trip_id, history_limit=8)
+        return await self._load_conversation(
+            owner_user_id, trip_id, history_limit=8, projection=projection
+        )
 
     async def _load_conversation(
         self,
@@ -366,55 +460,31 @@ class TurnRepository:
         trip_id: UUID,
         *,
         history_limit: int | None = None,
+        projection: PersistedTripProjection | None = None,
     ) -> ConversationView:
 
         async with self._session_factory() as session:
-            snapshot = await session.scalar(
-                select(TripSnapshot)
-                .join(Trip, Trip.id == TripSnapshot.trip_id)
-                .where(TripSnapshot.trip_id == trip_id, Trip.owner_user_id == owner_user_id)
-                .order_by(TripSnapshot.state_version.desc())
-                .limit(1)
-            )
-            if snapshot is None:
-                raise TurnNotFoundError("trip was not found")
-            if snapshot.snapshot_kind != "v4":
+            if projection is None:
+                try:
+                    projection = await self._read_projection(session, owner_user_id, trip_id)
+                except (SnapshotCompatibilityError, ValidationError) as error:
+                    raise InvalidTurnWriteError(
+                        "persisted V4 snapshot failed contract validation"
+                    ) from error
+            if projection.trip_id != trip_id or projection.owner_user_id != owner_user_id:
+                raise TurnNotFoundError("snapshot does not belong to this owner and trip")
+            if projection.kind != "v4" or projection.typed_state is None:
                 raise InvalidTurnWriteError("legacy snapshot is not a V4 conversation snapshot")
-            semantic_row = await session.scalar(
-                select(TripSemanticStateVersion).where(
-                    TripSemanticStateVersion.trip_id == trip_id,
-                    TripSemanticStateVersion.state_version == snapshot.state_version,
-                )
+            trip_state = projection.typed_state
+            terminal_event = (
+                ConversationEventV4.model_validate(projection.terminal_event)
+                if projection.terminal_event is not None
+                else None
             )
-            runtime_row = await session.scalar(
-                select(DiscoveryRuntimeStateVersion).where(
-                    DiscoveryRuntimeStateVersion.trip_id == trip_id,
-                    DiscoveryRuntimeStateVersion.state_version == snapshot.state_version,
-                )
-            )
-            try:
-                projection = decode_persisted_snapshot(
-                    snapshot,
-                    semantic_state=semantic_row,
-                    discovery_runtime_state=runtime_row,
-                )
-                trip_state = V4TripStateEnvelope.model_validate(
-                    projection.trip_snapshot,
-                    context={"restore_historical_semantic_state": True},
-                )
-                terminal_event = (
-                    ConversationEventV4.model_validate(snapshot.terminal_event)
-                    if snapshot.terminal_event is not None
-                    else None
-                )
-            except (SnapshotCompatibilityError, ValidationError) as error:
-                raise InvalidTurnWriteError(
-                    "persisted V4 snapshot failed contract validation"
-                ) from error
-            if terminal_event is None:
+            if terminal_event is None or projection.committed_at is None:
                 raise InvalidTurnWriteError("committed V4 snapshot is missing its terminal event")
 
-            history = ConversationHistoryWindow(through_state_version=snapshot.state_version)
+            history = ConversationHistoryWindow(through_state_version=projection.state_version)
             if history_limit is not None:
                 retain_ids: set[UUID] = set()
                 # Keep the last published plan visible during a revision, even
@@ -427,7 +497,7 @@ class TurnRepository:
                             Message.status == "committed",
                             Message.protocol_version == V4_PROTOCOL_VERSION,
                             Message.message_type == "plan",
-                            Message.state_version <= snapshot.state_version,
+                            Message.state_version <= projection.state_version,
                         )
                         .order_by(Message.state_version.desc(), Message.created_at.desc())
                         .limit(1)
@@ -447,7 +517,7 @@ class TurnRepository:
                 page = await _conversation_history_page(
                     session,
                     trip_id,
-                    through_state_version=snapshot.state_version,
+                    through_state_version=projection.state_version,
                     limit=history_limit,
                     retain_ids=retain_ids,
                 )
@@ -460,17 +530,20 @@ class TurnRepository:
                             Message.trip_id == trip_id,
                             Message.status == "committed",
                             Message.protocol_version == V4_PROTOCOL_VERSION,
-                            Message.state_version <= snapshot.state_version,
+                            Message.state_version <= projection.state_version,
                         )
                         .order_by(
                             Message.state_version,
                             case((Message.role == "user", 0), else_=1),
                             Message.created_at,
+                            Message.ordinal,
                             Message.id,
                         )
                     )
                 ).all()
-                messages = [_conversation_message_from_row(row) for row in rows]
+                messages = [
+                    _conversation_message_from_row(row) for row in rows if _is_visible_message(row)
+                ]
             try:
                 return ConversationView(
                     snapshot=ConversationSnapshotV4(
@@ -478,8 +551,8 @@ class TurnRepository:
                         messages=messages,
                         pending_interaction=trip_state.discovery_runtime_state.pending_interaction,
                         terminal_event=terminal_event,
-                        last_outbox_cursor=snapshot.outbox_cursor,
-                        snapshot_at=_aware(snapshot.created_at),
+                        last_outbox_cursor=projection.outbox_cursor,
+                        snapshot_at=_aware(projection.committed_at),
                     ),
                     history=history,
                 )
@@ -1216,6 +1289,7 @@ async def _conversation_history_page(
                 Message.state_version,
                 case((Message.role == "user", 0), else_=1),
                 Message.created_at,
+                Message.ordinal,
                 Message.id,
             )
         )
@@ -1226,12 +1300,14 @@ async def _conversation_history_page(
     attachment_ids = [row.id for row in rows if row.id not in deferred_ids]
     attachments: dict[UUID, list[dict[str, Any]]] = (
         {
-            message_id: payload
-            for message_id, payload in (
+            message_id: values
+            for message_id, values in (
                 await session.execute(
                     select(Message.id, Message.attachments).where(Message.id.in_(attachment_ids))
                 )
-            ).all()
+            )
+            .tuples()
+            .all()
         }
         if attachment_ids
         else {}
@@ -1241,6 +1317,7 @@ async def _conversation_history_page(
         messages=[
             _conversation_message_from_row(row, attachments=attachments.get(row.id, []))
             for row in rows
+            if _is_visible_message(row)
         ],
         history=ConversationHistoryWindow(
             through_state_version=through_state_version,
@@ -1248,6 +1325,10 @@ async def _conversation_history_page(
             deferred_attachment_message_ids=[str(row.id) for row in rows if row.id in deferred_ids],
         ),
     )
+
+
+def _is_visible_message(row: Message) -> bool:
+    return not (row.role == "user" and row.message_metadata.get("command_type") == "trip_setup")
 
 
 def _conversation_message_from_row(

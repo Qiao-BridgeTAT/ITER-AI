@@ -21,7 +21,7 @@ export function TripShellProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => {
     const repository = new TripShellRepository({
       sessionStorage: window.sessionStorage,
-      persistentStorage: window.localStorage,
+      persistentStorage: window.localStorage
     });
     const route = matchPath("/trips/:tripId/*", location.pathname);
     const routeTripId = route?.params.tripId;

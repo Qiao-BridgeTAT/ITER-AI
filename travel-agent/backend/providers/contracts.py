@@ -62,6 +62,7 @@ class ProviderError(RuntimeError):
         )
         self.failures = failures or {}
         self.attempts = 1
+        self.retry_after_seconds: float | None = None
         super().__init__(f"{provider.value} provider {operation} failed: {code.value}")
 
 
@@ -158,6 +159,43 @@ class NearbyPlaceSearchRequest(ProviderModel):
         return self
 
 
+def validate_search_polygon(polygon: tuple[Gcj02Coordinates, ...]) -> None:
+    points = [(point.longitude, point.latitude) for point in polygon]
+    if points[0] != points[-1] or len(set(points[:-1])) != len(points) - 1:
+        raise ValueError("polygon must be closed with unique vertices")
+    origin_x, origin_y = points[0]
+    area = sum(
+        (left[0] - origin_x) * (right[1] - origin_y) - (right[0] - origin_x) * (left[1] - origin_y)
+        for left, right in zip(points, points[1:], strict=False)
+    )
+    if abs(area) < 1e-12:
+        raise ValueError("polygon must enclose a non-zero area")
+
+
+class PolygonPlaceSearchRequest(ProviderModel):
+    """Attraction or dining corridor recall; the city identifies normalized facts."""
+
+    city: ProviderCityScope
+    polygon: tuple[Gcj02Coordinates, ...] = Field(min_length=4)
+    query: str | None = Field(default=None, min_length=1, max_length=100)
+    category_hint: Literal[PlaceCategory.RESTAURANT, PlaceCategory.ATTRACTION] = (
+        PlaceCategory.RESTAURANT
+    )
+    typecodes: tuple[Literal["050000", "110000"], ...] = Field(
+        default=("050000",), min_length=1, max_length=1
+    )
+    page: int = Field(default=1, ge=1, le=100, strict=True)
+    page_size: int = Field(default=20, ge=1, le=25, strict=True)
+
+    @model_validator(mode="after")
+    def requires_closed_polygon(self) -> PolygonPlaceSearchRequest:
+        expected = "110000" if self.category_hint == PlaceCategory.ATTRACTION else "050000"
+        if self.typecodes != (expected,):
+            raise ValueError("polygon category and typecodes must match")
+        validate_search_polygon(self.polygon)
+        return self
+
+
 class PlaceDetailRequest(ProviderModel):
     city: ProviderCityScope
     source_place_id: NonEmptyText
@@ -178,6 +216,8 @@ class ProviderPlace(ProviderModel):
     category: PlaceCategory
     address: NonEmptyText | None = None
     coordinates: Gcj02Coordinates
+    entrance_coordinates: Gcj02Coordinates | None = None
+    exit_coordinates: Gcj02Coordinates | None = None
     provider_typecode: NonEmptyText | None = None
     provider_parent_place_id: NonEmptyText | None = None
     image_url: HttpUrl | None = None
@@ -341,6 +381,9 @@ class ProviderRoute(ProviderModel):
 
 
 class HotelSearchRequest(ProviderModel):
+    hotel_stars: list[Literal[1, 2, 3, 4, 5]] = Field(default_factory=list, max_length=5)
+    hotel_types: list[Literal["酒店", "民宿", "客栈"]] = Field(default_factory=list, max_length=3)
+    sort: Literal["distance_asc", "rate_desc", "price_asc", "price_desc", "no_rank"] | None = None
     city: ProviderCityScope
     check_in: date
     check_out: date

@@ -1,9 +1,10 @@
 import { validateV4Contract } from "../contracts/v4Validation";
 import type {
+  AgentProgressEntry,
   ConversationEventV4,
   ConversationMessageV4,
   ConversationSnapshotV4,
-  V4TripStateEnvelope,
+  V4TripStateEnvelope
 } from "../generated/v4/contracts";
 import type { EventReplayAction } from "./eventReducer";
 
@@ -19,6 +20,7 @@ export interface V4EventCursor {
 }
 
 export interface V4RuntimePresentation {
+  agentProgress: AgentProgressEntry[];
   messages: ConversationMessageV4[];
   streamText: string;
   generationId: string | null;
@@ -33,6 +35,7 @@ export interface V4RuntimeAggregate {
   tripState: V4TripStateEnvelope | null;
   pendingInteraction: ConversationSnapshotV4["pending_interaction"];
   plannerWorkspace: ConversationSnapshotV4["planner_workspace"];
+  referenceLinks: NonNullable<ConversationSnapshotV4["reference_links"]>;
   lastOutboxCursor: string | null;
   cursor: V4EventCursor;
   presentation: V4RuntimePresentation;
@@ -47,6 +50,7 @@ export function createV4RuntimeAggregate(): V4RuntimeAggregate {
     tripState: null,
     pendingInteraction: null,
     plannerWorkspace: null,
+    referenceLinks: [],
     lastOutboxCursor: null,
     cursor: {
       localStateVersion: 0,
@@ -56,9 +60,10 @@ export function createV4RuntimeAggregate(): V4RuntimeAggregate {
       lastSequence: 0,
       nextChunkIndex: 0,
       commitObserved: false,
-      seenEventIds: new Set(),
+      seenEventIds: new Set()
     },
     presentation: {
+      agentProgress: [],
       messages: [],
       streamText: "",
       generationId: null,
@@ -66,16 +71,25 @@ export function createV4RuntimeAggregate(): V4RuntimeAggregate {
       agentStatusMessage: null,
       terminalEvent: null,
       readyAttachmentIds: [],
-      failureCode: null,
-    },
+      failureCode: null
+    }
   };
 }
 
 export function aggregateFromV4Snapshot(
   snapshot: ConversationSnapshotV4,
-  previous?: V4RuntimeAggregate,
+  previous?: V4RuntimeAggregate
 ): V4RuntimeAggregate | null {
   if (!validateV4Contract("conversation_snapshot", snapshot).success) {
+    return null;
+  }
+  const activeStatus = snapshot.active_generation_status;
+  if (
+    activeStatus &&
+    (activeStatus.generation_id !== snapshot.active_generation_id ||
+      activeStatus.trip_id !== snapshot.trip_state.semantic_state.trip_id ||
+      activeStatus.conversation_message != null)
+  ) {
     return null;
   }
   const version = snapshot.trip_state.semantic_state.state_version ?? 0;
@@ -83,6 +97,7 @@ export function aggregateFromV4Snapshot(
     tripState: structuredClone(snapshot.trip_state),
     pendingInteraction: snapshot.pending_interaction ?? null,
     plannerWorkspace: snapshot.planner_workspace ?? null,
+    referenceLinks: snapshot.reference_links ?? [],
     lastOutboxCursor: snapshot.last_outbox_cursor ?? null,
     cursor: {
       localStateVersion: version,
@@ -98,28 +113,33 @@ export function aggregateFromV4Snapshot(
       lastSequence: 0,
       nextChunkIndex: 0,
       commitObserved: false,
-      seenEventIds: previous?.cursor.seenEventIds ?? new Set(),
+      seenEventIds: previous?.cursor.seenEventIds ?? new Set()
     },
     presentation: {
+      agentProgress: structuredClone(snapshot.agent_progress ?? []),
       messages: structuredClone(snapshot.messages ?? []),
       streamText: "",
       generationId: snapshot.active_generation_id ?? null,
       agentStatusCode:
-        snapshot.active_generation_id == null ? null : "recovering_generation",
+        snapshot.active_generation_id == null
+          ? null
+          : (snapshot.active_generation_status?.status_code ??
+            "recovering_generation"),
       agentStatusMessage:
         snapshot.active_generation_id == null
           ? null
-          : "正在恢复仍在处理的请求。",
+          : (snapshot.active_generation_status?.message ??
+            "正在恢复仍在处理的请求。"),
       terminalEvent: snapshot.terminal_event ?? null,
       readyAttachmentIds: [],
-      failureCode: null,
-    },
+      failureCode: null
+    }
   };
 }
 
 export function reduceV4Event(
   current: V4RuntimeAggregate,
-  event: ConversationEventV4,
+  event: ConversationEventV4
 ): V4EventReduction {
   if (!validateV4Contract("conversation_event", event).success) {
     return result("refresh_snapshot", current);
@@ -146,7 +166,7 @@ export function reduceV4Event(
         lastSequence: 0,
         nextChunkIndex: 0,
         commitObserved: false,
-        seenEventIds: seen,
+        seenEventIds: seen
       },
       presentation: {
         ...current.presentation,
@@ -156,8 +176,8 @@ export function reduceV4Event(
         agentStatusMessage: "消息已接收。",
         terminalEvent: null,
         readyAttachmentIds: [],
-        failureCode: null,
-      },
+        failureCode: null
+      }
     });
   }
   // Planner resumes keep the job generation ID, but every execution has a new turn.
@@ -168,7 +188,40 @@ export function reduceV4Event(
   ) {
     return result("ignore", current);
   }
+  if (event.event_type === "agent.progress") {
+    if (
+      event.generation_id !== current.cursor.currentGenerationId ||
+      current.presentation.terminalEvent?.turn_id === event.turn_id
+    ) {
+      return result("ignore", current);
+    }
+    const entries = current.presentation.agentProgress;
+    const duplicate = entries.some(
+      (p) =>
+        p.event_id === event.event_id ||
+        (p.generation_id === event.generation_id &&
+          p.progress_index === event.progress.progress_index)
+    );
+    if (duplicate) return result("ignore", current);
+    return result("apply", {
+      ...current,
+      cursor: { ...current.cursor, seenEventIds: seen },
+      presentation: {
+        ...current.presentation,
+        agentProgress: [...entries, event.progress].sort((a, b) =>
+          a.generation_id === b.generation_id
+            ? a.progress_index - b.progress_index
+            : a.emitted_at.localeCompare(b.emitted_at)
+        )
+      }
+    });
+  }
   if (event.event_type === "agent.status") {
+    if (
+      current.presentation.terminalEvent?.generation_id === event.generation_id
+    ) {
+      return result("ignore", current);
+    }
     if (
       current.cursor.currentGenerationId !== null &&
       event.generation_id !== current.cursor.currentGenerationId
@@ -180,14 +233,27 @@ export function reduceV4Event(
       cursor: {
         ...current.cursor,
         currentTurnId: event.turn_id,
-        seenEventIds: seen,
+        seenEventIds: seen
       },
       presentation: {
         ...current.presentation,
         generationId: event.generation_id,
-        agentStatusCode: event.status_code,
-        agentStatusMessage: event.message,
-      },
+        agentStatusCode: keepDiscoveryProgress(current, event.status_code)
+          ? current.presentation.agentStatusCode
+          : event.status_code,
+        agentStatusMessage: keepDiscoveryProgress(current, event.status_code)
+          ? current.presentation.agentStatusMessage
+          : event.message,
+        messages: event.conversation_message
+          ? [
+              ...current.presentation.messages.filter(
+                (message) =>
+                  message.message_id !== event.conversation_message!.message_id
+              ),
+              event.conversation_message
+            ]
+          : current.presentation.messages
+      }
     });
   }
   if (
@@ -209,7 +275,7 @@ export function reduceV4Event(
         lastSequence: 0,
         nextChunkIndex: 0,
         commitObserved: false,
-        seenEventIds: seen,
+        seenEventIds: seen
       },
       presentation: {
         ...current.presentation,
@@ -220,8 +286,8 @@ export function reduceV4Event(
             ? "上一条请求已取消。"
             : "这轮处理未能完成。",
         terminalEvent: event,
-        failureCode: event.failure_code,
-      },
+        failureCode: event.failure_code
+      }
     });
   }
 
@@ -253,14 +319,18 @@ export function reduceV4Event(
         lastSequence: event.sequence,
         nextChunkIndex: 0,
         commitObserved: true,
-        seenEventIds: seen,
+        seenEventIds: seen
       },
       presentation: {
         ...current.presentation,
         generationId: event.generation_id,
-        agentStatusCode: "committed",
-        agentStatusMessage: "回复已提交，正在发送。",
-      },
+        agentStatusCode: keepDiscoveryProgress(current, "committed")
+          ? current.presentation.agentStatusCode
+          : "committed",
+        agentStatusMessage: keepDiscoveryProgress(current, "committed")
+          ? current.presentation.agentStatusMessage
+          : "回复已提交，正在发送。"
+      }
     });
   }
   if (
@@ -287,15 +357,19 @@ export function reduceV4Event(
         currentGenerationId: event.generation_id,
         currentMessageId: event.message_id,
         lastSequence: event.sequence,
-        seenEventIds: seen,
+        seenEventIds: seen
       },
       presentation: {
         ...current.presentation,
         streamText: "",
         generationId: event.generation_id,
-        agentStatusCode: "sending",
-        agentStatusMessage: "正在发送回复。",
-      },
+        agentStatusCode: keepDiscoveryProgress(current, "sending")
+          ? current.presentation.agentStatusCode
+          : "sending",
+        agentStatusMessage: keepDiscoveryProgress(current, "sending")
+          ? current.presentation.agentStatusMessage
+          : "正在发送回复。"
+      }
     });
   }
   if (event.event_type === "assistant.delta") {
@@ -308,12 +382,12 @@ export function reduceV4Event(
         ...current.cursor,
         lastSequence: event.sequence,
         nextChunkIndex: event.chunk_index + 1,
-        seenEventIds: seen,
+        seenEventIds: seen
       },
       presentation: {
         ...current.presentation,
-        streamText: current.presentation.streamText + event.delta,
-      },
+        streamText: current.presentation.streamText + event.delta
+      }
     });
   }
   if (event.event_type === "attachment.ready") {
@@ -322,17 +396,17 @@ export function reduceV4Event(
       cursor: {
         ...current.cursor,
         lastSequence: event.sequence,
-        seenEventIds: seen,
+        seenEventIds: seen
       },
       presentation: {
         ...current.presentation,
         readyAttachmentIds: [
           ...new Set([
             ...current.presentation.readyAttachmentIds,
-            event.attachment_id,
-          ]),
-        ],
-      },
+            event.attachment_id
+          ])
+        ]
+      }
     });
   }
   if (event.event_type !== "assistant.completed") {
@@ -351,7 +425,7 @@ export function reduceV4Event(
     content_hash: event.content_hash,
     attachments: [],
     status: "committed",
-    created_at: event.emitted_at,
+    created_at: event.emitted_at
   };
   return result("refresh_snapshot", {
     ...current,
@@ -363,29 +437,46 @@ export function reduceV4Event(
       lastSequence: 0,
       nextChunkIndex: 0,
       commitObserved: false,
-      seenEventIds: seen,
+      seenEventIds: seen
     },
     presentation: {
       ...current.presentation,
       messages: [
         ...current.presentation.messages.filter(
-          (message) => message.message_id !== event.message_id,
+          (message) => message.message_id !== event.message_id
         ),
-        committedMessage,
+        committedMessage
       ],
       streamText: "",
       generationId: null,
       agentStatusCode: "completed",
       agentStatusMessage: null,
       terminalEvent: event,
-      failureCode: event.generation_mode === "fallback" ? "fallback" : null,
-    },
+      failureCode: event.generation_mode === "fallback" ? "fallback" : null
+    }
   });
 }
 
 function result(
   action: EventReplayAction,
-  aggregate: V4RuntimeAggregate,
+  aggregate: V4RuntimeAggregate
 ): V4EventReduction {
   return { action, ...aggregate };
+}
+
+export function isDiscoveryProgress(code: string | null | undefined): boolean {
+  return Boolean(
+    code?.startsWith("attraction_") || code?.startsWith("dining_")
+  );
+}
+
+function keepDiscoveryProgress(
+  current: V4RuntimeAggregate,
+  nextCode: string
+): boolean {
+  return (
+    isDiscoveryProgress(current.presentation.agentStatusCode) &&
+    !isDiscoveryProgress(nextCode) &&
+    !nextCode.startsWith("planner_")
+  );
 }

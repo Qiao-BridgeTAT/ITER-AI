@@ -5,7 +5,7 @@ import { PlaceImage } from "./PlaceImage";
 export function PlacePhoto({
   src,
   alt,
-  className = "",
+  className = ""
 }: {
   src?: string;
   alt: string;

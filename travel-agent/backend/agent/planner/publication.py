@@ -32,10 +32,15 @@ def build_planner_published_plan(
     publication_key: str,
     based_on_state_version: int,
     change_request: PlanChangeRequest | None = None,
+    allow_unresolved: bool = False,
     clock: Callable[[], datetime] = lambda: datetime.now(UTC),
 ) -> PlannerPublishedPlan:
     """Create a formal plan only after the server-owned finalize decision."""
 
+    from backend.agent.planner.react_review import require_current_review
+
+    if not allow_unresolved:
+        require_current_review(workspace)
     if workspace.status is not PlannerStatus.READY_TO_PUBLISH:
         raise PlannerGuardError("planner_publication_workspace_not_ready")
     if not workspace.decision_trace or not isinstance(
@@ -55,6 +60,9 @@ def build_planner_published_plan(
     assert cost is not None
     assert report is not None
     assert observation is not None
+    from backend.agent.planner.result_delivery import delivery_assessment
+
+    verification_status, planning_notes = delivery_assessment(workspace)
     now = clock()
     if now.tzinfo is None or now.utcoffset() is None:
         raise PlannerGuardError("planner_publication_clock_not_aware")
@@ -69,8 +77,11 @@ def build_planner_published_plan(
         based_on_task_book_version=book.version,
         travel_style_summary=_travel_style_summary(book),
         best_effort_reasons=workspace.best_effort_reasons,
+        verification_status=verification_status,
+        planning_notes=planning_notes if allow_unresolved else (),
         schedule_quality_status="partial"
-        if any(issue.kind != "evening" for issue in measure_repair_issues(workspace, book))
+        if verification_status != "verified"
+        or any(issue.kind != "evening" for issue in measure_repair_issues(workspace, book))
         else "complete",
         working_itinerary=draft,
         materialized_schedule=schedule,

@@ -1,0 +1,109 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/planner-weather-evidence.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "condition_day": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Condition Day"
+    },
+    "condition_night": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Condition Night"
+    },
+    "fact_reference_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Fact Reference Id",
+      "type": "string"
+    },
+    "forecast_kind": {
+      "default": "forecast",
+      "enum": [
+        "forecast",
+        "outlook"
+      ],
+      "title": "Forecast Kind",
+      "type": "string"
+    },
+    "high_celsius": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "High Celsius"
+    },
+    "low_celsius": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Low Celsius"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "service_date": {
+      "format": "date",
+      "title": "Service Date",
+      "type": "string"
+    },
+    "source_name": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Name"
+    }
+  },
+  "required": [
+    "service_date",
+    "observed_at",
+    "fact_reference_id"
+  ],
+  "title": "PlannerWeatherEvidence",
+  "type": "object"
+}

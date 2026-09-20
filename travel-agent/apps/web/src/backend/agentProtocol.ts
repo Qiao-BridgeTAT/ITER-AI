@@ -1,14 +1,13 @@
 export type AgentProtocol = "v2" | "v4";
 
-export function requestedAgentProtocol(_search: string): AgentProtocol {
-  return "v4";
+export function requestedAgentProtocol(search: string): AgentProtocol {
+  return new URLSearchParams(search).get("protocol") === "v2" ? "v2" : "v4";
 }
 
 export function pathWithAgentProtocol(
   path: string,
-  protocol: AgentProtocol,
+  protocol: AgentProtocol
 ): string {
-  if (protocol !== "v4") return path;
   const separator = path.includes("?") ? "&" : "?";
-  return `${path}${separator}protocol=v4`;
+  return `${path}${separator}protocol=${protocol}`;
 }

@@ -1,0 +1,795 @@
+{
+  "$defs": {
+    "CandidateDomain": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "hotel"
+      ],
+      "title": "CandidateDomain",
+      "type": "string"
+    },
+    "CandidateSourceReference": {
+      "additionalProperties": false,
+      "properties": {
+        "content_version": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Version"
+        },
+        "fetched_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fetched At"
+        },
+        "kind": {
+          "$ref": "#/$defs/RecallSourceKind"
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProviderCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_place_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Place Id"
+        },
+        "source_record_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source Record Id",
+          "type": "string"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Url"
+        }
+      },
+      "required": [
+        "kind",
+        "source_record_id"
+      ],
+      "title": "CandidateSourceReference",
+      "type": "object"
+    },
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    },
+    "DataAvailability": {
+      "enum": [
+        "available",
+        "partial",
+        "missing"
+      ],
+      "title": "DataAvailability",
+      "type": "string"
+    },
+    "Gcj02Coordinates": {
+      "additionalProperties": false,
+      "description": "Canonical coordinates used by every internal planning contract.",
+      "properties": {
+        "coord_system": {
+          "const": "gcj_02",
+          "title": "Coord System",
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Gcj02Coordinates",
+      "type": "object"
+    },
+    "PlaceCategory": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "hotel",
+        "transport",
+        "activity",
+        "other"
+      ],
+      "title": "PlaceCategory",
+      "type": "string"
+    },
+    "ProviderCode": {
+      "enum": [
+        "amap",
+        "baidu",
+        "flyai",
+        "weather",
+        "city_content",
+        "official",
+        "manual"
+      ],
+      "title": "ProviderCode",
+      "type": "string"
+    },
+    "RecallAttempt": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "partial"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "properties": {
+                  "missing_fields": {
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "missing_fields"
+                ]
+              },
+              {
+                "properties": {
+                  "provider_notice": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "provider_notice"
+                ]
+              },
+              {
+                "properties": {
+                  "failure_reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "failure_reason"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "accepted_count": {
+          "minimum": 0,
+          "title": "Accepted Count",
+          "type": "integer"
+        },
+        "channel": {
+          "$ref": "#/$defs/RecallChannel"
+        },
+        "domain": {
+          "$ref": "#/$defs/CandidateDomain"
+        },
+        "exact_name_match": {
+          "default": false,
+          "title": "Exact Name Match",
+          "type": "boolean"
+        },
+        "failure_code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecallFailureCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "failure_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Failure Reason"
+        },
+        "missing_fields": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Missing Fields",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProviderCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "provider_notice": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider Notice"
+        },
+        "query_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Query Id",
+          "type": "string"
+        },
+        "query_keyword": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query Keyword"
+        },
+        "requested_limit": {
+          "maximum": 25,
+          "minimum": 1,
+          "title": "Requested Limit",
+          "type": "integer"
+        },
+        "returned_count": {
+          "minimum": 0,
+          "title": "Returned Count",
+          "type": "integer"
+        },
+        "status": {
+          "$ref": "#/$defs/RecallAttemptStatus"
+        }
+      },
+      "required": [
+        "query_id",
+        "channel",
+        "domain",
+        "status",
+        "requested_limit",
+        "returned_count",
+        "accepted_count"
+      ],
+      "title": "RecallAttempt",
+      "type": "object"
+    },
+    "RecallAttemptStatus": {
+      "enum": [
+        "available",
+        "partial",
+        "empty",
+        "failed"
+      ],
+      "title": "RecallAttemptStatus",
+      "type": "string"
+    },
+    "RecallChannel": {
+      "enum": [
+        "user_named",
+        "selected_theme",
+        "city_landmark",
+        "city_feature",
+        "exploration",
+        "nearby_anchor"
+      ],
+      "title": "RecallChannel",
+      "type": "string"
+    },
+    "RecallFailureCode": {
+      "enum": [
+        "invalid_request",
+        "authentication_failed",
+        "permission_denied",
+        "rate_limited",
+        "timeout",
+        "unavailable",
+        "malformed_response",
+        "upstream_error"
+      ],
+      "title": "RecallFailureCode",
+      "type": "string"
+    },
+    "RecallSourceKind": {
+      "enum": [
+        "user_evidence",
+        "city_content",
+        "provider"
+      ],
+      "title": "RecallSourceKind",
+      "type": "string"
+    },
+    "RecalledCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "availability": {
+          "$ref": "#/$defs/DataAvailability"
+        },
+        "candidate_id": {
+          "format": "uuid",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "channels": {
+          "items": {
+            "$ref": "#/$defs/RecallChannel"
+          },
+          "minItems": 1,
+          "title": "Channels",
+          "type": "array"
+        },
+        "domain": {
+          "$ref": "#/$defs/CandidateDomain"
+        },
+        "missing_fields": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Missing Fields",
+          "type": "array"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "named_evidence_ids": {
+          "default": [],
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Named Evidence Ids",
+          "type": "array"
+        },
+        "place": {
+          "$ref": "#/$defs/RecalledPlace"
+        },
+        "reasons": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Reasons",
+          "type": "array"
+        },
+        "representative_identity_verified": {
+          "default": false,
+          "title": "Representative Identity Verified",
+          "type": "boolean"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/CandidateSourceReference"
+          },
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array"
+        },
+        "theme_ids": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Theme Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "candidate_id",
+        "domain",
+        "place",
+        "channels",
+        "reasons",
+        "sources",
+        "availability"
+      ],
+      "title": "RecalledCandidate",
+      "type": "object"
+    },
+    "RecalledPlace": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Address"
+        },
+        "average_cost": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "category": {
+          "$ref": "#/$defs/PlaceCategory"
+        },
+        "city_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "City Id",
+          "type": "string"
+        },
+        "coordinates": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Gcj02Coordinates"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cuisine": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cuisine"
+        },
+        "image_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image Url"
+        },
+        "name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "place_id": {
+          "format": "uuid",
+          "title": "Place Id",
+          "type": "string"
+        },
+        "provider_parent_place_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider Parent Place Id"
+        },
+        "provider_typecode": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider Typecode"
+        },
+        "rating": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rating"
+        },
+        "short_description": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Short Description"
+        }
+      },
+      "required": [
+        "place_id",
+        "city_id",
+        "category",
+        "name"
+      ],
+      "title": "RecalledPlace",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/candidate-recall-result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "attempts": {
+      "items": {
+        "$ref": "#/$defs/RecallAttempt"
+      },
+      "minItems": 1,
+      "title": "Attempts",
+      "type": "array"
+    },
+    "candidates": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/RecalledCandidate"
+      },
+      "title": "Candidates",
+      "type": "array"
+    },
+    "city_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "City Id",
+      "type": "string"
+    },
+    "content_package_version": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Content Package Version"
+    },
+    "degradation_reasons": {
+      "default": [],
+      "items": {
+        "maxLength": 500,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Degradation Reasons",
+      "type": "array"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "provider_call_count": {
+      "maximum": 12,
+      "minimum": 0,
+      "title": "Provider Call Count",
+      "type": "integer"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "result_version": {
+      "pattern": "^[1-9]\\d*\\.\\d+\\.\\d+$",
+      "title": "Result Version",
+      "type": "string"
+    },
+    "semantic_state_version": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Semantic State Version",
+      "type": "integer"
+    },
+    "status": {
+      "$ref": "#/$defs/DataAvailability"
+    },
+    "task_book_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Task Book Id"
+    },
+    "task_book_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Task Book Revision"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "result_version",
+    "request_id",
+    "trip_id",
+    "city_id",
+    "status",
+    "attempts",
+    "provider_call_count",
+    "generated_at"
+  ],
+  "title": "CandidateRecallResult",
+  "type": "object"
+}

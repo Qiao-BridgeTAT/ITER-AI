@@ -2,7 +2,7 @@ import Ajv2020, { type ValidateFunction } from "ajv/dist/2020.js";
 
 import {
   PUBLIC_SCHEMAS,
-  type PublicContractName,
+  type PublicContractName
 } from "../generated/schemaRegistry";
 
 export type { PublicContractName } from "../generated/schemaRegistry";
@@ -199,23 +199,23 @@ const ajv = new Ajv2020({
   allErrors: true,
   discriminator: true,
   passContext: true,
-  strict: true,
+  strict: true
 });
 
 ajv.addFormat("date", {
   type: "string",
-  validate: (value: string) => parseIsoDate(value) !== null,
+  validate: (value: string) => parseIsoDate(value) !== null
 });
 ajv.addFormat("time", {
   type: "string",
-  validate: (value: string) => parseTime(value) !== null,
+  validate: (value: string) => parseTime(value) !== null
 });
 ajv.addFormat("uuid", {
   type: "string",
   validate: (value: string) =>
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      value,
-    ),
+      value
+    )
 });
 ajv.addFormat("uri", {
   type: "string",
@@ -226,14 +226,14 @@ ajv.addFormat("uri", {
     } catch {
       return false;
     }
-  },
+  }
 });
 ajv.addFormat("date-time", {
   type: "string",
   validate: (value: string) =>
     /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(
-      value,
-    ) && !Number.isNaN(Date.parse(value)),
+      value
+    ) && !Number.isNaN(Date.parse(value))
 });
 
 ajv.addKeyword({
@@ -241,228 +241,228 @@ ajv.addKeyword({
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateDateRange,
+  validate: validateDateRange
 });
 ajv.addKeyword({
   keyword: "x-travel-time-range",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateTimeRange,
+  validate: validateTimeRange
 });
 ajv.addKeyword({
   keyword: "x-travel-events-within-date-range",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateEventsWithinDateRange,
+  validate: validateEventsWithinDateRange
 });
 ajv.addKeyword({
   keyword: "x-travel-unique-by",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateUniqueBy,
+  validate: validateUniqueBy
 });
 ajv.addKeyword({
   keyword: "x-travel-day-plan",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateDayPlan,
+  validate: validateDayPlan
 });
 ajv.addKeyword({
   keyword: "x-travel-cost-total",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateCostTotal,
+  validate: validateCostTotal
 });
 ajv.addKeyword({
   keyword: "x-travel-itinerary",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateItinerary,
+  validate: validateItinerary
 });
 ajv.addKeyword({
   keyword: "x-travel-itinerary-result",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateItineraryResult,
+  validate: validateItineraryResult
 });
 ajv.addKeyword({
   keyword: "x-travel-lodging-plan",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateLodgingPlan,
+  validate: validateLodgingPlan
 });
 ajv.addKeyword({
   keyword: "x-travel-trip-state",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateTripState,
+  validate: validateTripState
 });
 ajv.addKeyword({
   keyword: "x-travel-state-version-increment",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateStateVersionIncrement,
+  validate: validateStateVersionIncrement
 });
 ajv.addKeyword({
   keyword: "x-travel-city-content",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateCityContent,
+  validate: validateCityContent
 });
 ajv.addKeyword({
   keyword: "x-travel-exceptional-replay",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateExceptionalReplaySuite,
+  validate: validateExceptionalReplaySuite
 });
 ajv.addKeyword({
   keyword: "x-travel-selection-bounds",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateSelectionBounds,
+  validate: validateSelectionBounds
 });
 ajv.addKeyword({
   keyword: "x-travel-slider-bounds",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateSliderBounds,
+  validate: validateSliderBounds
 });
 ajv.addKeyword({
   keyword: "x-travel-weather-days",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateWeatherDays,
+  validate: validateWeatherDays
 });
 ajv.addKeyword({
   keyword: "x-travel-conversation-message",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateConversationMessage,
+  validate: validateConversationMessage
 });
 ajv.addKeyword({
   keyword: "x-travel-recommendation-set",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateRecommendationSet,
+  validate: validateRecommendationSet
 });
 ajv.addKeyword({
   keyword: "x-travel-semantic-choice",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateSemanticChoice,
+  validate: validateSemanticChoice
 });
 ajv.addKeyword({
   keyword: "x-travel-provider-display",
   schemaType: "object",
   type: "object",
   errors: false,
-  validate: validateProviderDisplay,
+  validate: validateProviderDisplay
 });
 ajv.addKeyword({
   keyword: "x-travel-map-update",
   schemaType: "boolean",
   type: "object",
   errors: false,
-  validate: validateMapUpdate,
+  validate: validateMapUpdate
 });
 ajv.addKeyword({
   keyword: "x-travel-cost-estimation-request",
   schemaType: "boolean",
   type: "object",
   errors: false,
-  validate: validateCostEstimationRequest,
+  validate: validateCostEstimationRequest
 });
 ajv.addKeyword({
   keyword: "x-travel-trip-cost-estimate",
   schemaType: "boolean",
   type: "object",
   errors: false,
-  validate: validateTripCostEstimate,
+  validate: validateTripCostEstimate
 });
 ajv.addKeyword({
   keyword: "x-travel-itinerary-validation-request",
   schemaType: "boolean",
   type: "object",
   errors: false,
-  validate: validateItineraryValidationRequest,
+  validate: validateItineraryValidationRequest
 });
 ajv.addKeyword({
   keyword: "x-travel-itinerary-validation-result",
   schemaType: "boolean",
   type: "object",
   errors: false,
-  validate: validateItineraryValidationResult,
+  validate: validateItineraryValidationResult
 });
 ajv.addKeyword({
   keyword: "x-travel-itinerary-repair-request",
   schemaType: "boolean",
   type: "object",
   errors: false,
-  validate: validateItineraryRepairRequest,
+  validate: validateItineraryRepairRequest
 });
 ajv.addKeyword({
   keyword: "x-travel-itinerary-repair-result",
   schemaType: "boolean",
   type: "object",
   errors: false,
-  validate: validateItineraryRepairResult,
+  validate: validateItineraryRepairResult
 });
 ajv.addKeyword({
   keyword: "x-travel-plan-publication-request",
   schemaType: "boolean",
   type: "object",
   errors: false,
-  validate: validatePlanPublicationRequest,
+  validate: validatePlanPublicationRequest
 });
 ajv.addKeyword({
   keyword: "x-travel-published-plan",
   schemaType: "boolean",
   type: "object",
   errors: false,
-  validate: validatePublishedPlan,
+  validate: validatePublishedPlan
 });
 ajv.addKeyword({
   keyword: "x-travel-pending-plan-modification",
   schemaType: "boolean",
   type: "object",
   errors: false,
-  validate: validatePendingPlanModification,
+  validate: validatePendingPlanModification
 });
 
 const validators = Object.fromEntries(
   Object.entries(PUBLIC_SCHEMAS).map(([name, schema]) => [
     name,
-    ajv.compile(schema),
-  ]),
+    ajv.compile(schema)
+  ])
 ) as Record<PublicContractName, ValidateFunction>;
 
 export function validatePublicContract(
   name: PublicContractName,
   payload: unknown,
-  context: PublicContractValidationContext = {},
+  context: PublicContractValidationContext = {}
 ): PublicContractValidationResult {
   const validator = validators[name];
   const success = validator.call(
     { today: context.today ?? destinationToday() },
-    payload,
+    payload
   ) as boolean;
   if (success) {
     return { success: true, errors: [] };
@@ -470,16 +470,15 @@ export function validatePublicContract(
   return {
     success: false,
     errors: (validator.errors ?? []).map(
-      (error) =>
-        `${error.instancePath || "/"} ${error.message ?? "is invalid"}`,
-    ),
+      (error) => `${error.instancePath || "/"} ${error.message ?? "is invalid"}`
+    )
   };
 }
 
 function validateDateRange(
   this: PublicContractValidationContext,
   rule: DateRangeRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   if (!isRecord(payload)) {
     return false;
@@ -506,7 +505,7 @@ function validateDateRange(
 function validateTimeRange(
   this: PublicContractValidationContext,
   rule: TimeRangeRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -525,7 +524,7 @@ function validateTimeRange(
 function validateEventsWithinDateRange(
   this: PublicContractValidationContext,
   rule: EventsWithinDateRangeRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -558,7 +557,7 @@ function validateEventsWithinDateRange(
 function validateUniqueBy(
   this: PublicContractValidationContext,
   rule: UniqueByRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -581,7 +580,7 @@ function validateUniqueBy(
 function validateSelectionBounds(
   this: PublicContractValidationContext,
   rule: SelectionBoundsRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -603,7 +602,7 @@ function validateSelectionBounds(
     return false;
   }
   const ids = items.map((item) =>
-    isRecord(item) ? item[rule.itemIdField] : undefined,
+    isRecord(item) ? item[rule.itemIdField] : undefined
   );
   if (
     !ids.every((value) => typeof value === "string") ||
@@ -624,7 +623,7 @@ function validateSelectionBounds(
 function validateSliderBounds(
   this: PublicContractValidationContext,
   rule: SliderBoundsRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -649,7 +648,7 @@ function validateSliderBounds(
 function validateWeatherDays(
   this: PublicContractValidationContext,
   rule: WeatherDaysRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -678,7 +677,7 @@ function validateWeatherDays(
 function validateConversationMessage(
   this: PublicContractValidationContext,
   rule: ConversationMessageRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -726,7 +725,7 @@ function validateConversationMessage(
   }
 
   const declaredFactIds = facts.map((fact) =>
-    isRecord(fact) ? fact[rule.factIdField] : undefined,
+    isRecord(fact) ? fact[rule.factIdField] : undefined
   );
   if (
     attachmentIds.some((value) => typeof value !== "string") ||
@@ -738,7 +737,7 @@ function validateConversationMessage(
     return false;
   }
   const answeredAttachmentIds = attachmentAnswers.map((answer) =>
-    isRecord(answer) ? answer[rule.attachmentIdField] : undefined,
+    isRecord(answer) ? answer[rule.attachmentIdField] : undefined
   );
   if (
     answeredAttachmentIds.some((value) => typeof value !== "string") ||
@@ -746,7 +745,7 @@ function validateConversationMessage(
     answeredAttachmentIds.some((value) => !attachmentIds.includes(value)) ||
     attachmentAnswers.some(
       (answer) =>
-        !isRecord(answer) || answer[rule.stateVersionField] !== stateVersion,
+        !isRecord(answer) || answer[rule.stateVersionField] !== stateVersion
     )
   ) {
     return false;
@@ -762,7 +761,7 @@ function validateConversationMessage(
 function validateRecommendationSet(
   this: PublicContractValidationContext,
   rule: RecommendationSetRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -811,7 +810,7 @@ function validateRecommendationSet(
 function validateSemanticChoice(
   this: PublicContractValidationContext,
   rule: SemanticChoiceRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (
@@ -872,7 +871,7 @@ function validateSemanticChoice(
 function validateProviderDisplay(
   this: PublicContractValidationContext,
   rule: ProviderDisplayRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) return false;
@@ -906,12 +905,12 @@ function validateProviderDisplay(
       (route) =>
         !isRecord(route) ||
         !placeIds.has(route.from_place_id) ||
-        !placeIds.has(route.to_place_id),
+        !placeIds.has(route.to_place_id)
     ) ||
     facts.some(
       (fact) =>
         !isRecord(fact) ||
-        (fact.place_id != null && !placeIds.has(fact.place_id)),
+        (fact.place_id != null && !placeIds.has(fact.place_id))
     )
   ) {
     return false;
@@ -927,7 +926,7 @@ function validateProviderDisplay(
 export function validateMapUpdate(
   this: PublicContractValidationContext,
   enabled: boolean,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!enabled) return true;
@@ -937,7 +936,7 @@ export function validateMapUpdate(
   if (!Array.isArray(markers) || !Array.isArray(routes)) return false;
 
   const markerIds = markers.map((marker) =>
-    isRecord(marker) ? marker.place_id : undefined,
+    isRecord(marker) ? marker.place_id : undefined
   );
   if (
     markerIds.some((placeId) => typeof placeId !== "string") ||
@@ -949,7 +948,7 @@ export function validateMapUpdate(
   const routeKeys = routes.map((route) =>
     isRecord(route)
       ? `${String(route.from_place_id)}:${String(route.to_place_id)}:${String(route.mode)}`
-      : undefined,
+      : undefined
   );
   return (
     routeKeys.every((key) => typeof key === "string") &&
@@ -958,14 +957,14 @@ export function validateMapUpdate(
       (route) =>
         isRecord(route) &&
         visiblePlaceIds.has(route.from_place_id) &&
-        visiblePlaceIds.has(route.to_place_id),
+        visiblePlaceIds.has(route.to_place_id)
     )
   );
 }
 
 function validateProviderAvailability(
   value: unknown,
-  kind: "place" | "route" | "fact",
+  kind: "place" | "route" | "fact"
 ): boolean {
   if (!isRecord(value) || !Array.isArray(value.source_fact_ids)) return false;
   const availability = value.availability;
@@ -1013,7 +1012,7 @@ function unwrapRootModel(value: unknown): Record<string, unknown> | null {
 function validateDayPlan(
   this: PublicContractValidationContext,
   rule: DayPlanRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -1025,7 +1024,7 @@ function validateDayPlan(
     return false;
   }
   const entryIds = entries.map((entry) =>
-    isRecord(entry) ? entry.entry_id : undefined,
+    isRecord(entry) ? entry.entry_id : undefined
   );
   const legIds = legs.map((leg) => (isRecord(leg) ? leg.leg_id : undefined));
   if (
@@ -1072,7 +1071,7 @@ function validateDayPlan(
 function validateCostTotal(
   this: PublicContractValidationContext,
   rule: CostTotalRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -1106,7 +1105,7 @@ function validateCostTotal(
 function validateItinerary(
   this: PublicContractValidationContext,
   rule: ItineraryRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -1134,7 +1133,7 @@ function validateItinerary(
 function validateItineraryResult(
   this: PublicContractValidationContext,
   rule: ItineraryResultRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -1161,7 +1160,7 @@ function validateItineraryResult(
 function validateLodgingPlan(
   this: PublicContractValidationContext,
   rule: LodgingPlanRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -1192,7 +1191,7 @@ function validateLodgingPlan(
     return false;
   }
   const anchorIds = new Set(
-    anchors.map((anchor) => (isRecord(anchor) ? anchor.anchor_id : undefined)),
+    anchors.map((anchor) => (isRecord(anchor) ? anchor.anchor_id : undefined))
   );
   if (anchorIds.has(undefined) || anchorIds.size !== anchors.length) {
     return false;
@@ -1202,11 +1201,11 @@ function validateLodgingPlan(
   if (
     clusters.some(
       (cluster) =>
-        !isRecord(cluster) || !referencesKnownAnchors(cluster.anchor_ids),
+        !isRecord(cluster) || !referencesKnownAnchors(cluster.anchor_ids)
     ) ||
     strategies.some(
       (strategy) =>
-        !isRecord(strategy) || !referencesKnownAnchors(strategy.anchor_ids),
+        !isRecord(strategy) || !referencesKnownAnchors(strategy.anchor_ids)
     )
   ) {
     return false;
@@ -1257,7 +1256,7 @@ function validateLodgingPlan(
     return false;
   }
   const belongsToStrategy = selectedStrategy.representative_hotels.some(
-    (hotel) => isRecord(hotel) && hotel.place_id === selected.place_id,
+    (hotel) => isRecord(hotel) && hotel.place_id === selected.place_id
   );
   if (!belongsToStrategy) {
     return false;
@@ -1277,7 +1276,7 @@ function validateLodgingPlan(
 function validatePlanPublicationRequest(
   this: PublicContractValidationContext,
   _enabled: boolean,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) return false;
@@ -1305,7 +1304,7 @@ function validatePlanPublicationRequest(
 function validatePublishedPlan(
   this: PublicContractValidationContext,
   _enabled: boolean,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) return false;
@@ -1375,13 +1374,13 @@ function validatePublishedPlan(
       return false;
     }
     const placeIds = places.map((item) =>
-      isRecord(item) ? item.place_id : undefined,
+      isRecord(item) ? item.place_id : undefined
     );
     if (
       placeIds.some((value) => typeof value !== "string") ||
       new Set(placeIds).size !== placeIds.length ||
       places.some(
-        (item) => !isRecord(item) || item.city_id !== schedule.city_id,
+        (item) => !isRecord(item) || item.city_id !== schedule.city_id
       )
     ) {
       return false;
@@ -1398,7 +1397,7 @@ function validatePublishedPlan(
       }
     }
     const selectedPlaceIds = selectedCandidates.map((item) =>
-      isRecord(item) && isRecord(item.place) ? item.place.place_id : undefined,
+      isRecord(item) && isRecord(item.place) ? item.place.place_id : undefined
     );
     if (
       selectedPlaceIds.some((value) => typeof value !== "string") ||
@@ -1408,7 +1407,7 @@ function validatePublishedPlan(
           !isRecord(item) ||
           !isRecord(item.place) ||
           item.place.city_id !== schedule.city_id ||
-          !activityPlaceIds.has(item.place.place_id),
+          !activityPlaceIds.has(item.place.place_id)
       )
     ) {
       return false;
@@ -1425,10 +1424,10 @@ function validatePublishedPlan(
           (day) =>
             !isRecord(day) ||
             day.start_place_id !== hotel.selected_hotel_place_id ||
-            day.end_place_id !== hotel.selected_hotel_place_id,
+            day.end_place_id !== hotel.selected_hotel_place_id
         )) ||
       JSON.stringify(
-        weather.map((item) => (isRecord(item) ? item.service_date : undefined)),
+        weather.map((item) => (isRecord(item) ? item.service_date : undefined))
       ) !== JSON.stringify(serviceDates)
     ) {
       return false;
@@ -1439,27 +1438,27 @@ function validatePublishedPlan(
         isRecord(day) &&
         [
           ...(Array.isArray(day.activities) ? day.activities : []),
-          ...(Array.isArray(day.transport_legs) ? day.transport_legs : []),
-        ].some((item) => isRecord(item) && item.availability !== "available"),
+          ...(Array.isArray(day.transport_legs) ? day.transport_legs : [])
+        ].some((item) => isRecord(item) && item.availability !== "available")
     );
     const degraded =
       schedule.status === "partial" ||
       validation.status === "review" ||
       scheduleHasPartialItems ||
       places.some(
-        (item) => isRecord(item) && item.opening_availability !== "available",
+        (item) => isRecord(item) && item.opening_availability !== "available"
       ) ||
       selectedCandidates.some(
-        (item) => isRecord(item) && item.availability !== "available",
+        (item) => isRecord(item) && item.availability !== "available"
       ) ||
       weather.some(
-        (item) => isRecord(item) && item.availability !== "available",
+        (item) => isRecord(item) && item.availability !== "available"
       ) ||
       (Array.isArray(categories) &&
         categories.some(
           (item) =>
             isRecord(item) &&
-            new Set(["partial", "missing"]).has(String(item.status)),
+            new Set(["partial", "missing"]).has(String(item.status))
         )) ||
       (Number(hotel.night_count) > 0 && hotel.status !== "available");
     if (payload.availability !== (degraded ? "partial" : "available")) {
@@ -1480,13 +1479,13 @@ function validatePublishedPlan(
     Number.isInteger(map.selected_day_index) &&
     Number(map.selected_day_index) < schedule.days.length &&
     map.markers.every(
-      (marker) => isRecord(marker) && knownPlaceIds.has(marker.place_id),
+      (marker) => isRecord(marker) && knownPlaceIds.has(marker.place_id)
     ) &&
     map.routes.every(
       (route) =>
         isRecord(route) &&
         knownPlaceIds.has(route.from_place_id) &&
-        knownPlaceIds.has(route.to_place_id),
+        knownPlaceIds.has(route.to_place_id)
     )
   );
 }
@@ -1494,7 +1493,7 @@ function validatePublishedPlan(
 function validatePendingPlanModification(
   this: PublicContractValidationContext,
   _enabled: boolean,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) return false;
@@ -1517,7 +1516,7 @@ function validatePendingPlanModification(
     return false;
   }
   const knownDays = index.days.map((item) =>
-    isRecord(item) ? item.day_number : undefined,
+    isRecord(item) ? item.day_number : undefined
   );
   const expectedDays = index.days.map((_, indexValue) => indexValue + 1);
   if (JSON.stringify(knownDays) !== JSON.stringify(expectedDays)) return false;
@@ -1537,7 +1536,7 @@ function validatePendingPlanModification(
 
 function uniqueRecordField(values: unknown[], field: string): boolean {
   const items = values.map((value) =>
-    isRecord(value) ? value[field] : undefined,
+    isRecord(value) ? value[field] : undefined
   );
   return (
     items.every((value) => typeof value === "string") &&
@@ -1548,7 +1547,7 @@ function uniqueRecordField(values: unknown[], field: string): boolean {
 function validateTripState(
   this: PublicContractValidationContext,
   rule: TripStateRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -1765,13 +1764,13 @@ function validateTripState(
     }
     if (selected.strategy_id != null) {
       const strategy = strategies.find(
-        (item) => isRecord(item) && item.strategy_id === selected.strategy_id,
+        (item) => isRecord(item) && item.strategy_id === selected.strategy_id
       );
       if (
         !isRecord(strategy) ||
         !Array.isArray(strategy.representative_hotels) ||
         !strategy.representative_hotels.some(
-          (hotel) => isRecord(hotel) && hotel.place_id === selected.place_id,
+          (hotel) => isRecord(hotel) && hotel.place_id === selected.place_id
         )
       ) {
         return false;
@@ -1804,7 +1803,7 @@ function validateTripState(
 function validateStateVersionIncrement(
   this: PublicContractValidationContext,
   rule: StateVersionIncrementRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -1824,7 +1823,7 @@ function validateStateVersionIncrement(
 function validateCityContent(
   this: PublicContractValidationContext,
   rule: CityContentRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -1869,11 +1868,11 @@ function validateCityContent(
       ? brief.spatial_relationships
       : []),
     ...themes,
-    ...attractions,
+    ...attractions
   ];
   if (
     sourceBearing.some(
-      (item) => !isRecord(item) || !referencesKnown(item.source_ids, sourceIds),
+      (item) => !isRecord(item) || !referencesKnown(item.source_ids, sourceIds)
     )
   ) {
     return false;
@@ -1901,7 +1900,7 @@ function validateCityContent(
     !Array.isArray(relationships) ||
     relationships.some(
       (item) =>
-        !isRecord(item) || !referencesKnown(item.related_place_ids, placeIds),
+        !isRecord(item) || !referencesKnown(item.related_place_ids, placeIds)
     )
   ) {
     return false;
@@ -1910,14 +1909,14 @@ function validateCityContent(
     (item) =>
       isRecord(item) &&
       assetIds.has(item.asset_id) &&
-      referencesKnown(item.theme_ids, themeIds),
+      referencesKnown(item.theme_ids, themeIds)
   );
 }
 
 function validateExceptionalReplaySuite(
   this: PublicContractValidationContext,
   rule: ExceptionalReplayRule,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!isRecord(payload)) {
@@ -1953,7 +1952,7 @@ function validateExceptionalReplaySuite(
       return false;
     }
     const commandPresence = rule.commandFields.map(
-      (field) => scenario[field] !== undefined && scenario[field] !== null,
+      (field) => scenario[field] !== undefined && scenario[field] !== null
     );
     return commandPresence.every((present) => present === commandPresence[0]);
   });
@@ -1971,7 +1970,7 @@ function uniqueFieldSet(values: unknown[], field: string): Set<unknown> | null {
 }
 
 function validateUniqueStateCollections(
-  payload: Record<string, unknown>,
+  payload: Record<string, unknown>
 ): boolean {
   const definitions: Array<[unknown, string]> = [
     [payload.attraction_feedback, "place_id"],
@@ -1983,7 +1982,7 @@ function validateUniqueStateCollections(
     [payload.issues, "issue_id"],
     [payload.assumptions, "assumption_id"],
     [payload.messages, "message_id"],
-    [payload.conversation_messages, "message_id"],
+    [payload.conversation_messages, "message_id"]
   ];
   const collectionsAreUnique = definitions.every(([value, field]) => {
     const items = value === undefined ? [] : value;
@@ -2022,7 +2021,7 @@ function validateUniqueStateCollections(
 
 function stateStrategiesReferenceKnownAnchors(
   payload: Record<string, unknown>,
-  strategies: unknown,
+  strategies: unknown
 ): boolean {
   const anchors = payload.anchors === undefined ? [] : payload.anchors;
   const lodgingStrategies = strategies === undefined ? [] : strategies;
@@ -2030,7 +2029,7 @@ function stateStrategiesReferenceKnownAnchors(
     return false;
   }
   const anchorIds = new Set(
-    anchors.map((anchor) => (isRecord(anchor) ? anchor.anchor_id : undefined)),
+    anchors.map((anchor) => (isRecord(anchor) ? anchor.anchor_id : undefined))
   );
   if (anchorIds.has(undefined)) {
     return false;
@@ -2039,14 +2038,14 @@ function stateStrategiesReferenceKnownAnchors(
     (strategy) =>
       isRecord(strategy) &&
       Array.isArray(strategy.anchor_ids) &&
-      strategy.anchor_ids.every((anchorId) => anchorIds.has(anchorId)),
+      strategy.anchor_ids.every((anchorId) => anchorIds.has(anchorId))
   );
 }
 
 function validateCostEstimationRequest(
   this: PublicContractValidationContext,
   enabled: boolean,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!enabled || !isRecord(payload)) return !enabled;
@@ -2089,8 +2088,8 @@ function validateCostEstimationRequest(
             "activity",
             activity.activity_id,
             day.service_date,
-            category,
-          ),
+            category
+          )
         );
       }
     }
@@ -2101,8 +2100,8 @@ function validateCostEstimationRequest(
           "transport_leg",
           leg.leg_id,
           day.service_date,
-          "local_transport",
-        ),
+          "local_transport"
+        )
       );
     }
   }
@@ -2118,8 +2117,8 @@ function validateCostEstimationRequest(
           "hotel_night",
           hotel.selected_hotel_place_id,
           isoDateFromEpochDay(day),
-          "lodging",
-        ),
+          "lodging"
+        )
       );
     }
   }
@@ -2147,8 +2146,8 @@ function validateCostEstimationRequest(
         fact.subject_kind,
         fact.subject_id,
         fact.service_date,
-        fact.category,
-      ),
+        fact.category
+      )
     );
     const original = fact.original_amount;
     if (isRecord(original) && original.currency !== "CNY") {
@@ -2164,13 +2163,13 @@ function validateCostEstimationRequest(
     return false;
   }
   const rateCurrencies = rates.map((rate) =>
-    isRecord(rate) ? rate.source_currency : undefined,
+    isRecord(rate) ? rate.source_currency : undefined
   );
   return (
     rates.every(
       (rate) =>
         isRecord(rate) &&
-        isCurrentFact(rate.fetched_at, businessTime, maximumAgeHours),
+        isCurrentFact(rate.fetched_at, businessTime, maximumAgeHours)
     ) &&
     rateCurrencies.every((value) => typeof value === "string") &&
     new Set(rateCurrencies).size === rateCurrencies.length &&
@@ -2182,7 +2181,7 @@ function validateCostEstimationRequest(
 function validateTripCostEstimate(
   this: PublicContractValidationContext,
   enabled: boolean,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!enabled || !isRecord(payload)) return !enabled;
@@ -2213,7 +2212,7 @@ function validateTripCostEstimate(
         (line) =>
           isRecord(line) &&
           line.service_date === day.service_date &&
-          validateCostLine(line),
+          validateCostLine(line)
       )
     ) {
       return false;
@@ -2228,8 +2227,8 @@ function validateTripCostEstimate(
     allLines.push(...dayLines);
     const expectedSubtotal = sumOptionalRanges(
       day.categories.map((item) =>
-        isRecord(item) ? item.amount_per_person : undefined,
-      ),
+        isRecord(item) ? item.amount_per_person : undefined
+      )
     );
     if (!sameOptionalRange(day.known_subtotal_per_person, expectedSubtotal)) {
       return false;
@@ -2239,8 +2238,8 @@ function validateTripCostEstimate(
   const expectedFromDays = sumRanges(dailyRanges);
   const expectedFromCategories = sumOptionalRanges(
     categories.map((item) =>
-      isRecord(item) ? item.amount_per_person : undefined,
-    ),
+      isRecord(item) ? item.amount_per_person : undefined
+    )
   );
   const excluded = payload.excluded_costs;
   return (
@@ -2259,7 +2258,7 @@ function validateTripCostEstimate(
     Array.isArray(excluded) &&
     new Set(excluded).size === 3 &&
     ["airfare", "rail", "intercity_transport"].every((item) =>
-      excluded.includes(item),
+      excluded.includes(item)
     )
   );
 }
@@ -2267,7 +2266,7 @@ function validateTripCostEstimate(
 function validateItineraryValidationRequest(
   this: PublicContractValidationContext,
   enabled: boolean,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!enabled || !isRecord(payload)) return !enabled;
@@ -2280,14 +2279,14 @@ function validateItineraryValidationRequest(
   const days = schedule.days;
   if (!Array.isArray(weather) || !Array.isArray(days)) return false;
   return weather.every(
-    (item) => isRecord(item) && validateWeatherCoverage(item),
+    (item) => isRecord(item) && validateWeatherCoverage(item)
   );
 }
 
 export function validateItineraryValidationResult(
   this: PublicContractValidationContext,
   enabled: boolean,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!enabled || !isRecord(payload) || !Array.isArray(payload.issues)) {
@@ -2333,7 +2332,7 @@ export function validateItineraryValidationResult(
 function validateItineraryRepairRequest(
   this: PublicContractValidationContext,
   enabled: boolean,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!enabled || !isRecord(payload)) return !enabled;
@@ -2355,7 +2354,7 @@ function validateItineraryRepairRequest(
     return false;
   }
   const issueIds = new Set(
-    result.issues.filter(isRecord).map((issue) => issue.issue_id),
+    result.issues.filter(isRecord).map((issue) => issue.issue_id)
   );
   const proposalIds = new Set<unknown>();
   const roundIssueKeys = new Set<string>();
@@ -2375,7 +2374,7 @@ function validateItineraryRepairRequest(
 function validateItineraryRepairResult(
   this: PublicContractValidationContext,
   enabled: boolean,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   void this;
   if (!enabled || !isRecord(payload)) return !enabled;
@@ -2393,14 +2392,14 @@ function validateItineraryRepairResult(
   if (
     rounds.length > 2 ||
     rounds.some(
-      (round, index) => !isRecord(round) || round.round_number !== index + 1,
+      (round, index) => !isRecord(round) || round.round_number !== index + 1
     )
   ) {
     return false;
   }
   const remainingSet = new Set(remaining);
   const issueIds = new Set(
-    validation.issues.filter(isRecord).map((issue) => issue.issue_id),
+    validation.issues.filter(isRecord).map((issue) => issue.issue_id)
   );
   if (
     remainingSet.size !== remaining.length ||
@@ -2494,10 +2493,10 @@ function validateCostCategories(categories: unknown[]): boolean {
     "lodging",
     "dining",
     "attraction_tickets",
-    "local_transport",
+    "local_transport"
   ]);
   const actual = categories.map((item) =>
-    isRecord(item) ? item.category : undefined,
+    isRecord(item) ? item.category : undefined
   );
   return (
     actual.length === expected.size &&
@@ -2509,19 +2508,19 @@ function validateCostCategories(categories: unknown[]): boolean {
 
 function validateSummaryDerivation(
   categories: unknown[],
-  lines: Record<string, unknown>[],
+  lines: Record<string, unknown>[]
 ): boolean {
   return categories.every((rawSummary) => {
     if (!isRecord(rawSummary)) return false;
     const applicable = lines.filter(
-      (line) => line.category === rawSummary.category,
+      (line) => line.category === rawSummary.category
     );
     const priced = applicable.filter(
-      (line) => parseAmountRange(line.amount_per_person) !== null,
+      (line) => parseAmountRange(line.amount_per_person) !== null
     );
     const missing = applicable.filter(
       (line) =>
-        line.amount_per_person == null || line.availability === "partial",
+        line.amount_per_person == null || line.availability === "partial"
     );
     const expectedStatus =
       applicable.length === 0
@@ -2532,14 +2531,14 @@ function validateSummaryDerivation(
             ? "partial"
             : "available";
     const expectedAmount = sumOptionalRanges(
-      priced.map((line) => line.amount_per_person),
+      priced.map((line) => line.amount_per_person)
     );
     const expectedSources = new Set(
       applicable.flatMap((line) =>
         Array.isArray(line.source_reference_ids)
           ? line.source_reference_ids
-          : [],
-      ),
+          : []
+      )
     );
     const actualSources = rawSummary.source_reference_ids;
     return (
@@ -2627,7 +2626,7 @@ function validateCostLine(line: Record<string, unknown>): boolean {
 function isCurrentFact(
   fetchedAt: unknown,
   businessTime: number,
-  maximumAgeHours: number,
+  maximumAgeHours: number
 ): boolean {
   if (typeof fetchedAt !== "string") return false;
   const fetched = Date.parse(fetchedAt);
@@ -2642,7 +2641,7 @@ function costSubjectKey(
   kind: unknown,
   id: unknown,
   serviceDate: unknown,
-  category: unknown,
+  category: unknown
 ): string {
   return `${String(kind)}:${String(id)}:${String(serviceDate)}:${String(category)}`;
 }
@@ -2663,13 +2662,13 @@ function sumRanges(values: AmountRange[]): AmountRange | null {
   if (values.length === 0) return null;
   return {
     minimum: values.reduce((sum, item) => sum + item.minimum, 0),
-    maximum: values.reduce((sum, item) => sum + item.maximum, 0),
+    maximum: values.reduce((sum, item) => sum + item.maximum, 0)
   };
 }
 
 function sameOptionalRange(
   value: unknown,
-  expected: AmountRange | null,
+  expected: AmountRange | null
 ): boolean {
   if (expected === null) return value == null;
   const actual = parseAmountRange(value);
@@ -2761,7 +2760,7 @@ function addYearsClamped(value: ParsedDate, years: number): ParsedDate {
   const result = parseIsoDate(
     `${year.toString().padStart(4, "0")}-${value.month
       .toString()
-      .padStart(2, "0")}-${day.toString().padStart(2, "0")}`,
+      .padStart(2, "0")}-${day.toString().padStart(2, "0")}`
   );
   if (result === null) {
     throw new Error("Unable to calculate the contract date boundary");
@@ -2792,10 +2791,10 @@ function destinationToday(): string {
     timeZone: "Asia/Shanghai",
     year: "numeric",
     month: "2-digit",
-    day: "2-digit",
+    day: "2-digit"
   }).formatToParts(new Date());
   const values = Object.fromEntries(
-    parts.map((part) => [part.type, part.value]),
+    parts.map((part) => [part.type, part.value])
   );
   return `${values.year}-${values.month}-${values.day}`;
 }

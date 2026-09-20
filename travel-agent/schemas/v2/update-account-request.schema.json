@@ -1,0 +1,19 @@
+{
+  "$id": "https://travel-agent.local/schemas/v2/update-account-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "nickname": {
+      "maxLength": 20,
+      "minLength": 1,
+      "pattern": "^[^\\r\\n]+$",
+      "title": "Nickname",
+      "type": "string"
+    }
+  },
+  "required": [
+    "nickname"
+  ],
+  "title": "UpdateAccountRequest",
+  "type": "object"
+}

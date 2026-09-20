@@ -1,0 +1,333 @@
+{
+  "$defs": {
+    "BookingReference": {
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Booking Id",
+          "type": "string"
+        },
+        "booking_kind": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Booking Kind",
+          "type": "string"
+        },
+        "canonical_entity_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Canonical Entity Id"
+        },
+        "end_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Date"
+        },
+        "source_operation_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Operation Refs",
+          "type": "array"
+        },
+        "start_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Date"
+        },
+        "user_description": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "User Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "booking_id",
+        "booking_kind",
+        "user_description",
+        "source_operation_refs"
+      ],
+      "title": "BookingReference",
+      "type": "object"
+    },
+    "DelegatedScope": {
+      "additionalProperties": false,
+      "properties": {
+        "boundary_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Boundary Refs",
+          "type": "array"
+        },
+        "delegated_targets": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Delegated Targets",
+          "type": "array"
+        },
+        "domain": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Domain",
+          "type": "string"
+        },
+        "source_operation_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Operation Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "domain",
+        "delegated_targets",
+        "source_operation_refs"
+      ],
+      "title": "DelegatedScope",
+      "type": "object"
+    },
+    "EvidenceBackedText": {
+      "additionalProperties": false,
+      "properties": {
+        "source_evidence_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Evidence Refs",
+          "type": "array"
+        },
+        "value": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "source_evidence_refs"
+      ],
+      "title": "EvidenceBackedText",
+      "type": "object"
+    },
+    "LodgingExample": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 80,
+          "minLength": 2,
+          "title": "Name",
+          "type": "string"
+        },
+        "search_keyword": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Search Keyword",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "search_keyword"
+      ],
+      "title": "LodgingExample",
+      "type": "object"
+    },
+    "MoneyRange": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_minor": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum Minor"
+        },
+        "minimum_minor": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum Minor"
+        }
+      },
+      "title": "MoneyRange",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/lodging-direction.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "area_preferences": {
+      "items": {
+        "$ref": "#/$defs/EvidenceBackedText"
+      },
+      "title": "Area Preferences",
+      "type": "array"
+    },
+    "delegated_scope": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DelegatedScope"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "existing_booking": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BookingReference"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "facility_requirements": {
+      "items": {
+        "$ref": "#/$defs/EvidenceBackedText"
+      },
+      "title": "Facility Requirements",
+      "type": "array"
+    },
+    "hotel_quality_tier": {
+      "anyOf": [
+        {
+          "pattern": "^(economy|comfort|upscale|luxury)$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Hotel Quality Tier"
+    },
+    "hotel_quality_tiers": {
+      "items": {
+        "enum": [
+          "economy",
+          "comfort",
+          "upscale",
+          "luxury"
+        ],
+        "type": "string"
+      },
+      "maxItems": 4,
+      "title": "Hotel Quality Tiers",
+      "type": "array"
+    },
+    "nightly_budget": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MoneyRange"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "not_applicable": {
+      "default": false,
+      "title": "Not Applicable",
+      "type": "boolean"
+    },
+    "property_type_preferences": {
+      "items": {
+        "$ref": "#/$defs/EvidenceBackedText"
+      },
+      "title": "Property Type Preferences",
+      "type": "array"
+    },
+    "search_examples": {
+      "items": {
+        "$ref": "#/$defs/LodgingExample"
+      },
+      "maxItems": 7,
+      "title": "Search Examples",
+      "type": "array"
+    }
+  },
+  "title": "LodgingDirection",
+  "type": "object"
+}

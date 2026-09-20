@@ -22,17 +22,20 @@ export function V4PlannerPanel({
   conflictMessage,
   onResume,
   onAnswer,
-  onReload,
+  onReload
 }: Props) {
   const textId = useId();
   const [answerDraft, setAnswerDraft] = useState({
     interactionId: "",
-    text: "",
+    text: ""
   });
   if (!workspace && !progressMessage) return null;
   const status = workspace?.status ?? "planning";
   const interaction =
     status === "awaiting_user" ? workspace?.active_interaction : null;
+  // In-flight status belongs beside the existing Loading animation. Keep this
+  // panel only when it offers an actual decision or recovery action.
+  if (generating && !interaction && !conflictMessage) return null;
   const text =
     answerDraft.interactionId === interaction?.interaction_id
       ? answerDraft.text
@@ -49,7 +52,7 @@ export function V4PlannerPanel({
       "draft_ready",
       "ready_to_publish",
       "failed",
-      "cancelled",
+      "cancelled"
     ].includes(status);
   const title = interaction
     ? "有一项安排需要你决定"
@@ -100,27 +103,32 @@ export function V4PlannerPanel({
           data-planner-interaction={interaction.interaction_id}
         >
           <p>
-            这些选择会影响已确认的要求。修改任务书需要重新确认；选择保留原要求时，不会提交下方的修改说明。
+            {interaction.question ??
+              "这些选择会影响已确认的要求。修改任务书需要重新确认；选择保留原要求时，不会提交下方的修改说明。"}
           </p>
-          <label htmlFor={textId}>
-            补充说明
-            {interaction.reason_code === "missing_user_owned_booking_detail"
-              ? "（请填写预订信息）"
-              : "（选填）"}
-          </label>
-          <textarea
-            id={textId}
-            value={text}
-            onChange={(event) =>
-              setAnswerDraft({
-                interactionId: interaction.interaction_id,
-                text: event.target.value,
-              })
-            }
-            disabled={disabled}
-            maxLength={2000}
-            rows={3}
-          />
+          {!interaction.question ? (
+            <>
+              <label htmlFor={textId}>
+                补充说明
+                {interaction.reason_code === "missing_user_owned_booking_detail"
+                  ? "（请填写预订信息）"
+                  : "（选填）"}
+              </label>
+              <textarea
+                id={textId}
+                value={text}
+                onChange={(event) =>
+                  setAnswerDraft({
+                    interactionId: interaction.interaction_id,
+                    text: event.target.value
+                  })
+                }
+                disabled={disabled}
+                maxLength={2000}
+                rows={3}
+              />
+            </>
+          ) : null}
           <div className="v4-planner-actions">
             {interaction.option_contracts.map((option) => (
               <button
@@ -134,9 +142,13 @@ export function V4PlannerPanel({
                 onClick={() =>
                   onAnswer(
                     option.option_id,
-                    option.semantic_action === "keep_task_book"
+                    [
+                      "keep_task_book",
+                      "keep_required_candidate",
+                      "omit_required_candidate"
+                    ].includes(option.semantic_action)
                       ? undefined
-                      : text.trim() || undefined,
+                      : text.trim() || undefined
                   )
                 }
               >
@@ -153,9 +165,7 @@ export function V4PlannerPanel({
       ) : null}
       {canResume ? (
         <div className="v4-planner-actions">
-          <p>
-            已保存工作状态，尚未生成正式行程。可以恢复，也可以直接输入新的需求。
-          </p>
+          <p>已保存工作状态，可以继续规划，也可以直接输入希望调整的内容。</p>
           <button
             type="button"
             className="v4-card-primary-action"

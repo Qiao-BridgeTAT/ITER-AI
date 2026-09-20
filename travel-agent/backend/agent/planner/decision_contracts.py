@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from datetime import date, time
-from typing import Annotated, Literal, TypeAlias
+from typing import Annotated, Any, Literal, TypeAlias
 
-from pydantic import Field, RootModel, model_validator
+from pydantic import ConfigDict, Field, RootModel, model_validator
 
 from backend.contracts.v4.base import DisplayText, Identifier, V4ContractModel
 from backend.contracts.v4.enums import (
@@ -350,6 +350,12 @@ class ModelRouteArgs(V4ContractModel):
 
 class ModelHotelArgs(V4ContractModel):
     capability: Literal["hotel_search"]
+    search_keyword: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=100,
+        description="可选具体酒店名称或检索词；留空按选定活动区域搜索。不要填预算等自然语言说明。",
+    )
     check_in_date: date
     check_out_date: date
     party_size_ref: Identifier
@@ -402,7 +408,17 @@ class ModelCapabilityRequest(V4ContractModel):
     arguments: ModelCapabilityArgs
 
 
-class _ModelRelativePlacement(V4ContractModel):
+def _require_operation_discriminator(schema: dict[str, Any]) -> None:
+    """Union JSON inputs require the tag even when Python construction has a default."""
+    if "operation" in schema.get("properties", {}):
+        schema["required"] = list(dict.fromkeys(["operation", *schema.get("required", [])]))
+
+
+class _ModelOperationChoice(V4ContractModel):
+    model_config = ConfigDict(json_schema_extra=_require_operation_discriminator)
+
+
+class _ModelRelativePlacement(_ModelOperationChoice):
     placement: Literal["before", "after", "at_end"]
     relative_to_key: RepairObjectKey | None = None
 
@@ -427,13 +443,13 @@ class ModelReorderRepairChoice(_ModelRelativePlacement):
     target_key: RepairObjectKey
 
 
-class ModelReplaceRepairChoice(V4ContractModel):
+class ModelReplaceRepairChoice(_ModelOperationChoice):
     operation: Literal["replace"] = "replace"
     target_key: RepairObjectKey
     replacement_key: CandidateKey
 
 
-class ModelOmitSoftRepairChoice(V4ContractModel):
+class ModelOmitSoftRepairChoice(_ModelOperationChoice):
     """Omit an optional candidate; the legacy operation name remains wire-compatible."""
 
     operation: Literal["omit_soft"] = "omit_soft"
@@ -442,13 +458,13 @@ class ModelOmitSoftRepairChoice(V4ContractModel):
     )
 
 
-class ModelChangeWindowRepairChoice(V4ContractModel):
+class ModelChangeWindowRepairChoice(_ModelOperationChoice):
     operation: Literal["change_window"] = "change_window"
     target_key: RepairObjectKey
     preferred_window: ExpectedWindow
 
 
-class ModelChangeTransportRepairChoice(V4ContractModel):
+class ModelChangeTransportRepairChoice(_ModelOperationChoice):
     operation: Literal["change_transport"] = "change_transport"
     service_date: date
     from_key: RepairObjectKey
@@ -458,17 +474,17 @@ class ModelChangeTransportRepairChoice(V4ContractModel):
     )
 
 
-class ModelChangeHotelRepairChoice(V4ContractModel):
+class ModelChangeHotelRepairChoice(_ModelOperationChoice):
     operation: Literal["change_hotel"] = "change_hotel"
     hotel_offer_key: HotelKey
 
 
-class ModelRequestEvidenceRepairChoice(V4ContractModel):
+class ModelRequestEvidenceRepairChoice(_ModelOperationChoice):
     operation: Literal["request_evidence"] = "request_evidence"
     requests: tuple[ModelCapabilityRequest, ...] = Field(min_length=1, max_length=4)
 
 
-class ModelAskUserRepairChoice(V4ContractModel):
+class ModelAskUserRepairChoice(_ModelOperationChoice):
     operation: Literal["ask_user"] = "ask_user"
 
 

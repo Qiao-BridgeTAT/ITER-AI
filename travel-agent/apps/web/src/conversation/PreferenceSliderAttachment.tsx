@@ -23,7 +23,7 @@ export function PreferenceSliderAttachment({
   disabled = false,
   onChange,
   onFlexible,
-  onConfirm,
+  onConfirm
 }: PreferenceSliderAttachmentProps) {
   return (
     <div className="preference-slider-attachment">

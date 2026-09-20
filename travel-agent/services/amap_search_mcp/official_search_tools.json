@@ -1,0 +1,79 @@
+{
+  "source": "https://mcp.amap.com/mcp",
+  "retrieved_at": "2026-09-19T04:33:15.129117+00:00",
+  "protocol_version": "2025-03-26",
+  "purpose": "Official tools/list reference; not proxy compatibility or live Planner acceptance.",
+  "tools": [
+    {
+      "name": "maps_around_search",
+      "description": "周边搜，根据用户传入关键词以及坐标location，搜索出radius半径范围的POI",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "keywords": {
+            "type": "string",
+            "description": "搜索关键词"
+          },
+          "location": {
+            "type": "string",
+            "description": "中心点经度纬度"
+          },
+          "radius": {
+            "type": "string",
+            "description": "搜索半径"
+          },
+          "strategy": {
+            "type": "integer",
+            "description": "召回策略，0=默认召回策略，1=优先召回扫街榜POI",
+            "default": 0
+          }
+        },
+        "required": [
+          "keywords",
+          "location"
+        ]
+      }
+    },
+    {
+      "name": "maps_search_detail",
+      "description": "查询关键词搜或者周边搜获取到的POI ID的详细信息",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "关键词搜或者周边搜获取到的POI ID"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "maps_text_search",
+      "description": "关键字搜索 API 根据用户输入的关键字进行 POI 搜索，并返回相关的信息",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "keywords": {
+            "type": "string",
+            "description": "查询关键字"
+          },
+          "city": {
+            "type": "string",
+            "description": "查询城市"
+          },
+          "citylimit": {
+            "type": "boolean",
+            "default": false,
+            "description": "是否限制城市范围内搜索，默认不限制"
+          }
+        },
+        "required": [
+          "keywords"
+        ]
+      }
+    }
+  ]
+}

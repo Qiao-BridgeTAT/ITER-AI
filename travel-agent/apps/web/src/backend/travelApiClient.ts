@@ -1,5 +1,5 @@
-import { validateV4Contract } from "../contracts/v4Validation";
 import { validatePublicContract } from "../contracts/validation";
+import { validateV4Contract } from "../contracts/v4Validation";
 import type {
   AccountView,
   AnonymousSessionView,
@@ -11,17 +11,19 @@ import type {
   SmsVerifyRequest,
   TripListView,
   TripShell,
-  TripSnapshotView,
+  TripSnapshotView
 } from "../generated/contracts";
 import type {
+  UserMemoryList,
+  CreateUserMemory,
   ConversationEventV4,
+  ConversationSnapshotV4,
   ConversationHistoryPage,
   ConversationMessageV4,
-  ConversationSnapshotV4,
   ConversationView,
-  PlaceIntroductionView,
   PlannerPlanPreview,
-  V4ClientCommand,
+  PlaceIntroductionView,
+  V4ClientCommand
 } from "../generated/v4/contracts";
 
 type FetchLike = typeof fetch;
@@ -38,7 +40,7 @@ export type TimedConversationView = ConversationView & {
 export class BackendRequestError extends Error {
   constructor(
     readonly status: number,
-    readonly code: string,
+    readonly code: string
   ) {
     super(`Backend request failed: ${code}`);
   }
@@ -56,14 +58,14 @@ export class TravelApiClient {
 
   async createAnonymousSession(
     idempotencyKey: string,
-    existingSessionId?: string,
+    existingSessionId?: string
   ): Promise<AnonymousSessionView> {
     return this.request(
       "/anonymous-sessions",
       "POST",
       "anonymous_session_view",
       undefined,
-      { anonymousSessionId: existingSessionId, idempotencyKey },
+      { anonymousSessionId: existingSessionId, idempotencyKey }
     );
   }
 
@@ -71,7 +73,7 @@ export class TravelApiClient {
     tripId: string,
     idempotencyKey: string,
     anonymousSessionId?: string,
-    signal?: AbortSignal,
+    signal?: AbortSignal
   ): Promise<TripSnapshotView> {
     return this.request(
       "/trips",
@@ -81,37 +83,37 @@ export class TravelApiClient {
         ...(anonymousSessionId === undefined
           ? {}
           : { anonymous_session_id: anonymousSessionId }),
-        trip_id: tripId,
+        trip_id: tripId
       },
-      { anonymousSessionId, idempotencyKey, signal },
+      { anonymousSessionId, idempotencyKey, signal }
     );
   }
 
   async getTrip(
     tripId: string,
     anonymousSessionId?: string,
+    signal?: AbortSignal
   ): Promise<TripSnapshotView> {
-    return this.request(
-      `/trips/${tripId}`,
-      "GET",
-      "trip_snapshot_view",
-      undefined,
-      { anonymousSessionId },
+    return withRestoreTimeout(signal, (requestSignal) =>
+      this.request(`/trips/${tripId}`, "GET", "trip_snapshot_view", undefined, {
+        anonymousSessionId,
+        signal: requestSignal
+      })
     );
   }
 
   async getTripShell(tripId: string, signal?: AbortSignal): Promise<TripShell> {
     return withRestoreTimeout(signal, (requestSignal) =>
       this.request(`/trips/${tripId}/shell`, "GET", "trip_shell", undefined, {
-        signal: requestSignal,
-      }),
+        signal: requestSignal
+      })
     );
   }
 
   async getV4ConversationView(
     tripId: string,
     anonymousSessionId?: string,
-    signal?: AbortSignal,
+    signal?: AbortSignal
   ): Promise<TimedConversationView> {
     return withRestoreTimeout(signal, async (requestSignal) => {
       const started = performance.now();
@@ -119,7 +121,7 @@ export class TravelApiClient {
         `/v4/trips/${tripId}/view`,
         "GET",
         undefined,
-        { anonymousSessionId, signal: requestSignal },
+        { anonymousSessionId, signal: requestSignal }
       );
       const raw = await response.text();
       const received = performance.now();
@@ -144,8 +146,8 @@ export class TravelApiClient {
         timings: {
           requestMs: received - started,
           parseMs: parsed - received,
-          validateMs: performance.now() - parsed,
-        },
+          validateMs: performance.now() - parsed
+        }
       };
     });
   }
@@ -155,14 +157,14 @@ export class TravelApiClient {
     beforeVersion: number,
     throughVersion: number,
     anonymousSessionId?: string,
-    signal?: AbortSignal,
+    signal?: AbortSignal
   ): Promise<ConversationHistoryPage> {
     return withRestoreTimeout(signal, async (requestSignal) => {
       const response = await this.requestRaw(
         `/v4/trips/${tripId}/history?before_state_version=${beforeVersion}&through_state_version=${throughVersion}`,
         "GET",
         undefined,
-        { anonymousSessionId, signal: requestSignal },
+        { anonymousSessionId, signal: requestSignal }
       );
       const payload: unknown = await response.json();
       if (!validateV4Contract("conversation_history_page", payload).success) {
@@ -176,14 +178,14 @@ export class TravelApiClient {
     tripId: string,
     messageId: string,
     anonymousSessionId?: string,
-    signal?: AbortSignal,
+    signal?: AbortSignal
   ): Promise<ConversationMessageV4> {
     return withRestoreTimeout(signal, async (requestSignal) => {
       const response = await this.requestRaw(
         `/v4/trips/${tripId}/messages/${messageId}`,
         "GET",
         undefined,
-        { anonymousSessionId, signal: requestSignal },
+        { anonymousSessionId, signal: requestSignal }
       );
       const payload: unknown = await response.json();
       if (!validateV4Contract("conversation_message", payload).success) {
@@ -195,13 +197,13 @@ export class TravelApiClient {
 
   async getV4Trip(
     tripId: string,
-    anonymousSessionId?: string,
+    anonymousSessionId?: string
   ): Promise<ConversationSnapshotV4> {
     const response = await this.requestRaw(
       `/v4/trips/${tripId}`,
       "GET",
       undefined,
-      { anonymousSessionId },
+      { anonymousSessionId }
     );
     const payload: unknown = await response.json();
     if (!validateV4Contract("conversation_snapshot", payload).success) {
@@ -213,7 +215,7 @@ export class TravelApiClient {
   async attachAnonymousTrip(
     anonymousSessionId: string,
     tripId: string,
-    idempotencyKey: string,
+    idempotencyKey: string
   ): Promise<TripSnapshotView> {
     return this.request(
       "/auth/attach-trip",
@@ -221,22 +223,22 @@ export class TravelApiClient {
       "trip_snapshot_view",
       {
         anonymous_session_id: anonymousSessionId,
-        trip_id: tripId,
+        trip_id: tripId
       },
-      { idempotencyKey },
+      { idempotencyKey }
     );
   }
 
   async getV4PlanPreview(
     tripId: string,
     planVersionId: string,
-    anonymousSessionId?: string,
+    anonymousSessionId?: string
   ): Promise<PlannerPlanPreview> {
     const response = await this.requestRaw(
       `/v4/trips/${tripId}/plan-preview?plan_version_id=${encodeURIComponent(planVersionId)}`,
       "GET",
       undefined,
-      { anonymousSessionId },
+      { anonymousSessionId }
     );
     const payload: unknown = await response.json();
     if (!validateV4Contract("planner_plan_preview", payload).success) {
@@ -258,13 +260,13 @@ export class TravelApiClient {
     scopeKind: PlaceIntroductionView["scope_kind"],
     scopeId: string,
     anonymousSessionId?: string,
-    signal?: AbortSignal,
+    signal?: AbortSignal
   ): Promise<PlaceIntroductionView> {
     const response = await this.requestRaw(
       `/v4/trips/${tripId}/place-introductions?scope_kind=${scopeKind}&scope_id=${encodeURIComponent(scopeId)}`,
       "GET",
       undefined,
-      { anonymousSessionId, signal },
+      { anonymousSessionId, signal }
     );
     const payload: unknown = await response.json();
     if (!validateV4Contract("place_introduction_view", payload).success) {
@@ -283,14 +285,14 @@ export class TravelApiClient {
 
   async updateAccount(
     nickname: string,
-    idempotencyKey: string,
+    idempotencyKey: string
   ): Promise<AccountView> {
     return this.request(
       "/account",
       "PATCH",
       "account_view",
       { nickname },
-      { idempotencyKey },
+      { idempotencyKey }
     );
   }
 
@@ -300,17 +302,44 @@ export class TravelApiClient {
 
   async verifySms(
     payload: SmsVerifyRequest,
-    idempotencyKey: string,
+    idempotencyKey: string
   ): Promise<AccountView> {
     return this.request("/auth/verify", "POST", "account_view", payload, {
-      idempotencyKey,
+      idempotencyKey
     });
   }
 
   async logout(idempotencyKey: string): Promise<void> {
     await this.requestRaw("/auth/logout", "POST", undefined, {
-      idempotencyKey,
+      idempotencyKey
     });
+  }
+
+  async getMemories(): Promise<UserMemoryList> {
+    const response = await this.requestRaw("/memories", "GET");
+    const value = await response.json();
+    if (!validateV4Contract("user_memory_list", value).success)
+      throw new BackendRequestError(502, "invalid_memory_contract");
+    return value as UserMemoryList;
+  }
+
+  async createMemory(payload: CreateUserMemory): Promise<UserMemoryList> {
+    const response = await this.requestRaw("/memories", "POST", payload, {
+      idempotencyKey: crypto.randomUUID()
+    });
+    const value = await response.json();
+    if (!validateV4Contract("user_memory_list", value).success)
+      throw new BackendRequestError(502, "invalid_memory_contract");
+    return value as UserMemoryList;
+  }
+
+  async deleteMemory(id: string): Promise<void> {
+    await this.requestRaw(
+      `/memories/${encodeURIComponent(id)}`,
+      "DELETE",
+      undefined,
+      { idempotencyKey: crypto.randomUUID() }
+    );
   }
 
   async getPreferences(): Promise<PreferenceListView> {
@@ -319,7 +348,7 @@ export class TravelApiClient {
 
   async patchPreferences(
     preferences: PreferenceValue[],
-    idempotencyKey: string,
+    idempotencyKey: string
   ): Promise<PreferenceListView> {
     return this.request(
       "/preferences",
@@ -329,24 +358,24 @@ export class TravelApiClient {
         preferences: preferences.map(({ preference_id, value, active }) => ({
           preference_id,
           value,
-          active,
-        })),
+          active
+        }))
       },
-      { idempotencyKey },
+      { idempotencyKey }
     );
   }
 
   async saveColdStartPreference(
     preferences: ColdStartSubmission,
     idempotencyKey: string,
-    anonymousSessionId?: string,
+    anonymousSessionId?: string
   ): Promise<PreferenceListView> {
     return this.request(
       "/preferences/cold-start",
       "POST",
       "preference_list_view",
       preferences,
-      { idempotencyKey, anonymousSessionId },
+      { idempotencyKey, anonymousSessionId }
     );
   }
 
@@ -357,7 +386,7 @@ export class TravelApiClient {
   async deleteAnonymousSession(
     sessionId: string,
     idempotencyKey: string,
-    keepalive = false,
+    keepalive = false
   ): Promise<void> {
     await this.requestRaw(
       `/anonymous-sessions/${sessionId}`,
@@ -366,15 +395,15 @@ export class TravelApiClient {
       {
         anonymousSessionId: sessionId,
         idempotencyKey,
-        keepalive,
-      },
+        keepalive
+      }
     );
   }
 
   websocketUrl(tripId: string): string {
     const base = new URL(
       this.baseUrl || window.location.origin,
-      window.location.origin,
+      window.location.origin
     );
     base.protocol = base.protocol === "https:" ? "wss:" : "ws:";
     const prefix = base.pathname.replace(/\/$/, "");
@@ -395,7 +424,7 @@ export class TravelApiClient {
       | "trip_snapshot_view"
       | "trip_shell",
     body?: unknown,
-    options: RequestOptions = {},
+    options: RequestOptions = {}
   ): Promise<T> {
     const response = await this.requestRaw(path, method, body, options);
     const payload: unknown = await response.json();
@@ -409,7 +438,7 @@ export class TravelApiClient {
     path: string,
     method: string,
     body?: unknown,
-    options: RequestOptions = {},
+    options: RequestOptions = {}
   ): Promise<Response> {
     const headers = new Headers({ Accept: "application/json" });
     if (body !== undefined) headers.set("Content-Type", "application/json");
@@ -423,7 +452,7 @@ export class TravelApiClient {
       credentials: "include",
       keepalive: options.keepalive,
       signal: options.signal,
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      ...(body === undefined ? {} : { body: JSON.stringify(body) })
     });
     if (!response.ok) {
       let code = `http_${response.status}`;
@@ -444,7 +473,7 @@ export class TravelApiClient {
 
 async function withRestoreTimeout<T>(
   signal: AbortSignal | undefined,
-  request: (signal: AbortSignal) => Promise<T>,
+  request: (signal: AbortSignal) => Promise<T>
 ): Promise<T> {
   const controller = new AbortController();
   const cancel = () => controller.abort();
@@ -506,13 +535,13 @@ export interface V4TripRealtimeConnection {
 export function connectTripRealtime(
   url: string,
   callbacks: TripRealtimeCallbacks,
-  createSocket: WebSocketFactory = (target) => new WebSocket(target),
+  createSocket: WebSocketFactory = (target) => new WebSocket(target)
 ): TripRealtimeConnection {
   const socket = createSocket(url);
   socket.addEventListener("open", callbacks.onOpen);
   socket.addEventListener("close", callbacks.onClose);
   socket.addEventListener("error", () =>
-    callbacks.onTransportError("websocket_transport_error"),
+    callbacks.onTransportError("websocket_transport_error")
   );
   socket.addEventListener("message", (message) => {
     let payload: unknown;
@@ -550,20 +579,20 @@ export function connectTripRealtime(
     },
     close() {
       socket.close(1000, "runtime_disposed");
-    },
+    }
   };
 }
 
 export function connectV4TripRealtime(
   url: string,
   callbacks: V4TripRealtimeCallbacks,
-  createSocket: WebSocketFactory = (target) => new WebSocket(target),
+  createSocket: WebSocketFactory = (target) => new WebSocket(target)
 ): V4TripRealtimeConnection {
   const socket = createSocket(url);
   socket.addEventListener("open", callbacks.onOpen);
   socket.addEventListener("close", callbacks.onClose);
   socket.addEventListener("error", () =>
-    callbacks.onTransportError("websocket_transport_error", true),
+    callbacks.onTransportError("websocket_transport_error", true)
   );
   socket.addEventListener("message", (message) => {
     let payload: unknown;
@@ -589,7 +618,7 @@ export function connectV4TripRealtime(
       };
       callbacks.onTransportError(
         typeof transport.code === "string" ? transport.code : "transport_error",
-        transport.retryable === true,
+        transport.retryable === true
       );
       return;
     }
@@ -608,6 +637,6 @@ export function connectV4TripRealtime(
     },
     close() {
       socket.close(1000, "runtime_disposed");
-    },
+    }
   };
 }

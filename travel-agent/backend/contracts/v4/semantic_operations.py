@@ -8,6 +8,7 @@ from typing import Annotated, Literal
 
 from pydantic import AwareDatetime, Field, RootModel, field_validator, model_validator
 
+from backend.contracts.v4.attraction_search import AttractionSearchHints
 from backend.contracts.v4.base import (
     DisplayText,
     Identifier,
@@ -19,7 +20,12 @@ from backend.contracts.v4.content_quality import (
     require_meaningful_label,
     require_meaningful_trip_goal,
 )
+from backend.contracts.v4.dining_search import DiningSearchHints
 from backend.contracts.v4.enums import ConfidenceLevel, SemanticOperationStatus
+from backend.contracts.v4.lodging_preferences import (
+    HotelQualityTier,
+    LodgingExample,
+)
 
 
 class SemanticTargetV4(StrEnum):
@@ -150,6 +156,7 @@ class SetExistingBookingOperation(SemanticOperationProposalBase):
 
 
 class SelectPreferenceDirectionOperation(SemanticOperationProposalBase):
+    replace_lodging_area_choices: bool = False
     operation_type: Literal["select_preference_direction"]
     domain: SemanticDomainV4
     direction_id: Identifier
@@ -157,6 +164,9 @@ class SelectPreferenceDirectionOperation(SemanticOperationProposalBase):
     description: DisplayText | None = None
     tags: list[Identifier] = Field(default_factory=list, max_length=8)
     search_query: DisplayText | None = None
+    attraction_search_hints: AttractionSearchHints | None = None
+    dining_search_hints: DiningSearchHints | None = None
+    lodging_examples: list[LodgingExample] = Field(default_factory=list, max_length=3)
 
     @field_validator("label")
     @classmethod
@@ -165,6 +175,7 @@ class SelectPreferenceDirectionOperation(SemanticOperationProposalBase):
 
 
 class ExcludePreferenceDirectionOperation(SemanticOperationProposalBase):
+    replace_lodging_area_choices: bool = False
     operation_type: Literal["exclude_preference_direction"]
     domain: SemanticDomainV4
     direction_id: Identifier
@@ -172,6 +183,9 @@ class ExcludePreferenceDirectionOperation(SemanticOperationProposalBase):
     description: DisplayText | None = None
     tags: list[Identifier] = Field(default_factory=list, max_length=8)
     search_query: DisplayText | None = None
+    attraction_search_hints: AttractionSearchHints | None = None
+    dining_search_hints: DiningSearchHints | None = None
+    lodging_examples: list[LodgingExample] = Field(default_factory=list, max_length=3)
 
     @field_validator("label")
     @classmethod
@@ -180,6 +194,8 @@ class ExcludePreferenceDirectionOperation(SemanticOperationProposalBase):
 
 
 class SetLodgingClassPreferenceOperation(SemanticOperationProposalBase):
+    hotel_quality_tiers: list[HotelQualityTier] | None = Field(default=None, max_length=4)
+    property_types: list[Literal["酒店", "民宿"]] | None = Field(default=None, max_length=2)
     operation_type: Literal["set_lodging_class_preference"]
     domain: Literal[SemanticDomainV4.LODGING]
     hotel_quality_tier: Literal["economy", "comfort", "upscale", "luxury"] | None = None
@@ -192,6 +208,8 @@ class SetLodgingClassPreferenceOperation(SemanticOperationProposalBase):
         if not any(
             (
                 self.hotel_quality_tier,
+                self.hotel_quality_tiers,
+                self.property_types,
                 self.property_type,
                 self.nightly_budget_minimum_minor is not None,
                 self.nightly_budget_maximum_minor is not None,

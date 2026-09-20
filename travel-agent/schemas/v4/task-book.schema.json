@@ -406,6 +406,20 @@
           "default": null,
           "title": "Hotel Quality Tier"
         },
+        "hotel_quality_tiers": {
+          "items": {
+            "enum": [
+              "economy",
+              "comfort",
+              "upscale",
+              "luxury"
+            ],
+            "type": "string"
+          },
+          "maxItems": 4,
+          "title": "Hotel Quality Tiers",
+          "type": "array"
+        },
         "nightly_budget": {
           "anyOf": [
             {
@@ -428,9 +442,40 @@
           },
           "title": "Property Type Preferences",
           "type": "array"
+        },
+        "search_examples": {
+          "items": {
+            "$ref": "#/$defs/LodgingExample"
+          },
+          "maxItems": 7,
+          "title": "Search Examples",
+          "type": "array"
         }
       },
       "title": "LodgingDirection",
+      "type": "object"
+    },
+    "LodgingExample": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 80,
+          "minLength": 2,
+          "title": "Name",
+          "type": "string"
+        },
+        "search_keyword": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Search Keyword",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "search_keyword"
+      ],
+      "title": "LodgingExample",
       "type": "object"
     },
     "MoneyRange": {

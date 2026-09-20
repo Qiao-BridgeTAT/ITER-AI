@@ -21,7 +21,7 @@ function updatedLabel(updatedAt: string, now = new Date()): string {
 
   const updated = new Date(updatedTime);
   const elapsedDays = Math.floor(
-    Math.max(0, now.getTime() - updatedTime) / 86_400_000,
+    Math.max(0, now.getTime() - updatedTime) / 86_400_000
   );
   if (elapsedDays === 0) return "今天更新";
   if (elapsedDays === 1) return "昨天更新";
@@ -32,10 +32,10 @@ function updatedLabel(updatedAt: string, now = new Date()): string {
 export function tripRows(
   history: readonly TripListItem[],
   currentTripId: string,
-  limit = MAX_VISIBLE_TRIPS,
+  limit = MAX_VISIBLE_TRIPS
 ): DisplayTrip[] {
   const sorted = [...history].sort(
-    (left, right) => timestamp(right.updated_at) - timestamp(left.updated_at),
+    (left, right) => timestamp(right.updated_at) - timestamp(left.updated_at)
   );
   const current = sorted.find((trip) => trip.trip_id === currentTripId);
   const visible = sorted.slice(0, limit);
@@ -50,6 +50,6 @@ export function tripRows(
     title: trip.title,
     phase: trip.phase,
     updatedLabel: updatedLabel(trip.updated_at),
-    current: trip.trip_id === currentTripId,
+    current: trip.trip_id === currentTripId
   }));
 }

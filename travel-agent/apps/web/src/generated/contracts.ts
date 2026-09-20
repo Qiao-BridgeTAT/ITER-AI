@@ -53,7 +53,7 @@ import type {
   RestaurantIntent,
   TransportMode,
   TripPhase,
-  VersionStatus,
+  VersionStatus
 } from "./enums";
 
 // prettier-ignore
@@ -202,6 +202,18 @@ export interface AttractionFeedbackSubmitCommand {
   "request_id": string;
   "schema_version": "2.0.0";
   "type": "attraction_feedback_submit";
+}
+
+// prettier-ignore
+export interface AttractionSearchHints {
+  "representative_places"?: Array<AttractionSearchPlace>;
+  "search_queries"?: Array<string>;
+}
+
+// prettier-ignore
+export interface AttractionSearchPlace {
+  "name": string;
+  "subcategory": string;
 }
 
 // prettier-ignore
@@ -1014,6 +1026,7 @@ export interface DiningPreferencesSubmitCommand {
 
 // prettier-ignore
 export interface DiscoveryPreferenceDirection {
+  "attraction_search_hints"?: AttractionSearchHints | null;
   "description"?: string | null;
   "direction_id": string;
   "label": string;

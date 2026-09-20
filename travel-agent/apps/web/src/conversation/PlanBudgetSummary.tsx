@@ -1,14 +1,14 @@
+import { useEffect, useId, useRef, useState, type ComponentType } from "react";
+import { createPortal } from "react-dom";
 import {
   Bed,
   Car,
   ForkKnife,
-  Info,
   Ticket,
+  Info,
   X,
-  type IconProps,
+  type IconProps
 } from "@phosphor-icons/react";
-import { useEffect, useId, useRef, useState, type ComponentType } from "react";
-import { createPortal } from "react-dom";
 
 import type { CostCategory } from "../generated/enums";
 
@@ -57,35 +57,35 @@ const BUDGET_CATEGORIES: readonly BudgetCategoryPresentation[] = [
     className: "transport",
     label: "交通",
     note: "行程内移动",
-    icon: Car,
+    icon: Car
   },
   {
     category: "attraction_tickets",
     className: "tickets",
     label: "景点门票",
     note: "需购票项目",
-    icon: Ticket,
+    icon: Ticket
   },
   {
     category: "dining",
     className: "dining",
     label: "饮食",
     note: "正餐与途中补给",
-    icon: ForkKnife,
+    icon: ForkKnife
   },
   {
     category: "lodging",
     className: "lodging",
     label: "住宿",
     note: "按同行分摊口径",
-    icon: Bed,
-  },
+    icon: Bed
+  }
 ];
 
 const CURRENCY_FORMATTER = new Intl.NumberFormat("zh-CN");
 
 export function PlanBudgetSummary({
-  estimate,
+  estimate
 }: {
   estimate: PlanBudgetEstimate | null | undefined;
 }) {
@@ -93,15 +93,15 @@ export function PlanBudgetSummary({
   if (estimate == null) return null;
 
   const itemsByCategory = new Map(
-    estimate.items.map((item) => [item.category, item]),
+    estimate.items.map((item) => [item.category, item])
   );
   const visibleItems = BUDGET_CATEGORIES.map((presentation) => ({
     presentation,
-    item: itemsByCategory.get(presentation.category),
+    item: itemsByCategory.get(presentation.category)
   }));
   const pricedItems = visibleItems.filter(
     (entry): entry is typeof entry & { item: PlanBudgetItem } =>
-      entry.item?.amount_per_person != null,
+      entry.item?.amount_per_person != null
   );
   const hasKnownAmount = pricedItems.length > 0;
   const shownTotal =
@@ -111,7 +111,7 @@ export function PlanBudgetSummary({
     .map(({ presentation, item }) =>
       item?.amount_per_person
         ? `${presentation.label}${formatBudgetRange(item.amount_per_person)}`
-        : `${presentation.label}${item?.missing_reason ?? "暂未估算"}`,
+        : `${presentation.label}${item?.missing_reason ?? "暂未估算"}`
     )
     .join("，");
 
@@ -127,7 +127,7 @@ export function PlanBudgetSummary({
         <div className="inline-plan-budget-total">
           <small>
             {visibleItems.some(
-              ({ item }) => item == null || item.availability !== "available",
+              ({ item }) => item == null || item.availability !== "available"
             )
               ? "已知参考费用"
               : "参考合计"}
@@ -246,9 +246,9 @@ function BudgetDetails({ items }: { items: PlanBudgetDetail[] }) {
                 16,
                 Math.min(
                   rect.bottom + 8,
-                  window.innerHeight - Math.min(460, window.innerHeight - 32),
-                ),
-              ),
+                  window.innerHeight - Math.min(460, window.innerHeight - 32)
+                )
+              )
             });
           setOpen((value) => !value);
         }}
@@ -283,7 +283,7 @@ function BudgetDetails({ items }: { items: PlanBudgetDetail[] }) {
               <div className="inline-plan-budget-details-scroll">
                 {BUDGET_CATEGORIES.map(({ category, label }) => {
                   const lines = items.filter(
-                    (item) => item.category === category,
+                    (item) => item.category === category
                   );
                   if (!lines.length) return null;
                   return (
@@ -318,7 +318,7 @@ function BudgetDetails({ items }: { items: PlanBudgetDetail[] }) {
                 <p>— 表示价格暂缺，不计入合计。参考价以实际消费为准。</p>
               </div>
             </div>,
-            document.body,
+            document.body
           )
         : null}
     </>
@@ -343,10 +343,10 @@ function midpoint(range: PlanBudgetRange | null | undefined): number {
 }
 
 function sumBudgetRanges(
-  ranges: Array<PlanBudgetRange | null | undefined>,
+  ranges: Array<PlanBudgetRange | null | undefined>
 ): PlanBudgetRange | null {
   const known = ranges.filter(
-    (range): range is PlanBudgetRange => range != null,
+    (range): range is PlanBudgetRange => range != null
   );
   if (known.length === 0) return null;
   const currency = known[0].currency ?? "CNY";
@@ -355,7 +355,7 @@ function sumBudgetRanges(
   return {
     currency,
     minimum_fen: known.reduce((total, range) => total + range.minimum_fen, 0),
-    maximum_fen: known.reduce((total, range) => total + range.maximum_fen, 0),
+    maximum_fen: known.reduce((total, range) => total + range.maximum_fen, 0)
   };
 }
 

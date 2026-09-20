@@ -1,0 +1,65 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/dining-search-attempt.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "admitted_count": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Admitted Count",
+      "type": "integer"
+    },
+    "failure_code": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Failure Code"
+    },
+    "page": {
+      "maximum": 2,
+      "minimum": 1,
+      "title": "Page",
+      "type": "integer"
+    },
+    "query_key": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Query Key",
+      "type": "string"
+    },
+    "returned_count": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Returned Count",
+      "type": "integer"
+    },
+    "status": {
+      "enum": [
+        "complete",
+        "partial",
+        "empty",
+        "unavailable",
+        "budget_exhausted"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "query_key",
+    "page",
+    "status"
+  ],
+  "title": "DiningSearchAttempt",
+  "type": "object"
+}

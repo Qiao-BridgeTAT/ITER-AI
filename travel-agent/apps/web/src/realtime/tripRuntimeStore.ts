@@ -4,12 +4,12 @@ import { validatePublicContract } from "../contracts/validation";
 import type {
   ReplayCursorFixture,
   ServerEvent,
-  TripState,
+  TripState
 } from "../generated/contracts";
 import type {
   ConversationEventV4,
   ConversationMessageV4,
-  ConversationSnapshotV4,
+  ConversationSnapshotV4
 } from "../generated/v4/contracts";
 import {
   createEventReplayCursor,
@@ -18,13 +18,13 @@ import {
   reduceServerEvent,
   type EventReplayAction,
   type EventReplayCursor,
-  type RuntimePresentation,
+  type RuntimePresentation
 } from "./eventReducer";
 import {
   aggregateFromV4Snapshot,
   createV4RuntimeAggregate,
   reduceV4Event,
-  type V4RuntimeAggregate,
+  type V4RuntimeAggregate
 } from "./v4EventReducer";
 
 export type ConnectionStatus =
@@ -45,13 +45,13 @@ export interface TripRuntimeState {
   recoverFromV4Snapshot: (snapshot: ConversationSnapshotV4) => boolean;
   addV4HistoryMessages: (
     tripId: string,
-    messages: ConversationMessageV4[],
+    messages: ConversationMessageV4[]
   ) => boolean;
   receiveV4Event: (event: ConversationEventV4) => EventReplayAction;
   markDisconnected: () => void;
   recoverFromSnapshot: (
     snapshot: TripState,
-    cursor?: ReplayCursorFixture,
+    cursor?: ReplayCursorFixture
   ) => boolean;
   seedCursorForReplay: (cursor: ReplayCursorFixture) => void;
   reset: () => void;
@@ -76,11 +76,11 @@ export function createTripRuntimeStore(): TripRuntimeStore {
           conversationMessages: snapshot.conversation_messages ?? [],
           mapUpdate: snapshot.map_view ?? null,
           itinerary: snapshot.itinerary ?? null,
-          issues: snapshot.issues ?? [],
+          issues: snapshot.issues ?? []
         },
         connectionStatus: "connected",
         recoveryRequired: false,
-        lastEventAction: null,
+        lastEventAction: null
       });
       return true;
     },
@@ -92,8 +92,8 @@ export function createTripRuntimeStore(): TripRuntimeStore {
           streamText: "",
           latestError: null,
           latestErrorRequestId: null,
-          generationStatus: null,
-        },
+          generationStatus: null
+        }
       }));
     },
     receiveEvent: (event) => {
@@ -109,14 +109,14 @@ export function createTripRuntimeStore(): TripRuntimeStore {
         current.cursor,
         current.tripState,
         current.presentation,
-        event,
+        event
       );
       if (result.action === "refresh_snapshot") {
         set({
           presentation: result.presentation,
           connectionStatus: "recovering",
           recoveryRequired: true,
-          lastEventAction: result.action,
+          lastEventAction: result.action
         });
         return result.action;
       }
@@ -124,7 +124,7 @@ export function createTripRuntimeStore(): TripRuntimeStore {
         cursor: result.cursor,
         tripState: result.tripState,
         presentation: result.presentation,
-        lastEventAction: result.action,
+        lastEventAction: result.action
       });
       return result.action;
     },
@@ -138,7 +138,7 @@ export function createTripRuntimeStore(): TripRuntimeStore {
         v4: aggregate,
         connectionStatus: "connected",
         recoveryRequired: false,
-        lastEventAction: null,
+        lastEventAction: null
       });
       return true;
     },
@@ -152,7 +152,7 @@ export function createTripRuntimeStore(): TripRuntimeStore {
         v4: aggregate,
         connectionStatus: "connected",
         recoveryRequired: false,
-        lastEventAction: null,
+        lastEventAction: null
       });
       return true;
     },
@@ -163,15 +163,15 @@ export function createTripRuntimeStore(): TripRuntimeStore {
         messages.some(
           (message) =>
             message.trip_id !== tripId ||
-            message.state_version > current.cursor.localStateVersion,
+            message.state_version > current.cursor.localStateVersion
         )
       )
         return false;
       const existing = new Map(
         current.presentation.messages.map((message) => [
           message.message_id,
-          message,
-        ]),
+          message
+        ])
       );
       for (const message of messages) {
         const prior = existing.get(message.message_id);
@@ -188,10 +188,10 @@ export function createTripRuntimeStore(): TripRuntimeStore {
                 a.state_version - b.state_version ||
                 Number(a.role !== "user") - Number(b.role !== "user") ||
                 a.created_at.localeCompare(b.created_at) ||
-                a.message_id.localeCompare(b.message_id),
-            ),
-          },
-        },
+                a.message_id.localeCompare(b.message_id)
+            )
+          }
+        }
       });
       return true;
     },
@@ -210,14 +210,15 @@ export function createTripRuntimeStore(): TripRuntimeStore {
           tripState: reduced.tripState,
           pendingInteraction: reduced.pendingInteraction,
           plannerWorkspace: reduced.plannerWorkspace,
+          referenceLinks: reduced.referenceLinks,
           lastOutboxCursor: reduced.lastOutboxCursor,
           cursor: reduced.cursor,
-          presentation: reduced.presentation,
+          presentation: reduced.presentation
         },
         connectionStatus:
           reduced.action === "refresh_snapshot" ? "recovering" : "connected",
         recoveryRequired: reduced.action === "refresh_snapshot",
-        lastEventAction: reduced.action,
+        lastEventAction: reduced.action
       });
       return reduced.action;
     },
@@ -237,18 +238,18 @@ export function createTripRuntimeStore(): TripRuntimeStore {
           conversationMessages: snapshot.conversation_messages ?? [],
           mapUpdate: snapshot.map_view ?? null,
           itinerary: snapshot.itinerary ?? state.presentation.itinerary,
-          issues: snapshot.issues ?? state.presentation.issues,
+          issues: snapshot.issues ?? state.presentation.issues
         },
         connectionStatus: "connected",
         recoveryRequired: false,
-        lastEventAction: null,
+        lastEventAction: null
       }));
       return true;
     },
     seedCursorForReplay: (cursor) => {
       set({ cursor: cursorFromFixture(cursor) });
     },
-    reset: () => set(createInitialRuntimeState()),
+    reset: () => set(createInitialRuntimeState())
   }));
 }
 
@@ -269,20 +270,20 @@ function createInitialRuntimeState(): Pick<
     connectionStatus: "idle",
     recoveryRequired: false,
     lastEventAction: null,
-    v4: createV4RuntimeAggregate(),
+    v4: createV4RuntimeAggregate()
   };
 }
 
 function cursorFromSnapshot(
   snapshot: TripState,
-  fixture?: ReplayCursorFixture,
+  fixture?: ReplayCursorFixture
 ): EventReplayCursor {
   if (fixture !== undefined) {
     return cursorFromFixture(fixture);
   }
   return {
     ...createEventReplayCursor(snapshot.state_version),
-    currentGenerationId: snapshot.active_generation_id ?? null,
+    currentGenerationId: snapshot.active_generation_id ?? null
   };
 }
 
@@ -292,6 +293,6 @@ function cursorFromFixture(fixture: ReplayCursorFixture): EventReplayCursor {
     currentGenerationId: fixture.current_generation_id ?? null,
     lastSequence: fixture.last_sequence ?? 0,
     seenEventIds: new Set(fixture.seen_event_ids ?? []),
-    expectedGenerationRequestId: null,
+    expectedGenerationRequestId: null
   };
 }

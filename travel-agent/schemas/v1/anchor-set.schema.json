@@ -1,0 +1,92 @@
+{
+  "$defs": {
+    "Anchor": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Anchor Id",
+          "type": "string"
+        },
+        "fixed_event_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fixed Event Id"
+        },
+        "lodging_weight": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Lodging Weight",
+          "type": "integer"
+        },
+        "place_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Place Id"
+        },
+        "reason": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/AnchorRole"
+        }
+      },
+      "required": [
+        "anchor_id",
+        "role",
+        "lodging_weight",
+        "reason"
+      ],
+      "title": "Anchor",
+      "type": "object"
+    },
+    "AnchorRole": {
+      "enum": [
+        "fixed_event",
+        "fixed_hotel",
+        "must_attraction",
+        "want_attraction",
+        "destination_restaurant",
+        "convenient_attraction",
+        "convenient_restaurant"
+      ],
+      "title": "AnchorRole",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/anchor-set.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "anchors": {
+      "items": {
+        "$ref": "#/$defs/Anchor"
+      },
+      "title": "Anchors",
+      "type": "array"
+    }
+  },
+  "title": "AnchorSet",
+  "type": "object"
+}

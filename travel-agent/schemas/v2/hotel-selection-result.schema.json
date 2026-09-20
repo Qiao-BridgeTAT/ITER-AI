@@ -1,0 +1,665 @@
+{
+  "$defs": {
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    },
+    "DataAvailability": {
+      "enum": [
+        "available",
+        "partial",
+        "missing"
+      ],
+      "title": "DataAvailability",
+      "type": "string"
+    },
+    "Gcj02Coordinates": {
+      "additionalProperties": false,
+      "description": "Canonical coordinates used by every internal planning contract.",
+      "properties": {
+        "coord_system": {
+          "const": "gcj_02",
+          "title": "Coord System",
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Gcj02Coordinates",
+      "type": "object"
+    },
+    "HotelDecisionStatus": {
+      "enum": [
+        "not_required",
+        "awaiting_user",
+        "final"
+      ],
+      "title": "HotelDecisionStatus",
+      "type": "string"
+    },
+    "HotelPriceBand": {
+      "enum": [
+        "budget",
+        "mid_range",
+        "upscale",
+        "luxury"
+      ],
+      "title": "HotelPriceBand",
+      "type": "string"
+    },
+    "HotelRouteBaseline": {
+      "additionalProperties": false,
+      "properties": {
+        "availability": {
+          "$ref": "#/$defs/DataAvailability"
+        },
+        "coordinates": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Gcj02Coordinates"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "hotel_place_id": {
+          "format": "uuid",
+          "title": "Hotel Place Id",
+          "type": "string"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "source_reference_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Reference Ids",
+          "type": "array"
+        },
+        "strategy_id": {
+          "format": "uuid",
+          "title": "Strategy Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hotel_place_id",
+        "strategy_id",
+        "availability",
+        "source_reference_ids"
+      ],
+      "title": "HotelRouteBaseline",
+      "type": "object"
+    },
+    "HotelSelectionCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Address"
+        },
+        "availability": {
+          "$ref": "#/$defs/DataAvailability"
+        },
+        "brand_name": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Brand Name"
+        },
+        "check_in": {
+          "format": "date",
+          "title": "Check In",
+          "type": "string"
+        },
+        "check_out": {
+          "format": "date",
+          "title": "Check Out",
+          "type": "string"
+        },
+        "coordinates": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Gcj02Coordinates"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "detail_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail Url"
+        },
+        "distance_to_strategy_center_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Distance To Strategy Center M"
+        },
+        "fetched_at": {
+          "format": "date-time",
+          "title": "Fetched At",
+          "type": "string"
+        },
+        "fit_reason": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Fit Reason",
+          "type": "string"
+        },
+        "hotel_place_id": {
+          "format": "uuid",
+          "title": "Hotel Place Id",
+          "type": "string"
+        },
+        "hotel_type": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hotel Type"
+        },
+        "image_urls": {
+          "default": [],
+          "items": {
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Image Urls",
+          "type": "array"
+        },
+        "missing_fields": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Missing Fields",
+          "type": "array"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "night_count": {
+          "maximum": 4,
+          "minimum": 1,
+          "title": "Night Count",
+          "type": "integer"
+        },
+        "price_band": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HotelPriceBand"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "provider": {
+          "$ref": "#/$defs/ProviderCode"
+        },
+        "rating": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rating"
+        },
+        "room_price": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "score": {
+          "$ref": "#/$defs/HotelSelectionScore"
+        },
+        "source_hotel_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source Hotel Id",
+          "type": "string"
+        },
+        "source_offer_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source Offer Id",
+          "type": "string"
+        },
+        "source_reference_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Reference Ids",
+          "type": "array"
+        },
+        "strategy_id": {
+          "format": "uuid",
+          "title": "Strategy Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hotel_place_id",
+        "strategy_id",
+        "provider",
+        "source_hotel_id",
+        "source_offer_id",
+        "name",
+        "check_in",
+        "check_out",
+        "night_count",
+        "availability",
+        "score",
+        "fit_reason",
+        "source_reference_ids",
+        "fetched_at"
+      ],
+      "title": "HotelSelectionCandidate",
+      "type": "object"
+    },
+    "HotelSelectionScore": {
+      "additionalProperties": false,
+      "properties": {
+        "commute_fit": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Commute Fit",
+          "type": "integer"
+        },
+        "fact_completeness": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Fact Completeness",
+          "type": "integer"
+        },
+        "preference_boost": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Preference Boost",
+          "type": "integer"
+        },
+        "price_fit": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Price Fit",
+          "type": "integer"
+        },
+        "rating_fit": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Rating Fit",
+          "type": "integer"
+        },
+        "strategy_match": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Strategy Match",
+          "type": "integer"
+        },
+        "total": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Total",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "strategy_match",
+        "commute_fit",
+        "price_fit",
+        "rating_fit",
+        "fact_completeness",
+        "preference_boost",
+        "total"
+      ],
+      "title": "HotelSelectionScore",
+      "type": "object"
+    },
+    "HotelSelectionSource": {
+      "enum": [
+        "user_choice",
+        "agent_delegated",
+        "prebooked"
+      ],
+      "title": "HotelSelectionSource",
+      "type": "string"
+    },
+    "ProviderCode": {
+      "enum": [
+        "amap",
+        "baidu",
+        "flyai",
+        "weather",
+        "city_content",
+        "official",
+        "manual"
+      ],
+      "title": "ProviderCode",
+      "type": "string"
+    },
+    "ProviderFailureCode": {
+      "enum": [
+        "invalid_request",
+        "authentication_failed",
+        "permission_denied",
+        "rate_limited",
+        "timeout",
+        "unavailable",
+        "malformed_response",
+        "upstream_error"
+      ],
+      "title": "ProviderFailureCode",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/hotel-selection-result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "algorithm_version": {
+      "pattern": "^[1-9]\\d*\\.\\d+\\.\\d+$",
+      "title": "Algorithm Version",
+      "type": "string"
+    },
+    "candidates": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/HotelSelectionCandidate"
+      },
+      "maxItems": 7,
+      "title": "Candidates",
+      "type": "array"
+    },
+    "check_in": {
+      "format": "date",
+      "title": "Check In",
+      "type": "string"
+    },
+    "check_out": {
+      "format": "date",
+      "title": "Check Out",
+      "type": "string"
+    },
+    "city_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "City Id",
+      "type": "string"
+    },
+    "decision_status": {
+      "$ref": "#/$defs/HotelDecisionStatus"
+    },
+    "degradation_reasons": {
+      "default": [],
+      "items": {
+        "maxLength": 500,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Degradation Reasons",
+      "type": "array"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "input_state_version": {
+      "minimum": 0,
+      "title": "Input State Version",
+      "type": "integer"
+    },
+    "missing_reason": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Missing Reason"
+    },
+    "night_count": {
+      "maximum": 4,
+      "minimum": 0,
+      "title": "Night Count",
+      "type": "integer"
+    },
+    "provider_failure_code": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ProviderFailureCode"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "route_baseline": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/HotelRouteBaseline"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "selected_hotel_place_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Selected Hotel Place Id"
+    },
+    "selected_strategy_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Selected Strategy Id"
+    },
+    "selection_source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/HotelSelectionSource"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "status": {
+      "$ref": "#/$defs/DataAvailability"
+    },
+    "target_candidate_count": {
+      "const": 7,
+      "default": 7,
+      "title": "Target Candidate Count",
+      "type": "integer"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "algorithm_version",
+    "request_id",
+    "trip_id",
+    "input_state_version",
+    "city_id",
+    "check_in",
+    "check_out",
+    "night_count",
+    "status",
+    "decision_status",
+    "generated_at"
+  ],
+  "title": "HotelSelectionResult",
+  "type": "object"
+}

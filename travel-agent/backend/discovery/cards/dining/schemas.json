@@ -1,0 +1,386 @@
+{
+  "A_city_restaurant_seeds": {
+    "type": "object",
+    "properties": {
+      "restaurants": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "local_food_hint": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "local_food_hint"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 3
+      },
+      "limitation": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "restaurants",
+      "limitation"
+    ],
+    "additionalProperties": false
+  },
+  "B_dining_preference_directions": {
+    "type": "object",
+    "properties": {
+      "directions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "local_specialty",
+                "regular"
+              ]
+            },
+            "representative_restaurants": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 1
+            },
+            "search_keywords": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": [
+            "label",
+            "description",
+            "kind",
+            "representative_restaurants",
+            "search_keywords"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "directions"
+    ],
+    "additionalProperties": false
+  },
+  "C_group_classify_shortlist": {
+    "type": "object",
+    "properties": {
+      "groups": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "anchor_candidate_key": {
+              "type": "string"
+            },
+            "brand_name": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "brand_basis": {
+              "type": "string",
+              "enum": [
+                "explicit_provider",
+                "name_pattern",
+                "insufficient"
+              ]
+            },
+            "brand_evidence": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "candidate_key": {
+                    "type": "string"
+                  },
+                  "field": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "candidate_key",
+                  "field"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "members": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "candidate_key": {
+                    "type": "string"
+                  },
+                  "primary_type": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "broad_type": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "type_evidence_fields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "candidate_key",
+                  "primary_type",
+                  "broad_type",
+                  "type_evidence_fields"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "anchor_candidate_key",
+            "brand_name",
+            "brand_basis",
+            "brand_evidence",
+            "members"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "shortlist_anchor_keys": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "shortfall": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "groups",
+      "shortlist_anchor_keys",
+      "shortfall"
+    ],
+    "additionalProperties": false
+  },
+  "D_final_restaurant_selection": {
+    "type": "object",
+    "properties": {
+      "selected": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "group_anchor_candidate_key": {
+              "type": "string"
+            },
+            "candidate_key": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "group_anchor_candidate_key",
+            "candidate_key"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "shortfall": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "selected",
+      "shortfall"
+    ],
+    "additionalProperties": false
+  },
+  "E_supplement_search": {
+    "type": "object",
+    "properties": {
+      "queries": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "query_kind": {
+              "type": "string",
+              "enum": [
+                "named_restaurant",
+                "keyword"
+              ]
+            },
+            "keyword": {
+              "type": "string"
+            },
+            "source_kind": {
+              "type": "string",
+              "enum": [
+                "local_specialty",
+                "regular"
+              ]
+            },
+            "related_direction_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "gap_to_fill": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query_kind",
+            "keyword",
+            "source_kind",
+            "related_direction_ids",
+            "gap_to_fill"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "limitation": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "queries",
+      "limitation"
+    ],
+    "additionalProperties": false
+  },
+  "F_brand_groups_only": {
+    "type": "object",
+    "properties": {
+      "groups": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "brand_name": {
+              "type": "string"
+            },
+            "member_keys": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "string"
+              }
+            },
+            "basis": {
+              "type": "string",
+              "enum": [
+                "name_pattern",
+                "explicit_provider"
+              ]
+            }
+          },
+          "required": [
+            "brand_name",
+            "member_keys",
+            "basis"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "groups"
+    ],
+    "additionalProperties": false
+  },
+  "G_store_primary_types": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "candidate_key": {
+              "type": "string"
+            },
+            "primary_type": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "broad_type": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "evidence_fields": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "name",
+                  "provider_category",
+                  "provider_food_tags",
+                  "provider_alias"
+                ]
+              }
+            }
+          },
+          "required": [
+            "candidate_key",
+            "primary_type",
+            "broad_type",
+            "evidence_fields"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "items"
+    ],
+    "additionalProperties": false
+  }
+}

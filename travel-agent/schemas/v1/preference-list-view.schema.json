@@ -1,0 +1,58 @@
+{
+  "$defs": {
+    "PreferenceValue": {
+      "additionalProperties": false,
+      "properties": {
+        "active": {
+          "default": true,
+          "title": "Active",
+          "type": "boolean"
+        },
+        "key": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Key",
+          "type": "string"
+        },
+        "preference_id": {
+          "format": "uuid",
+          "title": "Preference Id",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "preference_id",
+        "key",
+        "value",
+        "updated_at"
+      ],
+      "title": "PreferenceValue",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/preference-list-view.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "preferences": {
+      "items": {
+        "$ref": "#/$defs/PreferenceValue"
+      },
+      "title": "Preferences",
+      "type": "array"
+    }
+  },
+  "title": "PreferenceListView",
+  "type": "object"
+}

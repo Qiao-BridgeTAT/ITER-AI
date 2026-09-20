@@ -1,0 +1,492 @@
+{
+  "$defs": {
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    },
+    "DataAvailability": {
+      "enum": [
+        "available",
+        "partial",
+        "missing"
+      ],
+      "title": "DataAvailability",
+      "type": "string"
+    },
+    "Gcj02Coordinates": {
+      "additionalProperties": false,
+      "description": "Canonical coordinates used by every internal planning contract.",
+      "properties": {
+        "coord_system": {
+          "const": "gcj_02",
+          "title": "Coord System",
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Gcj02Coordinates",
+      "type": "object"
+    },
+    "LodgingBaseKind": {
+      "enum": [
+        "area",
+        "transit_node",
+        "fixed_hotel"
+      ],
+      "title": "LodgingBaseKind",
+      "type": "string"
+    },
+    "LodgingBaseStrategy": {
+      "additionalProperties": false,
+      "properties": {
+        "advantages": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Advantages",
+          "type": "array"
+        },
+        "applicable_conditions": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Applicable Conditions",
+          "type": "array"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "center": {
+          "$ref": "#/$defs/Gcj02Coordinates"
+        },
+        "commute": {
+          "$ref": "#/$defs/LodgingCommuteSummary"
+        },
+        "covered_anchor_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Covered Anchor Ids",
+          "type": "array"
+        },
+        "covered_cluster_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Covered Cluster Ids",
+          "type": "array"
+        },
+        "explanation": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "fixed_hotel_node_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fixed Hotel Node Id"
+        },
+        "kind": {
+          "$ref": "#/$defs/LodgingBaseKind"
+        },
+        "label": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "rank": {
+          "maximum": 3,
+          "minimum": 1,
+          "title": "Rank",
+          "type": "integer"
+        },
+        "score": {
+          "$ref": "#/$defs/LodgingStrategyScore"
+        },
+        "source_reference_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Reference Ids",
+          "type": "array"
+        },
+        "strategy_id": {
+          "format": "uuid",
+          "title": "Strategy Id",
+          "type": "string"
+        },
+        "tradeoffs": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Tradeoffs",
+          "type": "array"
+        },
+        "typical_nightly_price": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "strategy_id",
+        "rank",
+        "kind",
+        "label",
+        "center",
+        "covered_cluster_ids",
+        "covered_anchor_ids",
+        "commute",
+        "score",
+        "advantages",
+        "tradeoffs",
+        "applicable_conditions",
+        "explanation",
+        "source_reference_ids"
+      ],
+      "title": "LodgingBaseStrategy",
+      "type": "object"
+    },
+    "LodgingCommuteSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "additional_minutes_vs_fastest": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Additional Minutes Vs Fastest"
+        },
+        "assessed_cluster_count": {
+          "maximum": 16,
+          "minimum": 1,
+          "title": "Assessed Cluster Count",
+          "type": "integer"
+        },
+        "known_cluster_count": {
+          "maximum": 16,
+          "minimum": 0,
+          "title": "Known Cluster Count",
+          "type": "integer"
+        },
+        "maximum_minutes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum Minutes"
+        },
+        "typical_last_mile_walk_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Typical Last Mile Walk M"
+        },
+        "typical_minutes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Typical Minutes"
+        },
+        "typical_taxi_cost": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "typical_transfers": {
+          "anyOf": [
+            {
+              "maximum": 12,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Typical Transfers"
+        }
+      },
+      "required": [
+        "assessed_cluster_count",
+        "known_cluster_count"
+      ],
+      "title": "LodgingCommuteSummary",
+      "type": "object"
+    },
+    "LodgingStrategyScore": {
+      "additionalProperties": false,
+      "properties": {
+        "comfort_fit": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Comfort Fit",
+          "type": "integer"
+        },
+        "coverage": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Coverage",
+          "type": "integer"
+        },
+        "quality_fit": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Quality Fit",
+          "type": "integer"
+        },
+        "route_simplicity": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Route Simplicity",
+          "type": "integer"
+        },
+        "total": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Total",
+          "type": "integer"
+        },
+        "transport_fit": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Transport Fit",
+          "type": "integer"
+        },
+        "value_fit": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Value Fit",
+          "type": "integer"
+        },
+        "walking_fit": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Walking Fit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "coverage",
+        "transport_fit",
+        "walking_fit",
+        "route_simplicity",
+        "comfort_fit",
+        "quality_fit",
+        "value_fit",
+        "total"
+      ],
+      "title": "LodgingStrategyScore",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/lodging-strategy-result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "algorithm_version": {
+      "pattern": "^[1-9]\\d*\\.\\d+\\.\\d+$",
+      "title": "Algorithm Version",
+      "type": "string"
+    },
+    "city_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "City Id",
+      "type": "string"
+    },
+    "degradation_reasons": {
+      "default": [],
+      "items": {
+        "maxLength": 500,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Degradation Reasons",
+      "type": "array"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "input_state_version": {
+      "minimum": 0,
+      "title": "Input State Version",
+      "type": "integer"
+    },
+    "night_count": {
+      "maximum": 4,
+      "minimum": 0,
+      "title": "Night Count",
+      "type": "integer"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "selected_strategy_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Selected Strategy Id"
+    },
+    "status": {
+      "$ref": "#/$defs/DataAvailability"
+    },
+    "strategies": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/LodgingBaseStrategy"
+      },
+      "maxItems": 3,
+      "title": "Strategies",
+      "type": "array"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "algorithm_version",
+    "request_id",
+    "trip_id",
+    "input_state_version",
+    "city_id",
+    "night_count",
+    "status",
+    "generated_at"
+  ],
+  "title": "LodgingStrategyResult",
+  "type": "object"
+}

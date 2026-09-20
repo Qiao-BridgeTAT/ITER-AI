@@ -1,0 +1,295 @@
+.v4-discovery-card.v4-lodging-card {
+  container: lodging-card / inline-size;
+}
+
+.v4-discovery-card.v4-preference-style.v4-lodging-card {
+  --preference-option-inset: 0px;
+}
+
+.v4-lodging-card .v4-discovery-options {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.v4-lodging-card .lodging-area-option {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 144px;
+  padding: 12px;
+  border-color: #dce5ef;
+  background: #fbfdff;
+}
+
+.lodging-option-illustration {
+  display: block;
+  width: 128px;
+  height: 96px;
+  max-width: 100%;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.lodging-area-option > .lodging-option-illustration {
+  width: 128px;
+  height: 120px;
+}
+
+.lodging-area-option .v4-discovery-option-copy {
+  min-width: 0;
+}
+
+.v4-lodging-card .v4-discovery-option-copy p {
+  color: #607189;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.v4-lodging-card .v4-discovery-option-copy p > strong {
+  font-weight: 500;
+  color: #39546f;
+}
+
+.v4-lodging-card .lodging-area-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin: 8px 0 10px;
+}
+
+.lodging-area-examples span {
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: #eef4fc;
+  color: #607189;
+  font-size: 12px;
+}
+
+.v4-lodging-card .v4-discovery-dispositions {
+  flex-wrap: nowrap;
+}
+
+.lodging-quality-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.lodging-quality-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.lodging-quality-group legend {
+  margin-bottom: 12px;
+  padding: 0;
+  color: #39546f;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.lodging-quality-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.lodging-quality-choice {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 156px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 10px 14px;
+  border: 1px solid #dce5ef;
+  border-radius: 12px;
+  color: #39546f;
+  background: #fbfdff;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    transform 100ms ease;
+}
+
+.lodging-quality-choice[aria-pressed="true"] {
+  border-color: #dce5ef;
+  background: #f7faff;
+}
+
+.lodging-quality-choice:not(:disabled):hover {
+  border-color: #8ab3e5;
+  color: #125cae;
+}
+
+.lodging-quality-choice:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.lodging-quality-label {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.lodging-choice-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1px solid #cbd9e8;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.lodging-quality-choice[aria-pressed="true"] .lodging-choice-indicator {
+  border-color: transparent;
+  background: #e8f2ff;
+  color: #125cae;
+  box-shadow: 0 3px 8px rgb(72 121 181 / 12%);
+}
+
+.lodging-quality-group[data-lodging-group="property_type"]
+  .lodging-quality-options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lodging-quality-group[data-lodging-group="property_type"]
+  .lodging-quality-choice {
+  flex-direction: row;
+  justify-content: flex-start;
+  min-height: 104px;
+  gap: 20px;
+  padding: 12px 42px 12px 20px;
+}
+
+.lodging-quality-group[data-lodging-group="property_type"]
+  .lodging-option-illustration {
+  width: 96px;
+  height: 72px;
+}
+
+.lodging-quality-group[data-lodging-group="property_type"]
+  .lodging-choice-indicator {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.v4-lodging-card button:focus-visible {
+  outline: 2px solid #427bbd;
+  outline-offset: 3px;
+}
+
+.v4-lodging-card button:disabled {
+  cursor: default;
+}
+
+@container lodging-card (max-width: 620px) {
+  .v4-lodging-card .lodging-area-option {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 10px 12px;
+    padding: 12px;
+  }
+
+  .lodging-area-option > .lodging-option-illustration {
+    width: 96px;
+    height: 96px;
+  }
+
+  .lodging-area-option .v4-discovery-dispositions {
+    grid-column: 2;
+  }
+
+  .lodging-quality-options {
+    gap: 8px;
+  }
+
+  .lodging-quality-choice {
+    min-height: 140px;
+    padding: 26px 6px 12px;
+  }
+
+  .lodging-quality-choice .lodging-option-illustration {
+    height: 80px;
+  }
+
+  .lodging-quality-label {
+    font-size: 13px;
+  }
+
+  .lodging-quality-group[data-lodging-group="property_type"]
+    .lodging-quality-choice {
+    gap: 10px;
+    padding-left: 10px;
+  }
+
+  .lodging-quality-group[data-lodging-group="property_type"]
+    .lodging-option-illustration {
+    width: 72px;
+    height: 64px;
+  }
+}
+
+@container lodging-card (max-width: 380px) {
+  .lodging-quality-options {
+    gap: 6px;
+  }
+
+  .lodging-quality-choice {
+    min-height: 124px;
+    padding-right: 3px;
+    padding-left: 3px;
+  }
+
+  .lodging-quality-choice .lodging-option-illustration {
+    height: 64px;
+  }
+
+  .lodging-quality-label {
+    font-size: 12px;
+  }
+
+  .lodging-choice-indicator {
+    top: 7px;
+    right: 7px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .lodging-quality-group[data-lodging-group="property_type"]
+    .lodging-quality-choice {
+    min-height: 92px;
+    gap: 5px;
+    padding-right: 29px;
+  }
+
+  .lodging-quality-group[data-lodging-group="property_type"]
+    .lodging-option-illustration {
+    width: 48px;
+    height: 60px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lodging-quality-choice {
+    transition: none;
+  }
+
+  .lodging-quality-choice:not(:disabled):active {
+    transform: none;
+  }
+}

@@ -1,0 +1,393 @@
+{
+  "$defs": {
+    "PlanArtifactKind": {
+      "enum": [
+        "candidates",
+        "provider_facts",
+        "lodging_strategy",
+        "hotel",
+        "task_book",
+        "schedule_day",
+        "meal_window",
+        "routes",
+        "cost",
+        "validation",
+        "map"
+      ],
+      "title": "PlanArtifactKind",
+      "type": "string"
+    },
+    "PlanDayDependency": {
+      "additionalProperties": false,
+      "properties": {
+        "activity_ids": {
+          "default": [],
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Activity Ids",
+          "type": "array"
+        },
+        "attraction_place_ids": {
+          "default": [],
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Attraction Place Ids",
+          "type": "array"
+        },
+        "day_number": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Day Number",
+          "type": "integer"
+        },
+        "restaurant_place_ids": {
+          "default": [],
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Restaurant Place Ids",
+          "type": "array"
+        },
+        "route_leg_ids": {
+          "default": [],
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Route Leg Ids",
+          "type": "array"
+        },
+        "service_date": {
+          "format": "date",
+          "title": "Service Date",
+          "type": "string"
+        }
+      },
+      "required": [
+        "day_number",
+        "service_date"
+      ],
+      "title": "PlanDayDependency",
+      "type": "object"
+    },
+    "PlanDependencyIndex": {
+      "additionalProperties": false,
+      "properties": {
+        "city_id": {
+          "minLength": 1,
+          "title": "City Id",
+          "type": "string"
+        },
+        "days": {
+          "items": {
+            "$ref": "#/$defs/PlanDayDependency"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Days",
+          "type": "array"
+        },
+        "hotel_place_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hotel Place Id"
+        },
+        "plan_version_id": {
+          "format": "uuid",
+          "title": "Plan Version Id",
+          "type": "string"
+        },
+        "trip_id": {
+          "format": "uuid",
+          "title": "Trip Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "trip_id",
+        "plan_version_id",
+        "city_id",
+        "days"
+      ],
+      "title": "PlanDependencyIndex",
+      "type": "object"
+    },
+    "RecomputeDomain": {
+      "enum": [
+        "discovery",
+        "provider_facts",
+        "lodging_strategy",
+        "task_book",
+        "itinerary",
+        "cost",
+        "map"
+      ],
+      "title": "RecomputeDomain",
+      "type": "string"
+    },
+    "SemanticImpactKind": {
+      "enum": [
+        "whole_trip",
+        "specific_day",
+        "specific_item"
+      ],
+      "title": "SemanticImpactKind",
+      "type": "string"
+    },
+    "SemanticImpactScope": {
+      "additionalProperties": false,
+      "description": "Where an operation applies inside the selected persistence destination.",
+      "properties": {
+        "day_number": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Day Number"
+        },
+        "item_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Item Id"
+        },
+        "kind": {
+          "$ref": "#/$defs/SemanticImpactKind"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "SemanticImpactScope",
+      "type": "object"
+    },
+    "SemanticTarget": {
+      "enum": [
+        "trip_identity.destination",
+        "trip_identity.date_range",
+        "discovery.attraction_intents",
+        "trip_preferences.dining",
+        "planning.lodging",
+        "trip_preferences.transport",
+        "trip_preferences.pace",
+        "trip_preferences.experience_style",
+        "constraints.special",
+        "planning.task_book_confirmation",
+        "planning.plan_confirmation"
+      ],
+      "title": "SemanticTarget",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/pending-plan-modification.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "affected_artifacts": {
+      "items": {
+        "$ref": "#/$defs/PlanArtifactKind"
+      },
+      "minItems": 1,
+      "title": "Affected Artifacts",
+      "type": "array"
+    },
+    "affected_day_numbers": {
+      "default": [],
+      "items": {
+        "type": "integer"
+      },
+      "title": "Affected Day Numbers",
+      "type": "array"
+    },
+    "affected_item_ids": {
+      "default": [],
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "title": "Affected Item Ids",
+      "type": "array"
+    },
+    "base_confirmed_version_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Base Confirmed Version Id"
+    },
+    "base_plan_version_id": {
+      "format": "uuid",
+      "title": "Base Plan Version Id",
+      "type": "string"
+    },
+    "base_state_version": {
+      "minimum": 0,
+      "title": "Base State Version",
+      "type": "integer"
+    },
+    "changed_summary": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Changed Summary",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "dependency_index": {
+      "$ref": "#/$defs/PlanDependencyIndex"
+    },
+    "expanded_scope_reason": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expanded Scope Reason"
+    },
+    "generation_id": {
+      "format": "uuid",
+      "title": "Generation Id",
+      "type": "string"
+    },
+    "global_replan_required": {
+      "title": "Global Replan Required",
+      "type": "boolean"
+    },
+    "impact_scopes": {
+      "items": {
+        "$ref": "#/$defs/SemanticImpactScope"
+      },
+      "minItems": 1,
+      "title": "Impact Scopes",
+      "type": "array"
+    },
+    "modification_id": {
+      "format": "uuid",
+      "title": "Modification Id",
+      "type": "string"
+    },
+    "preserved_attraction_place_ids": {
+      "default": [],
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "title": "Preserved Attraction Place Ids",
+      "type": "array"
+    },
+    "preserved_day_numbers": {
+      "default": [],
+      "items": {
+        "type": "integer"
+      },
+      "title": "Preserved Day Numbers",
+      "type": "array"
+    },
+    "preserved_hotel": {
+      "title": "Preserved Hotel",
+      "type": "boolean"
+    },
+    "preserved_summary": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Preserved Summary",
+      "type": "string"
+    },
+    "recompute_domains": {
+      "items": {
+        "$ref": "#/$defs/RecomputeDomain"
+      },
+      "minItems": 1,
+      "title": "Recompute Domains",
+      "type": "array"
+    },
+    "scope_reason": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Scope Reason",
+      "type": "string"
+    },
+    "source_message_id": {
+      "format": "uuid",
+      "title": "Source Message Id",
+      "type": "string"
+    },
+    "targets": {
+      "items": {
+        "$ref": "#/$defs/SemanticTarget"
+      },
+      "minItems": 1,
+      "title": "Targets",
+      "type": "array"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "modification_id",
+    "trip_id",
+    "generation_id",
+    "source_message_id",
+    "base_state_version",
+    "base_plan_version_id",
+    "targets",
+    "impact_scopes",
+    "recompute_domains",
+    "affected_artifacts",
+    "preserved_hotel",
+    "global_replan_required",
+    "changed_summary",
+    "preserved_summary",
+    "scope_reason",
+    "dependency_index",
+    "created_at"
+  ],
+  "title": "PendingPlanModification",
+  "type": "object",
+  "x-travel-pending-plan-modification": true
+}

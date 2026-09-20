@@ -3,18 +3,19 @@ import { useEffect, useMemo, useState } from "react";
 import type {
   AttachmentAnswerPayload,
   AttachmentAnswerRecord,
-  ConversationAttachment as ServerConversationAttachment,
+  ConversationAttachment as ServerConversationAttachment
 } from "../generated/contracts";
-import { CityThemeFlow } from "../interests/CityThemeFlow";
+import { WeatherDeck } from "./WeatherDeck";
+import type { WeatherCondition, WeatherDayData } from "./weatherTypes";
 import {
   AttractionAccordionAttachment,
   type AttractionAccordionItem,
-  type RecommendationIntent,
+  type RecommendationIntent
 } from "./AttractionAccordionAttachment";
 import { AttractionDepthCarouselAttachment } from "./AttractionDepthCarouselAttachment";
 import {
   CompactChoiceAttachment,
-  CompactMultiChoiceAttachment,
+  CompactMultiChoiceAttachment
 } from "./CompactChoiceAttachment";
 import { CompletedAttachmentSummary } from "./CompletedAttachmentSummary";
 import { DetailedChoiceAttachment } from "./DetailedChoiceAttachment";
@@ -22,11 +23,10 @@ import { PreferenceSliderAttachment } from "./PreferenceSliderAttachment";
 import { recommendationGalleryMode } from "./recommendationGalleryMode";
 import {
   ATTRACTION_INTENT_OPTIONS,
-  RESTAURANT_INTENT_OPTIONS,
+  RESTAURANT_INTENT_OPTIONS
 } from "./recommendationIntents";
 import { TextMultiChoiceAttachment } from "./TextMultiChoiceAttachment";
-import { WeatherDeck } from "./WeatherDeck";
-import type { WeatherCondition, WeatherDayData } from "./weatherTypes";
+import { CityThemeFlow } from "../interests/CityThemeFlow";
 
 export type AttachmentAnswer = AttachmentAnswerPayload["answer"];
 
@@ -47,7 +47,7 @@ export function ServerAttachmentRenderer({
   conflictMessage,
   onSubmit,
   onReload,
-  onOpenTaskBook,
+  onOpenTaskBook
 }: ServerAttachmentRendererProps) {
   const attachment = isKnownAttachment(candidate) ? candidate : null;
   const [editing, setEditing] = useState(false);
@@ -72,14 +72,14 @@ export function ServerAttachmentRenderer({
         answer.value ??
           ("minimum_value" in attachment
             ? (attachment.minimum_value + attachment.maximum_value) / 2
-            : 0),
+            : 0)
       );
     }
     if (answer?.answer_type === "recommendation_feedback") {
       setRecommendationValues(
         Object.fromEntries(
-          answer.feedback.map((item) => [item.recommendation_id, item.intent]),
-        ),
+          answer.feedback.map((item) => [item.recommendation_id, item.intent])
+        )
       );
     }
     if (confirmedAnswer) setEditing(false);
@@ -90,7 +90,7 @@ export function ServerAttachmentRenderer({
       attachment && confirmedAnswer
         ? answerSummary(attachment, confirmedAnswer)
         : null,
-    [attachment, confirmedAnswer],
+    [attachment, confirmedAnswer]
   );
 
   if (!attachment) {
@@ -163,7 +163,7 @@ export function ServerAttachmentRenderer({
           name={`server-detailed-${attachment.attachment_id}`}
           options={attachment.options.map((option) => ({
             ...toChoiceOption(option),
-            meta: option.description ?? "按这次旅行采用",
+            meta: option.description ?? "按这次旅行采用"
           }))}
           selectedId={selectedId}
           disabled={disabled}
@@ -190,14 +190,14 @@ export function ServerAttachmentRenderer({
         answer?.answer_type === "multi_choice"
           ? {
               mode: answer.option_ids.includes(
-                attachment.exclusive_option_id ?? "",
+                attachment.exclusive_option_id ?? ""
               )
                 ? ("open_to_any" as const)
                 : ("selected" as const),
               selected_theme_ids: answer.option_ids.filter(
-                (id) => id !== attachment.exclusive_option_id,
+                (id) => id !== attachment.exclusive_option_id
               ),
-              ...(answer.free_text ? { free_text: answer.free_text } : {}),
+              ...(answer.free_text ? { free_text: answer.free_text } : {})
             }
           : undefined;
       return (
@@ -206,13 +206,13 @@ export function ServerAttachmentRenderer({
             cityName={attachment.context_label ?? "这座城市"}
             themes={attachment.options
               .filter(
-                (option) => option.option_id !== attachment.exclusive_option_id,
+                (option) => option.option_id !== attachment.exclusive_option_id
               )
               .map((option) => ({
                 theme_id: option.option_id,
                 label: option.label,
                 summary: option.description ?? option.label,
-                source_ids: option.semantic_value?.source_fact_ids ?? [],
+                source_ids: option.semantic_value?.source_fact_ids ?? []
               }))}
             initialSelection={initialSelection}
             disabled={disabled}
@@ -223,12 +223,12 @@ export function ServerAttachmentRenderer({
                   selection.mode === "open_to_any"
                     ? [
                         attachment.exclusive_option_id ??
-                          "city-theme:open-to-any",
+                          "city-theme:open-to-any"
                       ]
                     : (selection.selected_theme_ids ?? []),
                 ...(selection.free_text
                   ? { free_text: selection.free_text }
-                  : {}),
+                  : {})
               });
               return true;
             }}
@@ -326,8 +326,8 @@ export function ServerAttachmentRenderer({
         updatedAt:
           item.source_fact_ids && item.source_fact_ids.length > 0
             ? attachment.created_at
-            : undefined,
-      }),
+            : undefined
+      })
     );
     const props = {
       label: attachment.prompt,
@@ -342,7 +342,7 @@ export function ServerAttachmentRenderer({
         if (disabled) return;
         setRecommendationValues((current) => ({
           ...current,
-          [itemId]: intent,
+          [itemId]: intent
         }));
       },
       onConfirm: () => {
@@ -352,11 +352,11 @@ export function ServerAttachmentRenderer({
           feedback: Object.entries(recommendationValues).map(
             ([recommendation_id, intent]) => ({
               recommendation_id,
-              intent: intent as "must" | "want" | "if_convenient" | "avoid",
-            }),
-          ),
+              intent: intent as "must" | "want" | "if_convenient" | "avoid"
+            })
+          )
         });
-      },
+      }
     };
     return (
       <div>
@@ -393,7 +393,7 @@ export function ServerAttachmentRenderer({
 }
 
 function isKnownAttachment(
-  value: unknown,
+  value: unknown
 ): value is ServerConversationAttachment {
   if (!value || typeof value !== "object") return false;
   return [
@@ -404,7 +404,7 @@ function isKnownAttachment(
     "text_multi_choice",
     "recommendation_set",
     "task_book_reference",
-    "weather",
+    "weather"
   ].includes(String((value as { kind?: unknown }).kind));
 }
 
@@ -416,7 +416,7 @@ function toChoiceOption(option: {
   return {
     id: option.option_id,
     label: option.label,
-    description: option.description ?? undefined,
+    description: option.description ?? undefined
   };
 }
 
@@ -426,7 +426,7 @@ function toggleSelection(
   attachment: Extract<
     ServerConversationAttachment,
     { kind: "compact_multi" | "text_multi_choice" }
-  >,
+  >
 ) {
   if (
     attachment.kind === "text_multi_choice" &&
@@ -447,7 +447,7 @@ function toggleSelection(
 
 function answerSummary(
   attachment: ServerConversationAttachment,
-  record: AttachmentAnswerRecord,
+  record: AttachmentAnswerRecord
 ) {
   const answer = record.answer;
   if (answer.answer_type === "single_choice" && "options" in attachment) {
@@ -486,7 +486,7 @@ function toWeatherDay(day: {
     lowTemperatureC: day.minimum_celsius,
     travelNote: day.nighttime_condition
       ? `夜间：${day.nighttime_condition}`
-      : null,
+      : null
   };
 }
 

@@ -1,0 +1,156 @@
+{
+  "$defs": {
+    "JsonValue": {}
+  },
+  "$id": "https://travel-agent.local/schemas/v4/planner-guard-violation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One actionable, privacy-safe reason a Planner proposal was rejected.",
+  "properties": {
+    "allowed_next_actions": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Allowed Next Actions",
+      "type": "array"
+    },
+    "attempted_action": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Attempted Action",
+      "type": "string"
+    },
+    "code": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Code",
+      "type": "string"
+    },
+    "expected_rule": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Expected Rule",
+      "type": "string"
+    },
+    "failure_fingerprint": {
+      "maxLength": 128,
+      "minLength": 16,
+      "pattern": "\\S",
+      "title": "Failure Fingerprint",
+      "type": "string"
+    },
+    "field_path": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Field Path"
+    },
+    "legal_option_keys": {
+      "default": [],
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Legal Option Keys",
+      "type": "array"
+    },
+    "minimal_valid_fragment": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Minimal Valid Fragment"
+    },
+    "object_index": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Object Index"
+    },
+    "preserve_field_paths": {
+      "default": [],
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Preserve Field Paths",
+      "type": "array"
+    },
+    "related_issue_ids": {
+      "default": [],
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Related Issue Ids",
+      "type": "array"
+    },
+    "stage": {
+      "enum": [
+        "schema",
+        "reference",
+        "business",
+        "materialize",
+        "validate",
+        "final"
+      ],
+      "title": "Stage",
+      "type": "string"
+    },
+    "violation_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Violation Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "violation_id",
+    "attempted_action",
+    "stage",
+    "code",
+    "expected_rule",
+    "allowed_next_actions",
+    "failure_fingerprint"
+  ],
+  "title": "PlannerGuardViolation",
+  "type": "object"
+}

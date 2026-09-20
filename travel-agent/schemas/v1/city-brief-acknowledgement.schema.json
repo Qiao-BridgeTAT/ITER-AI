@@ -1,0 +1,25 @@
+{
+  "$defs": {
+    "CityBriefStatus": {
+      "enum": [
+        "viewed",
+        "skipped_intro"
+      ],
+      "title": "CityBriefStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/city-brief-acknowledgement.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "$ref": "#/$defs/CityBriefStatus"
+    }
+  },
+  "required": [
+    "status"
+  ],
+  "title": "CityBriefAcknowledgement",
+  "type": "object"
+}

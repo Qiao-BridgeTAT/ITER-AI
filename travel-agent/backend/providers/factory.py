@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
-
 from backend.config import ConfigurationError, Settings
 from backend.contracts.enums import ProviderCode
 from backend.persistence.redis_temporary import RedisTemporaryStore

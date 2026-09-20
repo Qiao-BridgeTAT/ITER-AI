@@ -1,0 +1,368 @@
+{
+  "$defs": {
+    "AskUserReasonCode": {
+      "enum": [
+        "incompatible_strong_commitments",
+        "fixed_booking_conflict",
+        "permission_to_relax_constraint",
+        "material_tradeoff_outside_delegation",
+        "missing_user_owned_booking_detail",
+        "revision_budget_exhausted"
+      ],
+      "title": "AskUserReasonCode",
+      "type": "string"
+    },
+    "CandidateEntityKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "activity"
+      ],
+      "title": "CandidateEntityKind",
+      "type": "string"
+    },
+    "CandidateRef": {
+      "additionalProperties": false,
+      "description": "Revision-bound reference to one candidate in the current pool.",
+      "properties": {
+        "candidate_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "candidate_pool_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Pool Id",
+          "type": "string"
+        },
+        "candidate_pool_revision": {
+          "minimum": 1,
+          "title": "Candidate Pool Revision",
+          "type": "integer"
+        },
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "entity_kind": {
+          "$ref": "#/$defs/CandidateEntityKind"
+        },
+        "kind": {
+          "const": "candidate",
+          "default": "candidate",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_pool_id",
+        "candidate_pool_revision",
+        "candidate_id",
+        "entity_kind",
+        "canonical_entity_id"
+      ],
+      "title": "CandidateRef",
+      "type": "object"
+    },
+    "FixedCommitmentRef": {
+      "additionalProperties": false,
+      "description": "Reference to a user-owned immutable commitment in the task book.",
+      "properties": {
+        "commitment_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Commitment Id",
+          "type": "string"
+        },
+        "commitment_kind": {
+          "enum": [
+            "reservation",
+            "arrival",
+            "departure",
+            "named_hotel",
+            "existing_booking"
+          ],
+          "title": "Commitment Kind",
+          "type": "string"
+        },
+        "kind": {
+          "const": "fixed_commitment",
+          "default": "fixed_commitment",
+          "title": "Kind",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "task_book_id",
+        "task_book_version",
+        "commitment_id",
+        "commitment_kind"
+      ],
+      "title": "FixedCommitmentRef",
+      "type": "object"
+    },
+    "PlannerInteractionOption": {
+      "additionalProperties": false,
+      "properties": {
+        "affected_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Affected Refs",
+          "type": "array"
+        },
+        "option_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Option Id",
+          "type": "string"
+        },
+        "semantic_action": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Semantic Action",
+          "type": "string"
+        },
+        "verified_impact_summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Verified Impact Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "option_id",
+        "semantic_action",
+        "affected_refs",
+        "verified_impact_summary"
+      ],
+      "title": "PlannerInteractionOption",
+      "type": "object"
+    },
+    "PlannerReadinessIssue": {
+      "additionalProperties": false,
+      "description": "A sourced, pre-materialization blocker; never a final validation result.",
+      "properties": {
+        "affected_dates": {
+          "default": [],
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "title": "Affected Dates",
+          "type": "array"
+        },
+        "ask_user_reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AskUserReasonCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "candidate_refs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CandidateRef"
+          },
+          "title": "Candidate Refs",
+          "type": "array"
+        },
+        "code": {
+          "enum": [
+            "required_entity_missing",
+            "strong_opening_conflict",
+            "fixed_booking_conflict",
+            "missing_booking_detail",
+            "missing_evidence"
+          ],
+          "title": "Code",
+          "type": "string"
+        },
+        "fact_reference_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Fact Reference Ids",
+          "type": "array"
+        },
+        "fixed_commitment_refs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/FixedCommitmentRef"
+          },
+          "title": "Fixed Commitment Refs",
+          "type": "array"
+        },
+        "issue_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Issue Id",
+          "type": "string"
+        },
+        "option_contracts": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PlannerInteractionOption"
+          },
+          "title": "Option Contracts",
+          "type": "array"
+        },
+        "reason_summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason Summary",
+          "type": "string"
+        },
+        "user_authority_required": {
+          "title": "User Authority Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "issue_id",
+        "code",
+        "fact_reference_ids",
+        "reason_summary",
+        "user_authority_required"
+      ],
+      "title": "PlannerReadinessIssue",
+      "type": "object"
+    },
+    "PlannerScope": {
+      "additionalProperties": false,
+      "description": "Optimistic-concurrency scope shared by one Planner decision round.",
+      "properties": {
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_state_version": {
+          "minimum": 0,
+          "title": "Task Book State Version",
+          "type": "integer"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "workspace_revision": {
+          "minimum": 0,
+          "title": "Workspace Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "trip_id",
+        "generation_id",
+        "task_book_id",
+        "task_book_version",
+        "task_book_state_version",
+        "workspace_revision"
+      ],
+      "title": "PlannerScope",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/planner-readiness-observation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "candidate_pool_revision": {
+      "minimum": 1,
+      "title": "Candidate Pool Revision",
+      "type": "integer"
+    },
+    "checked_at": {
+      "format": "date-time",
+      "title": "Checked At",
+      "type": "string"
+    },
+    "issues": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/PlannerReadinessIssue"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "observation_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Observation Id",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/PlannerScope"
+    }
+  },
+  "required": [
+    "observation_id",
+    "scope",
+    "candidate_pool_revision",
+    "checked_at"
+  ],
+  "title": "PlannerReadinessObservation",
+  "type": "object"
+}

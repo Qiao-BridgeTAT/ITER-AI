@@ -9,7 +9,7 @@ export function CompletedAttachmentSummary({
   label,
   value,
   disabled = false,
-  onEdit,
+  onEdit
 }: CompletedAttachmentSummaryProps) {
   return (
     <div className="completed-attachment-summary">

@@ -19,7 +19,7 @@ export function DetailedChoiceAttachment({
   options,
   selectedId,
   disabled = false,
-  onSelect,
+  onSelect
 }: DetailedChoiceAttachmentProps) {
   const visibleOptions = options.slice(0, 5);
 

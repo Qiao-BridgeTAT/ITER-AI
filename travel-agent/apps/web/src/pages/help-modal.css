@@ -1,0 +1,47 @@
+.account-session-popover.help-modal {
+  width: min(440px, calc(100vw - 40px));
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+}
+
+.help-modal .account-session-header {
+  padding: 16px 16px 16px 28px;
+}
+
+.help-modal .account-session-header h2 {
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.help-modal-content {
+  padding: 24px 28px 28px;
+  font-size: 16px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.help-modal-content p {
+  margin: 0;
+}
+
+.help-modal-content p + p {
+  margin-top: 16px;
+}
+
+.help-modal-content a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: inherit;
+  text-underline-offset: 4px;
+}
+
+@media (max-width: 480px) {
+  .help-modal .account-session-header {
+    padding-left: 20px;
+  }
+
+  .help-modal-content {
+    padding: 20px 20px 24px;
+  }
+}

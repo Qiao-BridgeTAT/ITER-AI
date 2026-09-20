@@ -1,0 +1,18 @@
+{
+  "$id": "https://travel-agent.local/schemas/v2/hotel-favorites-submission.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "hotel_place_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "title": "Hotel Place Ids",
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "title": "HotelFavoritesSubmission",
+  "type": "object"
+}

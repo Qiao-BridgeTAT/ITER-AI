@@ -2,7 +2,7 @@ export const getFittedPlaneScale = (
   containerWidth: number,
   columns: number,
   tileWidth: number,
-  gap: number,
+  gap: number
 ) => {
   const safeColumns = Math.max(1, Math.floor(columns));
   const planeWidth = safeColumns * (tileWidth + gap);
@@ -20,7 +20,7 @@ export const getPlaneHorizontalOffset = ({
   turn,
   roll,
   depth,
-  perspective,
+  perspective
 }: {
   width: number;
   height: number;
@@ -44,15 +44,15 @@ export const getPlaneHorizontalOffset = ({
         (-x * Math.sin(ry) - depth * Math.cos(ry)) * Math.cos(rx);
       return {
         x: scale * (x * Math.cos(ry) - depth * Math.sin(ry)),
-        factor: perspective / (perspective - z),
+        factor: perspective / (perspective - z)
       };
-    }),
+    })
   );
   let offset = 0;
   for (let pass = 0; pass < 2; pass++) {
     const projected = corners.map(({ x, factor }) => ({
       x: (x + offset) * factor,
-      factor,
+      factor
     }));
     const left = projected.reduce((a, b) => (a.x < b.x ? a : b));
     const right = projected.reduce((a, b) => (a.x > b.x ? a : b));
@@ -65,7 +65,7 @@ export const getLoopPlaneHeight = (
   containerHeight: number,
   planeScale: number,
   tileHeight: number,
-  gap: number,
+  gap: number
 ) => {
   const visibleHeight = Math.max(1, containerHeight) / planeScale;
   // Keep a full row (or more on tall walls) outside both viewport edges,
@@ -78,7 +78,7 @@ export const getLoopTrackLayout = (
   planeHeight: number,
   itemCount: number,
   tileHeight: number,
-  gap: number,
+  gap: number
 ) => {
   const unit = Math.max(1, tileHeight + gap);
   const copyHeight = Math.max(1, itemCount) * unit;

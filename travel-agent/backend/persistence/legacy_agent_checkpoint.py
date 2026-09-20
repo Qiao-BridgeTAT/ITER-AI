@@ -1,14 +1,18 @@
 from __future__ import annotations
+
 import hashlib
 import json
 from uuid import UUID
+
 from pydantic import Field, model_validator
+
 from backend.agent.readiness_state import CriticalQuestionResolutionProof
 from backend.agent.semantic_operations import SemanticOperation
 from backend.agent.state_merge import SemanticTripState
 from backend.contracts.base import ContractModel
 from backend.contracts.commands import AttachmentAnswerValue
 from backend.contracts.enums import EvidenceSource
+
 
 class AttachmentAnswerSemanticBinding(ContractModel):
     """Server-only mapping from one typed answer to its already reviewed effects."""

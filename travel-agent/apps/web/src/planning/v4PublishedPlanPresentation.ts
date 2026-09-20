@@ -1,16 +1,3 @@
-import type { PlanBudgetEstimate } from "../conversation/PlanBudgetSummary";
-import type {
-  PlanDay,
-  PlanHotelOption,
-  PlanReadyPresentation,
-  PlanStop,
-  PlanTransportKind,
-  PlanTransportOption,
-} from "../conversation/PlanReadyAttachment";
-import type {
-  WeatherCondition,
-  WeatherDayData,
-} from "../conversation/weatherTypes";
 import type {
   DraftScheduledActivity,
   DraftScheduledPause,
@@ -18,8 +5,21 @@ import type {
   HotelOfferObservation,
   PlannerPlacePreview,
   PlannerPublishedPlan,
-  PlannerWeatherEvidence,
+  PlannerWeatherEvidence
 } from "../generated/v4/contracts";
+import type {
+  PlanDay,
+  PlanHotelOption,
+  PlanReadyPresentation,
+  PlanStop,
+  PlanTransportKind,
+  PlanTransportOption
+} from "../conversation/PlanReadyAttachment";
+import type { PlanBudgetEstimate } from "../conversation/PlanBudgetSummary";
+import type {
+  WeatherCondition,
+  WeatherDayData
+} from "../conversation/weatherTypes";
 
 type SelectedHotelRecommendation = {
   hotel_offer_ref: { offer_id: string };
@@ -47,15 +47,15 @@ const ORDINALS = ["第一天", "第二天", "第三天", "第四天", "第五天
 export function buildV4PublishedPlanPresentation(
   plan: PlannerPublishedPlan,
   cityName: string,
-  statusLabel = "正式行程",
+  statusLabel = "",
   previews: readonly PlannerPlacePreview[] = [],
-  weatherPreview: readonly PlannerWeatherEvidence[] = [],
+  weatherPreview: readonly PlannerWeatherEvidence[] = []
 ): PlanReadyPresentation {
   const lodgingMode = plan.working_itinerary.lodging_baseline.mode;
   const selectedOffer = (plan.hotel_observation?.offers ?? []).find(
     (offer) =>
       offer.offer_ref.offer_id ===
-      plan.working_itinerary.lodging_baseline.selected_offer_ref?.offer_id,
+      plan.working_itinerary.lodging_baseline.selected_offer_ref?.offer_id
   );
   const hotelLocation = plan.hotel_location_evidence?.[0];
   const hotelName =
@@ -76,18 +76,18 @@ export function buildV4PublishedPlanPresentation(
               .some(
                 (next) =>
                   next.place_id === activity.place_id &&
-                  next.start_time < leg.departure_time,
-              ),
+                  next.start_time < leg.departure_time
+              )
         ),
-        previews.find((item) => item.place_id === activity.place_id),
-      ),
+        previews.find((item) => item.place_id === activity.place_id)
+      )
     );
     const pauses = (day.pauses ?? []).map((pause) => {
       const before = day.activities?.find(
-        (activity) => activity.end_time === pause.start_time,
+        (activity) => activity.end_time === pause.start_time
       );
       const after = day.activities?.find(
-        (activity) => activity.start_time === pause.end_time,
+        (activity) => activity.start_time === pause.end_time
       );
       const onsite =
         before &&
@@ -97,24 +97,24 @@ export function buildV4PublishedPlanPresentation(
           (item) =>
             item.onsite_lunch &&
             "canonical_entity_id" in item.object_ref &&
-            item.object_ref.canonical_entity_id === before.place_id,
+            item.object_ref.canonical_entity_id === before.place_id
         );
       return pauseStop(pause, onsite ? before.title : undefined);
     });
     const stops = [...activities, ...pauses].sort(
       (left, right) =>
         left.time.localeCompare(right.time) ||
-        left.title.localeCompare(right.title),
+        left.title.localeCompare(right.title)
     );
     if (
       ["selected_offer", "fixed"].includes(lodgingMode) &&
       day.start_place_id === day.end_place_id
     ) {
       const departure = day.transport_legs?.find(
-        (leg) => leg.origin_place_id === day.start_place_id,
+        (leg) => leg.origin_place_id === day.start_place_id
       );
       const arrival = day.transport_legs?.find(
-        (leg) => leg.destination_place_id === day.end_place_id,
+        (leg) => leg.destination_place_id === day.end_place_id
       );
       if (departure)
         stops.unshift({
@@ -128,7 +128,7 @@ export function buildV4PublishedPlanPresentation(
               ?.image_url ?? undefined,
           imageAlt: `${hotelName}实景`,
           plannedStay: "",
-          transportAfter: transportOptions(plan, departure),
+          transportAfter: transportOptions(plan, departure)
         });
       if (arrival)
         stops.push({
@@ -143,7 +143,7 @@ export function buildV4PublishedPlanPresentation(
           imageAlt: `${hotelName}实景`,
           plannedStay: "",
           rating: hotelLocation?.rating ?? undefined,
-          ratingSource: "高德",
+          ratingSource: "高德"
         });
     }
     return {
@@ -166,16 +166,16 @@ export function buildV4PublishedPlanPresentation(
         day.start_place_id === day.end_place_id
           ? ""
           : "当天行程结束",
-      stops,
+      stops
     } satisfies PlanDay;
   });
   const hotelOptions = buildHotelOptions(plan);
   const transportModes = Array.from(
     new Set(
       plan.materialized_schedule.days.flatMap((day) =>
-        (day.transport_legs ?? []).map((leg) => transportLabel(leg.mode)),
-      ),
-    ),
+        (day.transport_legs ?? []).map((leg) => transportLabel(leg.mode))
+      )
+    )
   );
   const attractionNames = new Map<string | undefined, string>();
   for (const stop of days.flatMap((day) => day.stops)) {
@@ -183,8 +183,8 @@ export function buildV4PublishedPlanPresentation(
       attractionNames.set(
         stop.placeId,
         plan.place_evidence?.find(
-          (place) => place.canonical_entity_id === stop.placeId,
-        )?.display_name ?? stop.title,
+          (place) => place.canonical_entity_id === stop.placeId
+        )?.display_name ?? stop.title
       );
     }
   }
@@ -192,16 +192,23 @@ export function buildV4PublishedPlanPresentation(
   const bestHotel = hotelOptions?.find((hotel) => hotel.role === "best");
   const constraintNotices = Array.from(
     new Set(
-      (plan.validation_observation.issues ?? [])
-        .filter(
-          (issue) =>
-            issue.severity === "warning" &&
-            (issue.violated_constraint_refs ?? []).some((reference) =>
-              /^(hard|dietary|facility):/u.test(reference),
-            ),
-        )
-        .map((issue) => issue.message_summary),
-    ),
+      [
+        ...(plan.planning_notes ?? []),
+        ...(plan.validation_observation.issues ?? [])
+          .filter(
+            (issue) =>
+              issue.severity !== "warning" ||
+              (issue.violated_constraint_refs ?? []).some((reference) =>
+                /^(hard|dietary|facility):/u.test(reference)
+              )
+          )
+          .map((issue) => issue.message_summary)
+      ].map((note) =>
+        note
+          .replace(/[（(](?:c|h)\d+[)）]/gu, "")
+          .replace(/程序提示/gu, "当前安排")
+      )
+    )
   );
 
   return {
@@ -215,34 +222,34 @@ export function buildV4PublishedPlanPresentation(
         [...(plan.weather_evidence ?? []), ...weatherPreview]
           .filter((weather) =>
             plan.materialized_schedule.days.some(
-              (day) => day.service_date === weather.service_date,
-            ),
+              (day) => day.service_date === weather.service_date
+            )
           )
-          .map((weather) => [weather.service_date, weather]),
-      ).values(),
+          .map((weather) => [weather.service_date, weather])
+      ).values()
     ]
       .sort((a, b) => a.service_date.localeCompare(b.service_date))
       .map(weatherPresentation),
     overview: {
       route: {
         title: [...new Set(firstAttractions)].join(" · ") || "查看每日安排",
-        description: "",
+        description: ""
       },
       lodging: bestHotel
         ? { title: bestHotel.title, description: hotelLocation?.address ?? "" }
         : plan.working_itinerary.lodging_baseline.mode === "fixed"
           ? {
               title: hotelName,
-              description: hotelLocation?.address ?? "",
+              description: hotelLocation?.address ?? ""
             }
           : plan.working_itinerary.lodging_baseline.mode === "not_applicable"
             ? {
                 title: "本次无需住宿",
-                description: "",
+                description: ""
               }
             : {
                 title: "住宿待补充",
-                description: "",
+                description: ""
               },
       transport: {
         title:
@@ -250,14 +257,14 @@ export function buildV4PublishedPlanPresentation(
           (transportModes.length
             ? `以${transportModes[0]}为主，游览与休息兼顾。`
             : "游览与休息兼顾。"),
-        description: "",
-      },
+        description: ""
+      }
     },
     budgetEstimate: budgetPresentation(plan),
     hotelOptions,
     notices: constraintNotices,
     statusLabel,
-    statusTone: "stable",
+    statusTone: "stable"
   };
 }
 
@@ -265,7 +272,7 @@ function activityStop(
   plan: PlannerPublishedPlan,
   activity: DraftScheduledActivity,
   transport: DraftScheduledTransport | undefined,
-  preview?: PlannerPlacePreview,
+  preview?: PlannerPlacePreview
 ): PlanStop {
   return {
     placeId: activity.place_id,
@@ -294,17 +301,17 @@ function activityStop(
     rating:
       preview?.dining_details?.rating ??
       plan.place_evidence?.find(
-        (place) => place.canonical_entity_id === activity.place_id,
+        (place) => place.canonical_entity_id === activity.place_id
       )?.rating ??
       undefined,
     ratingSource: preview?.dining_details?.source_name ?? "高德",
-    transportAfter: transport ? transportOptions(plan, transport) : undefined,
+    transportAfter: transport ? transportOptions(plan, transport) : undefined
   };
 }
 
 function openingHoursForActivity(
   plan: PlannerPublishedPlan,
-  activity: DraftScheduledActivity,
+  activity: DraftScheduledActivity
 ): string | undefined {
   const evidence = (plan.hours_evidence ?? [])
     .filter((item) => item.canonical_entity_id === activity.place_id)
@@ -340,7 +347,7 @@ function pauseStop(pause: DraftScheduledPause, onsiteVenue?: string): PlanStop {
         : "预留休息时间",
     description: onsiteVenue ? "具体餐厅待确认" : "",
     imageAlt: "",
-    plannedStay: `计划停留 ${formatDuration(pause.duration_minutes)}`,
+    plannedStay: `计划停留 ${formatDuration(pause.duration_minutes)}`
   };
 }
 
@@ -349,7 +356,7 @@ function transportPresentation(transport: DraftScheduledTransport) {
     walking: "walk",
     cycling: "cycling",
     transit: "transit",
-    driving: "car",
+    driving: "car"
   };
   return {
     id: modes[transport.mode],
@@ -361,7 +368,7 @@ function transportPresentation(transport: DraftScheduledTransport) {
     distance:
       transport.availability === "missing"
         ? ""
-        : routeDistance(transport.distance_m),
+        : routeDistance(transport.distance_m)
   };
 }
 
@@ -373,19 +380,19 @@ function routeDistance(meters: number): string {
 
 function transportOptions(
   plan: PlannerPublishedPlan,
-  leg: DraftScheduledTransport,
+  leg: DraftScheduledTransport
 ): PlanTransportOption[] {
   const edges = [...(plan.route_evidence ?? [])].reverse();
   const selectedEdge = edges.find((edge) =>
     edge.fact_reference_ids?.some((id) =>
-      leg.source_reference_ids?.includes(id),
-    ),
+      leg.source_reference_ids?.includes(id)
+    )
   );
   const fallback = transportPresentation(leg);
   const alternatives = [
     { mode: "taxi", id: "car", label: "打车" },
     { mode: "public_transit", id: "transit", label: "公共交通" },
-    { mode: "walking", id: "walk", label: "步行" },
+    { mode: "walking", id: "walk", label: "步行" }
   ] as const;
   return alternatives.map(({ mode, id, label }) => {
     const edge = selectedEdge
@@ -396,7 +403,7 @@ function transportOptions(
             item.destination.kind === selectedEdge.destination.kind &&
             item.destination.reference_id ===
               selectedEdge.destination.reference_id &&
-            item.transport_mode === mode,
+            item.transport_mode === mode
         )
       : undefined;
     const selected =
@@ -430,20 +437,20 @@ function transportOptions(
           ? edge.transfer_count === 0
             ? "无需换乘"
             : `换乘${edge.transfer_count}次`
-          : "换乘信息待确认",
+          : "换乘信息待确认"
     };
   });
 }
 
 function buildHotelOptions(
-  plan: PlannerPublishedPlan,
+  plan: PlannerPublishedPlan
 ): PlanHotelOption[] | undefined {
   const observation = plan.hotel_observation;
   if (!observation) return undefined;
   const nights = Math.max(1, plan.materialized_schedule.days.length - 1);
   const findOffer = (offerId: string) =>
     (observation.offers ?? []).find(
-      (offer) => offer.offer_ref.offer_id === offerId,
+      (offer) => offer.offer_ref.offer_id === offerId
     );
   const selected = (plan as PublishedPlanWithSelectedHotel).selected_hotel;
   if (selected) {
@@ -458,9 +465,9 @@ function buildHotelOptions(
           selected.route_fit,
           selected.selection_reason,
           `主要取舍：${selected.main_tradeoff}`,
-          hotelPriceNotice(offer),
-        ),
-      },
+          hotelPriceNotice(offer)
+        )
+      }
     ];
   }
   const recommendations = plan.hotel_recommendations;
@@ -477,15 +484,15 @@ function buildHotelOptions(
         best.route_fit,
         best.quality_and_price_fit,
         `主要取舍：${best.main_tradeoff}`,
-        hotelPriceNotice(bestOffer),
-      ),
-    },
+        hotelPriceNotice(bestOffer)
+      )
+    }
   ];
 }
 
 function hotelTitle(
   offer: HotelOfferObservation | undefined,
-  nights: number,
+  nights: number
 ): string {
   if (!offer) return "当前酒店选项";
   if (offer.total_price) {
@@ -513,7 +520,7 @@ function joinDescription(...parts: Array<string | undefined>): string {
 }
 
 function moneyRange(
-  value: NonNullable<HotelOfferWithReferencePrice["reference_price"]>,
+  value: NonNullable<HotelOfferWithReferencePrice["reference_price"]>
 ): string {
   const minimum = money(value.minimum_minor, value.currency);
   if (value.minimum_minor === value.maximum_minor) return minimum;
@@ -524,20 +531,20 @@ function budgetPresentation(plan: PlannerPublishedPlan): PlanBudgetEstimate {
   const activities = new Map(
     plan.materialized_schedule.days.flatMap((day) =>
       (day.activities ?? []).map(
-        (activity) => [activity.activity_id, activity] as const,
-      ),
-    ),
+        (activity) => [activity.activity_id, activity] as const
+      )
+    )
   );
   const places = new Map(
     (plan.place_evidence ?? []).map((place) => [
       place.canonical_entity_id,
-      place,
-    ]),
+      place
+    ])
   );
   const hotel = plan.hotel_observation?.offers?.find(
     (offer) =>
       offer.offer_ref.offer_id ===
-      plan.working_itinerary.lodging_baseline.selected_offer_ref?.offer_id,
+      plan.working_itinerary.lodging_baseline.selected_offer_ref?.offer_id
   );
   return {
     detail_items: (plan.cost_draft.days ?? []).flatMap((day) =>
@@ -547,7 +554,7 @@ function budgetPresentation(plan: PlannerPublishedPlan): PlanBudgetEstimate {
           ? plan.ticket_evidence?.find(
               (item) =>
                 item.canonical_entity_id === activity.place_id &&
-                item.service_date === line.service_date,
+                item.service_date === line.service_date
             )
           : undefined;
         const place = activity ? places.get(activity.place_id) : undefined;
@@ -579,9 +586,9 @@ function budgetPresentation(plan: PlannerPublishedPlan): PlanBudgetEstimate {
           reference_consumption:
             line.category === "attraction_tickets" && !line.amount_per_person
               ? place?.average_cost
-              : undefined,
+              : undefined
         };
-      }),
+      })
     ),
     items: plan.cost_draft.categories.map((category) => ({
       category: category.category,
@@ -594,11 +601,11 @@ function budgetPresentation(plan: PlannerPublishedPlan): PlanBudgetEstimate {
       amount_per_person: category.amount_per_person,
       missing_reason:
         category.note ??
-        (category.status === "not_applicable" ? "本次未计" : "价格资料暂缺"),
+        (category.status === "not_applicable" ? "本次未计" : "价格资料暂缺")
     })),
     total_per_person: plan.cost_draft.known_total_per_person,
     lodging_share_divisor: plan.cost_draft.lodging_share_divisor,
-    fetched_at_note: plan.cost_draft.pricing_note,
+    fetched_at_note: plan.cost_draft.pricing_note
   };
 }
 
@@ -617,7 +624,7 @@ function weatherPresentation(weather: PlannerWeatherEvidence): WeatherDayData {
     travelNote:
       weather.forecast_kind === "outlook"
         ? "远期趋势，临近出发再确认"
-        : (weather.source_name ?? undefined),
+        : (weather.source_name ?? undefined)
   };
 }
 
@@ -640,7 +647,7 @@ function transportLabel(mode: DraftScheduledTransport["mode"]): string {
     walking: "步行",
     cycling: "骑行",
     transit: "公共交通",
-    driving: "打车",
+    driving: "打车"
   }[mode];
 }
 
@@ -674,7 +681,7 @@ function weekday(value: string): string {
 function money(amountMinor: number, currency: string): string {
   const amount = new Intl.NumberFormat("zh-CN", {
     minimumFractionDigits: amountMinor % 100 === 0 ? 0 : 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 2
   }).format(amountMinor / 100);
   return currency === "CNY" ? `¥${amount}` : `${currency} ${amount}`;
 }

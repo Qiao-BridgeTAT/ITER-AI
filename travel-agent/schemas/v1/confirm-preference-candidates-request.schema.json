@@ -1,0 +1,22 @@
+{
+  "$id": "https://travel-agent.local/schemas/v1/confirm-preference-candidates-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "candidate_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Candidate Ids",
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "candidate_ids"
+  ],
+  "title": "ConfirmPreferenceCandidatesRequest",
+  "type": "object"
+}

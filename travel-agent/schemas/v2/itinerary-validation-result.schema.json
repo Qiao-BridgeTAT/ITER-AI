@@ -1,0 +1,318 @@
+{
+  "$defs": {
+    "CostCategory": {
+      "enum": [
+        "lodging",
+        "dining",
+        "attraction_tickets",
+        "local_transport"
+      ],
+      "title": "CostCategory",
+      "type": "string"
+    },
+    "RepairAction": {
+      "enum": [
+        "reassign_day",
+        "reorder_day",
+        "change_route",
+        "replace_candidate",
+        "adjust_buffer",
+        "adjust_time",
+        "fix_reference",
+        "recalculate_cost",
+        "recalculate_schedule",
+        "requery_fact",
+        "none"
+      ],
+      "title": "RepairAction",
+      "type": "string"
+    },
+    "ValidationIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "activity_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Activity Id"
+        },
+        "code": {
+          "$ref": "#/$defs/ValidationIssueCode"
+        },
+        "cost_category": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CostCategory"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "hotel_place_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hotel Place Id"
+        },
+        "issue_id": {
+          "format": "uuid",
+          "title": "Issue Id",
+          "type": "string"
+        },
+        "message": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "related_activity_ids": {
+          "default": [],
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Related Activity Ids",
+          "type": "array"
+        },
+        "related_pause_ids": {
+          "default": [],
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Related Pause Ids",
+          "type": "array"
+        },
+        "related_transport_leg_ids": {
+          "default": [],
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Related Transport Leg Ids",
+          "type": "array"
+        },
+        "repair_action": {
+          "$ref": "#/$defs/RepairAction"
+        },
+        "repairable": {
+          "title": "Repairable",
+          "type": "boolean"
+        },
+        "service_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Service Date"
+        },
+        "severity": {
+          "$ref": "#/$defs/ValidationSeverity"
+        },
+        "source_reference_ids": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Reference Ids",
+          "type": "array"
+        },
+        "target_kind": {
+          "$ref": "#/$defs/ValidationTargetKind"
+        },
+        "transport_leg_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transport Leg Id"
+        },
+        "unscheduled_node_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unscheduled Node Id"
+        }
+      },
+      "required": [
+        "issue_id",
+        "code",
+        "severity",
+        "target_kind",
+        "message",
+        "repairable",
+        "repair_action"
+      ],
+      "title": "ValidationIssue",
+      "type": "object"
+    },
+    "ValidationIssueCode": {
+      "enum": [
+        "date_conflict",
+        "reference_conflict",
+        "opening_hours_conflict",
+        "opening_hours_unknown",
+        "fixed_event_conflict",
+        "time_overlap",
+        "insufficient_travel_time",
+        "walking_limit",
+        "cycling_limit",
+        "daily_load",
+        "lodging_coverage",
+        "cost_inconsistency",
+        "duration_conflict",
+        "schedule_total_inconsistency",
+        "missing_price",
+        "partial_route",
+        "missing_night_weather",
+        "unscheduled_strong_desire",
+        "meal_timing"
+      ],
+      "title": "ValidationIssueCode",
+      "type": "string"
+    },
+    "ValidationSeverity": {
+      "enum": [
+        "hard_conflict",
+        "soft_risk",
+        "unknown_fact"
+      ],
+      "title": "ValidationSeverity",
+      "type": "string"
+    },
+    "ValidationStatus": {
+      "enum": [
+        "valid",
+        "review",
+        "blocked"
+      ],
+      "title": "ValidationStatus",
+      "type": "string"
+    },
+    "ValidationTargetKind": {
+      "enum": [
+        "trip",
+        "day",
+        "activity",
+        "transport_leg",
+        "hotel",
+        "cost_category"
+      ],
+      "title": "ValidationTargetKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/itinerary-validation-result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "algorithm_version": {
+      "pattern": "^[1-9]\\d*\\.\\d+\\.\\d+$",
+      "title": "Algorithm Version",
+      "type": "string"
+    },
+    "cost_request_id": {
+      "format": "uuid",
+      "title": "Cost Request Id",
+      "type": "string"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "input_state_version": {
+      "minimum": 0,
+      "title": "Input State Version",
+      "type": "integer"
+    },
+    "issues": {
+      "items": {
+        "$ref": "#/$defs/ValidationIssue"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "schedule_request_id": {
+      "format": "uuid",
+      "title": "Schedule Request Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ValidationStatus"
+    },
+    "task_book_id": {
+      "format": "uuid",
+      "title": "Task Book Id",
+      "type": "string"
+    },
+    "task_book_revision": {
+      "minimum": 1,
+      "title": "Task Book Revision",
+      "type": "integer"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "algorithm_version",
+    "request_id",
+    "trip_id",
+    "input_state_version",
+    "task_book_id",
+    "task_book_revision",
+    "schedule_request_id",
+    "cost_request_id",
+    "status",
+    "issues",
+    "generated_at"
+  ],
+  "title": "ItineraryValidationResult",
+  "type": "object",
+  "x-travel-itinerary-validation-result": true
+}

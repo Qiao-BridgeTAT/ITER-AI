@@ -1,24 +1,24 @@
 import type {
-  PlanDay,
-  PlanOverviewSummary,
-  PlanReadyPresentation,
-  PlanStop,
-  PlanTransportKind,
-} from "../conversation/PlanReadyAttachment";
-import type {
-  WeatherCondition,
-  WeatherDayData,
-} from "../conversation/weatherTypes";
-import type {
   DailyWeatherCoverage,
   PublishedPlan,
   RecalledCandidate,
   SchedulePlaceFact,
   ScheduledActivity,
   ScheduledTransport,
-  TripState,
+  TripState
 } from "../generated/contracts";
+import type {
+  PlanDay,
+  PlanOverviewSummary,
+  PlanReadyPresentation,
+  PlanStop,
+  PlanTransportKind
+} from "../conversation/PlanReadyAttachment";
 import { buildPublishedPlanBudget } from "./publishedPlanBudget";
+import type {
+  WeatherCondition,
+  WeatherDayData
+} from "../conversation/weatherTypes";
 
 const WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 const ORDINALS = ["第一天", "第二天", "第三天", "第四天", "第五天"];
@@ -31,30 +31,30 @@ export type FormalPlanStatus = {
 export function buildPublishedPlanPresentation(
   state: TripState,
   cityName: string,
-  status?: FormalPlanStatus,
+  status?: FormalPlanStatus
 ): PlanReadyPresentation | null {
   const plan = state.published_plan;
   if (!plan) return null;
 
   const placeById = new Map(
-    (plan.places ?? []).map((place) => [place.place_id, place]),
+    (plan.places ?? []).map((place) => [place.place_id, place])
   );
   const candidateByPlaceId = new Map(
     (plan.selected_candidates ?? []).map((candidate) => [
       candidate.place.place_id,
-      candidate,
-    ]),
+      candidate
+    ])
   );
   const days = plan.schedule.days.map((day, index) => {
     const stops = day.activities.map((activity) =>
       activityToStop(
         activity,
         day.transport_legs.find(
-          (leg) => leg.origin_place_id === activity.place_id,
+          (leg) => leg.origin_place_id === activity.place_id
         ),
         placeById.get(activity.place_id),
-        candidateByPlaceId.get(activity.place_id),
-      ),
+        candidateByPlaceId.get(activity.place_id)
+      )
     );
     return {
       id: `day-${index + 1}` as const,
@@ -66,7 +66,9 @@ export function buildPublishedPlanPresentation(
       endTime: day.end_time,
       walking: formatDistance(day.walking_m),
       finalNote: endNote(day.end_place_id, placeById),
-      stops,
+      startStop: endpointStop(plan, day.start_place_id, day.start_time, "出发"),
+      endStop: endpointStop(plan, day.end_place_id, day.end_time, "返回"),
+      stops
     } satisfies PlanDay;
   });
   const overview = buildOverview(plan);
@@ -82,7 +84,30 @@ export function buildPublishedPlanPresentation(
     overview,
     budgetEstimate: buildPublishedPlanBudget(plan.cost_estimate),
     statusLabel: status?.label,
-    statusTone: status?.tone,
+    statusTone: status?.tone
+  };
+}
+
+function endpointStop(
+  plan: PublishedPlan,
+  placeId: string,
+  time: string,
+  category: string
+): PlanStop | undefined {
+  const title =
+    (plan.places ?? []).find((place) => place.place_id === placeId)?.name ??
+    plan.map_projection.markers?.find((marker) => marker.place_id === placeId)
+      ?.label;
+  if (!title) return undefined;
+  return {
+    placeId,
+    time,
+    category,
+    title,
+    description: "",
+    imageAlt: `${title}实景`,
+    plannedStay: "",
+    includeInOverview: false
   };
 }
 
@@ -90,10 +115,10 @@ function activityToStop(
   activity: ScheduledActivity,
   transport: ScheduledTransport | undefined,
   place: SchedulePlaceFact | undefined,
-  candidate: RecalledCandidate | undefined,
+  candidate: RecalledCandidate | undefined
 ): PlanStop {
   const openingWindow = place?.opening_windows?.find(
-    (window) => window.service_date === activity.service_date,
+    (window) => window.service_date === activity.service_date
   );
   const description =
     activity.timing_notice ??
@@ -114,7 +139,7 @@ function activityToStop(
       ? `营业 ${openingWindow.start_time}–${openingWindow.end_time}`
       : undefined,
     includeInOverview: activity.kind === "attraction",
-    transportAfter: transport ? [transportOption(transport)] : undefined,
+    transportAfter: transport ? [transportOption(transport)] : undefined
   };
 }
 
@@ -123,13 +148,13 @@ function transportOption(transport: ScheduledTransport) {
     walking: "walk",
     cycling: "cycling",
     transit: "transit",
-    driving: "car",
+    driving: "car"
   };
   const label: Record<ScheduledTransport["mode"], string> = {
     walking: "步行",
     cycling: "骑行",
     transit: "公共交通",
-    driving: "打车",
+    driving: "打车"
   };
   return {
     id: mode[transport.mode],
@@ -138,7 +163,7 @@ function transportOption(transport: ScheduledTransport) {
       transport.availability === "missing"
         ? "耗时待补充"
         : `${transport.duration_minutes}分钟`,
-    distance: formatDistance(transport.distance_m),
+    distance: formatDistance(transport.distance_m)
   };
 }
 
@@ -146,20 +171,19 @@ function buildOverview(plan: PublishedPlan): PlanOverviewSummary {
   const dayTitles = plan.schedule.days
     .map(
       (day) =>
-        day.activities.find((activity) => activity.kind === "attraction")
-          ?.title,
+        day.activities.find((activity) => activity.kind === "attraction")?.title
     )
     .filter((title): title is string => Boolean(title));
   const modes = Array.from(
     new Set(
       plan.schedule.days.flatMap((day) =>
-        day.transport_legs.map((leg) => leg.mode),
-      ),
-    ),
+        day.transport_legs.map((leg) => leg.mode)
+      )
+    )
   );
   const selectedHotel = plan.hotel_selection?.candidates?.find(
     (hotel) =>
-      hotel.hotel_place_id === plan.hotel_selection?.selected_hotel_place_id,
+      hotel.hotel_place_id === plan.hotel_selection?.selected_hotel_place_id
   );
   return {
     route: {
@@ -167,16 +191,16 @@ function buildOverview(plan: PublishedPlan): PlanOverviewSummary {
         dayTitles.length > 0
           ? dayTitles.slice(0, 3).join(" · ")
           : "逐日路线已生成",
-      description: `${plan.schedule.days.length} 天行程已按真实地点、时间与交通资料编排。`,
+      description: `${plan.schedule.days.length} 天行程已按真实地点、时间与交通资料编排。`
     },
     lodging: selectedHotel
       ? {
           title: selectedHotel.name,
-          description: selectedHotel.fit_reason,
+          description: selectedHotel.fit_reason
         }
       : {
           title: "本方案暂无住宿信息",
-          description: "住宿未进入当前已发布结果，不展示推测内容。",
+          description: "住宿未进入当前已发布结果，不展示推测内容。"
         },
     transport: {
       title:
@@ -186,8 +210,8 @@ function buildOverview(plan: PublishedPlan): PlanOverviewSummary {
       description:
         plan.schedule.status === "available"
           ? "各段交通来自当前已发布方案。"
-          : "部分交通资料暂缺，页面保留已验证的可用部分。",
-    },
+          : "部分交通资料暂缺，页面保留已验证的可用部分。"
+    }
   };
 }
 
@@ -205,7 +229,7 @@ function weatherToPresentation(weather: DailyWeatherCoverage): WeatherDayData {
     travelNote:
       weather.availability === "missing"
         ? (weather.missing_reason ?? "天气资料暂未返回")
-        : undefined,
+        : undefined
   };
 }
 
@@ -255,7 +279,7 @@ function paceLabel(level: number | undefined) {
     "节奏偏充实",
     "节奏适中",
     "节奏偏从容",
-    "节奏从容",
+    "节奏从容"
   ];
   return labels[(level ?? 3) - 1] ?? "节奏适中";
 }
@@ -265,7 +289,7 @@ function transportModeLabel(mode: ScheduledTransport["mode"]) {
     walking: "步行",
     cycling: "骑行",
     transit: "公共交通",
-    driving: "打车",
+    driving: "打车"
   }[mode];
 }
 

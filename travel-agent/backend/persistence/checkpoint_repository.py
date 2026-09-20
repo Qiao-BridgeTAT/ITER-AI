@@ -8,7 +8,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from pydantic import ValidationError
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from backend.persistence.models import (
@@ -34,6 +34,8 @@ _FORBIDDEN_RUNTIME_KEYS = frozenset(
 )
 
 V4_PLANNER_CHECKPOINT_VERSION = "v4-planner-1"
+V4_REACT_CHECKPOINT_VERSION = "v4-planner-react-2"
+V4_PLANNER_CHECKPOINT_VERSIONS = (V4_PLANNER_CHECKPOINT_VERSION, V4_REACT_CHECKPOINT_VERSION)
 
 
 class CheckpointPersistenceError(RuntimeError):
@@ -256,7 +258,7 @@ class CheckpointRepository:
                 write.turn_id,
                 base_state_version=write.base_state_version,
             )
-            if write.checkpoint_version == V4_PLANNER_CHECKPOINT_VERSION:
+            if write.checkpoint_version in V4_PLANNER_CHECKPOINT_VERSIONS:
                 if turn.generation_id != write.generation_id:
                     raise PlannerWorkspaceConflictError(
                         "workspace generation differs from admitted turn"
@@ -273,6 +275,10 @@ class CheckpointRepository:
                 .with_for_update()
             )
             if latest is not None:
+                if latest.checkpoint_version != write.checkpoint_version:
+                    raise PlannerWorkspaceConflictError(
+                        "planner engine is pinned to its generation"
+                    )
                 existing_task_book = (
                     latest.confirmed_task_book_id,
                     latest.confirmed_task_book_version,
@@ -333,7 +339,7 @@ class CheckpointRepository:
                 query = query.where(PlannerWorkspace.generation_id == generation_id)
             else:
                 query = query.where(
-                    PlannerWorkspace.checkpoint_version == V4_PLANNER_CHECKPOINT_VERSION
+                    PlannerWorkspace.checkpoint_version.in_(V4_PLANNER_CHECKPOINT_VERSIONS)
                 )
             row = await session.scalar(
                 query.order_by(
@@ -363,6 +369,36 @@ class CheckpointRepository:
                 )
             return _workspace_record(row) if row is not None else None
 
+    async def list_planner_reference_evidence(
+        self, owner_user_id: UUID, trip_id: UUID
+    ) -> list[dict[str, Any]]:
+        """Project each run's latest saved evidence without loading model messages."""
+        latest = (
+            select(
+                PlannerWorkspace.generation_id,
+                func.max(PlannerWorkspace.revision).label("revision"),
+            )
+            .where(PlannerWorkspace.trip_id == trip_id)
+            .group_by(PlannerWorkspace.generation_id)
+            .subquery()
+        )
+        async with self._session_factory() as session:
+            rows = await session.execute(
+                select(
+                    PlannerWorkspace.payload["react_state"]["receipts"].label("receipts"),
+                    PlannerWorkspace.payload["verified_facts"].label("facts"),
+                )
+                .join(Trip, Trip.id == PlannerWorkspace.trip_id)
+                .join(
+                    latest,
+                    (latest.c.generation_id == PlannerWorkspace.generation_id)
+                    & (latest.c.revision == PlannerWorkspace.revision),
+                )
+                .where(PlannerWorkspace.trip_id == trip_id, Trip.owner_user_id == owner_user_id)
+                .order_by(PlannerWorkspace.created_at, PlannerWorkspace.generation_id)
+            )
+            return [{"receipts": row.receipts or [], "facts": row.facts or []} for row in rows]
+
     async def planner_turn_status(self, owner_user_id: UUID, trip_id: UUID, turn_id: UUID) -> str:
         async with self._session_factory() as session:
             status = await session.scalar(
@@ -391,7 +427,7 @@ class CheckpointRepository:
                 .where(
                     PlannerWorkspace.trip_id == trip_id,
                     PlannerWorkspace.generation_id == generation_id,
-                    PlannerWorkspace.checkpoint_version == V4_PLANNER_CHECKPOINT_VERSION,
+                    PlannerWorkspace.checkpoint_version.in_(V4_PLANNER_CHECKPOINT_VERSIONS),
                 )
                 .order_by(PlannerWorkspace.revision.desc())
                 .limit(1)
@@ -428,7 +464,7 @@ class CheckpointRepository:
                 confirmed_task_book_hash=latest.confirmed_task_book_hash,
                 base_state_version=latest.base_state_version,
                 revision=stopped.workspace_revision,
-                checkpoint_version=V4_PLANNER_CHECKPOINT_VERSION,
+                checkpoint_version=latest.checkpoint_version,
                 payload=stopped.model_dump(mode="json"),
                 content_hash=canonical_json_hash(stopped.model_dump(mode="json")),
                 status="stale",
@@ -446,12 +482,16 @@ def _validate_v4_workspace_write(write: PlannerWorkspaceWrite) -> None:
     is_v4 = write.checkpoint_version.startswith("v4") or "generation_id" in write.payload
     if not is_v4:
         return  # Historical workspace-1 is not served by the V4 runtime.
-    if write.checkpoint_version != V4_PLANNER_CHECKPOINT_VERSION:
+    if write.checkpoint_version not in V4_PLANNER_CHECKPOINT_VERSIONS:
         raise CheckpointPayloadError("V4 Planner requires its frozen checkpoint version")
     try:
         workspace = PlannerWorkspaceState.model_validate(write.payload)
     except ValidationError as error:
         raise CheckpointPayloadError("V4 Planner workspace failed contract validation") from error
+    if (workspace.react_state is not None) != (
+        write.checkpoint_version == V4_REACT_CHECKPOINT_VERSION
+    ):
+        raise CheckpointPayloadError("Planner engine and checkpoint versions do not match")
     if (
         workspace.trip_id != str(write.trip_id)
         or workspace.generation_id != str(write.generation_id)

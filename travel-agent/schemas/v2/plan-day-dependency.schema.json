@@ -1,0 +1,60 @@
+{
+  "$id": "https://travel-agent.local/schemas/v2/plan-day-dependency.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "activity_ids": {
+      "default": [],
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "title": "Activity Ids",
+      "type": "array"
+    },
+    "attraction_place_ids": {
+      "default": [],
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "title": "Attraction Place Ids",
+      "type": "array"
+    },
+    "day_number": {
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Day Number",
+      "type": "integer"
+    },
+    "restaurant_place_ids": {
+      "default": [],
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "title": "Restaurant Place Ids",
+      "type": "array"
+    },
+    "route_leg_ids": {
+      "default": [],
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "title": "Route Leg Ids",
+      "type": "array"
+    },
+    "service_date": {
+      "format": "date",
+      "title": "Service Date",
+      "type": "string"
+    }
+  },
+  "required": [
+    "day_number",
+    "service_date"
+  ],
+  "title": "PlanDayDependency",
+  "type": "object"
+}

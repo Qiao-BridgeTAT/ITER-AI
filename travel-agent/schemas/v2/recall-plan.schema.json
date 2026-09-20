@@ -1,0 +1,223 @@
+{
+  "$defs": {
+    "CandidateDomain": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "hotel"
+      ],
+      "title": "CandidateDomain",
+      "type": "string"
+    },
+    "ContentSeedRecallQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "$ref": "#/$defs/RecallChannel"
+        },
+        "max_results": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Max Results",
+          "type": "integer"
+        },
+        "query_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Query Id",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "theme_ids": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Theme Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "query_id",
+        "channel",
+        "max_results",
+        "reason"
+      ],
+      "title": "ContentSeedRecallQuery",
+      "type": "object"
+    },
+    "ProviderRecallQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Anchor Id"
+        },
+        "channel": {
+          "$ref": "#/$defs/RecallChannel"
+        },
+        "domain": {
+          "$ref": "#/$defs/CandidateDomain"
+        },
+        "exact_name_match": {
+          "default": false,
+          "title": "Exact Name Match",
+          "type": "boolean"
+        },
+        "keyword": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Keyword",
+          "type": "string"
+        },
+        "max_results": {
+          "maximum": 25,
+          "minimum": 1,
+          "title": "Max Results",
+          "type": "integer"
+        },
+        "named_clue_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Named Clue Id"
+        },
+        "query_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Query Id",
+          "type": "string"
+        },
+        "radius_m": {
+          "anyOf": [
+            {
+              "maximum": 50000,
+              "minimum": 100,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Radius M"
+        },
+        "reason": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "theme_ids": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Theme Ids",
+          "type": "array"
+        },
+        "typecodes": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Typecodes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "query_id",
+        "channel",
+        "domain",
+        "keyword",
+        "max_results",
+        "reason"
+      ],
+      "title": "ProviderRecallQuery",
+      "type": "object"
+    },
+    "RecallChannel": {
+      "enum": [
+        "user_named",
+        "selected_theme",
+        "city_landmark",
+        "city_feature",
+        "exploration",
+        "nearby_anchor"
+      ],
+      "title": "RecallChannel",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/recall-plan.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "city_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "City Id",
+      "type": "string"
+    },
+    "content_queries": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ContentSeedRecallQuery"
+      },
+      "title": "Content Queries",
+      "type": "array"
+    },
+    "plan_version": {
+      "pattern": "^[1-9]\\d*\\.\\d+\\.\\d+$",
+      "title": "Plan Version",
+      "type": "string"
+    },
+    "provider_queries": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ProviderRecallQuery"
+      },
+      "title": "Provider Queries",
+      "type": "array"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "plan_version",
+    "request_id",
+    "city_id"
+  ],
+  "title": "RecallPlan",
+  "type": "object"
+}

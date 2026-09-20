@@ -1,0 +1,149 @@
+{
+  "$defs": {
+    "HoursDayStatus": {
+      "enum": [
+        "open",
+        "closed",
+        "unknown",
+        "conflict"
+      ],
+      "title": "HoursDayStatus",
+      "type": "string"
+    },
+    "HoursInterval": {
+      "additionalProperties": false,
+      "properties": {
+        "closes_at": {
+          "format": "time",
+          "title": "Closes At",
+          "type": "string"
+        },
+        "last_entry_at": {
+          "anyOf": [
+            {
+              "format": "time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Entry At"
+        },
+        "opens_at": {
+          "format": "time",
+          "title": "Opens At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "opens_at",
+        "closes_at"
+      ],
+      "title": "HoursInterval",
+      "type": "object"
+    },
+    "ProviderDateHours": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "enum": [
+            "weekly",
+            "dated_exception",
+            "today",
+            "unverified",
+            "conflicting"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "intervals": {
+          "items": {
+            "$ref": "#/$defs/HoursInterval"
+          },
+          "maxItems": 10,
+          "title": "Intervals",
+          "type": "array"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        },
+        "service_date": {
+          "format": "date",
+          "title": "Service Date",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/HoursDayStatus"
+        }
+      },
+      "required": [
+        "service_date",
+        "status",
+        "basis",
+        "reason"
+      ],
+      "title": "ProviderDateHours",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/planner-hours-evidence.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "canonical_entity_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Canonical Entity Id",
+      "type": "string"
+    },
+    "days": {
+      "items": {
+        "$ref": "#/$defs/ProviderDateHours"
+      },
+      "maxItems": 5,
+      "minItems": 1,
+      "title": "Days",
+      "type": "array"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "fact_reference_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Fact Reference Id",
+      "type": "string"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "provider_entity_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Provider Entity Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "canonical_entity_id",
+    "provider_entity_id",
+    "fact_reference_id",
+    "observed_at",
+    "expires_at",
+    "days"
+  ],
+  "title": "PlannerHoursEvidence",
+  "type": "object"
+}

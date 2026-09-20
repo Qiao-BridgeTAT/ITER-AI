@@ -1,0 +1,259 @@
+{
+  "$defs": {
+    "HttpMethod": {
+      "enum": [
+        "GET",
+        "POST",
+        "PATCH",
+        "DELETE"
+      ],
+      "title": "HttpMethod",
+      "type": "string"
+    },
+    "OwnerType": {
+      "enum": [
+        "anonymous",
+        "user"
+      ],
+      "title": "OwnerType",
+      "type": "string"
+    },
+    "RestAuthMode": {
+      "enum": [
+        "public",
+        "session"
+      ],
+      "title": "RestAuthMode",
+      "type": "string"
+    },
+    "RestEndpointContract": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "idempotency_required": {
+                "const": false
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "method": {
+                "enum": [
+                  "POST",
+                  "PATCH",
+                  "DELETE"
+                ]
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "properties": {
+              "idempotency_required": {
+                "const": true
+              }
+            }
+          }
+        },
+        {
+          "else": {
+            "properties": {
+              "ownership_policy": {
+                "const": "none"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "owner_check_required": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "auth": {
+                "const": "session"
+              },
+              "ownership_policy": {
+                "not": {
+                  "const": "none"
+                }
+              },
+              "resource_kind": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "ownership_policy"
+            ]
+          }
+        },
+        {
+          "else": {
+            "properties": {
+              "allowed_actor_types": {
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "allowed_actor_types"
+            ]
+          },
+          "if": {
+            "properties": {
+              "auth": {
+                "const": "public"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "allowed_actor_types": {
+                "maxItems": 0,
+                "type": "array"
+              },
+              "ownership_policy": {
+                "const": "none"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "allowed_actor_types": {
+          "items": {
+            "$ref": "#/$defs/OwnerType"
+          },
+          "title": "Allowed Actor Types",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "auth": {
+          "$ref": "#/$defs/RestAuthMode"
+        },
+        "idempotency_required": {
+          "title": "Idempotency Required",
+          "type": "boolean"
+        },
+        "method": {
+          "$ref": "#/$defs/HttpMethod"
+        },
+        "operation_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "owner_check_required": {
+          "title": "Owner Check Required",
+          "type": "boolean"
+        },
+        "ownership_policy": {
+          "$ref": "#/$defs/RestOwnershipPolicy",
+          "default": "none"
+        },
+        "path": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Path",
+          "type": "string"
+        },
+        "request_model": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Request Model"
+        },
+        "resource_kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RestResourceKind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "response_model": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Response Model"
+        }
+      },
+      "required": [
+        "operation_id",
+        "method",
+        "path",
+        "auth",
+        "owner_check_required",
+        "idempotency_required"
+      ],
+      "title": "RestEndpointContract",
+      "type": "object"
+    },
+    "RestOwnershipPolicy": {
+      "enum": [
+        "none",
+        "same_owner",
+        "anonymous_handoff"
+      ],
+      "title": "RestOwnershipPolicy",
+      "type": "string"
+    },
+    "RestResourceKind": {
+      "enum": [
+        "account",
+        "anonymous_session",
+        "trip",
+        "preference",
+        "export"
+      ],
+      "title": "RestResourceKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/rest-contract-catalog.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "endpoints": {
+      "items": {
+        "$ref": "#/$defs/RestEndpointContract"
+      },
+      "minItems": 1,
+      "title": "Endpoints",
+      "type": "array"
+    }
+  },
+  "required": [
+    "endpoints"
+  ],
+  "title": "RestContractCatalog",
+  "type": "object"
+}

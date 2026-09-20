@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from backend.agent.planner.candidate_tradeoffs import authorized_omission, candidate_answer
 from backend.agent.planner.proposals import PlannerReferenceCatalog
 from backend.agent.planner.route_comparison import guard_global_route_comparison
 from backend.agent.planner.workspace import (
@@ -167,12 +168,22 @@ def validate_working_draft(
     # require user authority stay blocking here.
     if workspace.readiness_observation and any(
         issue.user_authority_required
+        and not (
+            issue.code == "strong_opening_conflict"
+            and issue.candidate_refs
+            and all(
+                (answer := candidate_answer(workspace, ref.canonical_entity_id)) is not None
+                and answer.semantic_action == "omit_required_candidate"
+                for ref in issue.candidate_refs
+            )
+        )
         and not (workspace.best_effort_reasons and issue.code == "strong_opening_conflict")
         for issue in workspace.readiness_observation.issues
     ):
         raise PlannerGuardError("planner_readiness_blocker_unresolved")
     if any(
-        (intent.commitment_level == "strong" or intent.requires_user_resolution)
+        not authorized_omission(workspace, intent)
+        and (intent.commitment_level == "strong" or intent.requires_user_resolution)
         and not workspace.best_effort_reasons
         for intent in draft.unassigned_intents
     ):
@@ -361,7 +372,9 @@ def validate_working_draft(
             if segment.expected_route_cost.duration_minutes != actual_cost:
                 raise PlannerGuardError("planner_cross_cluster_route_cost_changed")
     for intent in draft.unassigned_intents:
-        if _has_accepted_omission_receipt(intent, draft, workspace):
+        if authorized_omission(workspace, intent) or _has_accepted_omission_receipt(
+            intent, draft, workspace
+        ):
             # A server-compiled, already-applied validation repair is not a new
             # model claim. Keep its exact receipt across route-only revisions;
             # the revised schedule still goes through the full Validator.

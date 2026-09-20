@@ -7,12 +7,13 @@ import re
 import unicodedata
 from datetime import datetime, timedelta
 from math import ceil, cos, radians, sqrt
+from typing import Literal, cast
 from uuid import NAMESPACE_URL, uuid4, uuid5
 
 from backend.agent.model_gateway import ModelCancellation
 from backend.agent.planner.observation_router import EvidenceUpdate
 from backend.agent.planner.route_comparison import compare_observed_routes
-from backend.agent.planner.route_diagnostics import missing_route_reason
+from backend.agent.planner.route_diagnostics import missing_route_reason, route_query_failure
 from backend.agent.planner.workspace import (
     PlannerGuardError,
     server_id,
@@ -21,6 +22,7 @@ from backend.agent.planner.workspace import (
 )
 from backend.contracts.enums import PlaceCategory, ProviderCode
 from backend.contracts.places import Gcj02Coordinates
+from backend.contracts.v4.lodging_preferences import HOTEL_STARS
 from backend.contracts.v4.planner_evidence import (
     PlannerCapabilityObservation,
     PlannerHotelLocationEvidence,
@@ -32,6 +34,7 @@ from backend.contracts.v4.planner_observations import (
     HotelObservation,
     HotelOfferObservation,
     HotelOfferRefreshArguments,
+    HotelQueryAttempt,
     HotelSearchArguments,
     HotelStaySegment,
     MoneyAmountRange,
@@ -46,7 +49,7 @@ from backend.contracts.v4.planner_workspace import PlannerWorkspaceState, Verifi
 from backend.contracts.v4.task_book import TaskBookV4
 from backend.persistence.outbox_repository import canonical_json_hash
 from backend.planning.city_registry import CityProviderUnavailableError, CityRegistry
-from backend.providers.planning_set import PlanningProviderSet
+from backend.planning.runtime_backend import PlanningProviderSet
 from backend.providers.contracts import (
     HotelSearchRequest,
     KeywordPlaceSearchRequest,
@@ -54,11 +57,13 @@ from backend.providers.contracts import (
     ProviderHotelOffer,
     ProviderPlace,
     ProviderResponse,
+    ProviderRoute,
     RouteMode,
     RouteRequest,
 )
 from backend.providers.place_matching import coordinates_to_gcj02
 from backend.providers.place_taxonomy import category_from_original_typecodes
+from backend.providers.request_budget import RequestBudgetExceeded
 
 _HOTEL_QUALITY_QUERY_LABELS = {
     "economy": "经济实用",
@@ -235,17 +240,27 @@ async def execute_location_capability(
     registry: CityRegistry,
     cancellation: ModelCancellation,
     now: datetime,
+    reuse_prepare: bool = False,
 ) -> EvidenceUpdate:
     validate_location_request(request, workspace, book)
     if isinstance(request.arguments, SpatialRoutesArguments):
         return await _routes(request, workspace, book, providers, registry, cancellation, now)
     try:
-        return await _hotels(request, workspace, book, providers, registry, cancellation, now)
+        return await _hotels(
+            request,
+            workspace,
+            book,
+            providers,
+            registry,
+            cancellation,
+            now,
+            reuse_prepare=reuse_prepare,
+        )
     except CityProviderUnavailableError:
         # A missing city/provider binding is a real negative observation. It
         # must be checkpointed so the Planner cannot retry the same impossible
         # request until the whole execution times out.
-        return _unavailable_hotel_update(request, workspace, book, now)
+        return _unavailable_hotel_update(request, workspace, book, now, reuse_prepare=reuse_prepare)
 
 
 def _unavailable_hotel_update(
@@ -253,6 +268,8 @@ def _unavailable_hotel_update(
     workspace: PlannerWorkspaceState,
     book: TaskBookV4,
     now: datetime,
+    *,
+    reuse_prepare: bool = False,
 ) -> EvidenceUpdate:
     args = request.arguments
     assert isinstance(args, (HotelSearchArguments, HotelOfferRefreshArguments))
@@ -267,6 +284,7 @@ def _unavailable_hotel_update(
     applied = AppliedHotelConstraints(
         area_refs=tuple(key for key in refs if key.startswith("area:")),
         quality_tier=book.lodging_direction.hotel_quality_tier,
+        quality_tiers=tuple(book.lodging_direction.hotel_quality_tiers),
         nightly_budget_ref="lodging_budget" if book.lodging_direction.nightly_budget else None,
         property_types=tuple(
             item.value for item in book.lodging_direction.property_type_preferences
@@ -288,6 +306,15 @@ def _unavailable_hotel_update(
         )
     observation_id = str(uuid4())
     hotel = HotelObservation(
+        query_status="failed",
+        query_origin="prepare_handoff" if reuse_prepare else "planner_query",
+        query_attempts=(
+            HotelQueryAttempt(
+                outcome="failed",
+                error_code="provider_city_binding",
+                observed_at=now,
+            ),
+        ),
         hotel_observation_id=observation_id,
         scope=request.scope,
         request_id=request.request_id,
@@ -342,29 +369,47 @@ async def _routes(
         "walking": RouteMode.WALKING,
     }
     semaphore = asyncio.Semaphore(MAX_PARALLEL_ROUTE_CALLS)
+    previous_edges = {edge.route_edge_id: edge for edge in workspace.route_evidence}
 
     async def query_pair(
         pair: SpatialRoutePair,
     ) -> tuple[tuple[SpatialRouteEdge, ...], tuple[VerifiedFactSummary, ...]]:
+        observations: dict[
+            RouteMode, tuple[ProviderResponse[ProviderRoute] | None, ProviderError | None, bool]
+        ] = {}
+        requested_modes = list(dict.fromkeys(modes[mode] for mode in args.transport_modes))
+        groups = (
+            [[mode] for mode in requested_modes] if workspace.react_state else [requested_modes]
+        )
         async with semaphore:
-            cancellation.raise_if_cancelled("planner_requested_routes")
-            failure: ProviderError | None = None
-            try:
-                response = await providers.routes.get_routes(
-                    RouteRequest(
-                        city=city,
-                        origin=endpoint_coordinates(pair.origin, workspace, book),
-                        destination=endpoint_coordinates(pair.destination, workspace, book),
-                        modes=list(dict.fromkeys(modes[mode] for mode in args.transport_modes)),
+            for group in groups:
+                cancellation.raise_if_cancelled("planner_requested_routes")
+                failure: ProviderError | None = None
+                skipped = False
+                try:
+                    response = await providers.routes.get_routes(
+                        RouteRequest(
+                            city=city,
+                            origin=endpoint_coordinates(pair.origin, workspace, book),
+                            destination=endpoint_coordinates(pair.destination, workspace, book),
+                            modes=group,
+                        )
                     )
-                )
-            except ProviderError as error:
-                response = None
-                failure = error
-            cancellation.raise_if_cancelled("planner_requested_routes_observe")
+                except ProviderError as error:
+                    response = None
+                    failure = error
+                except RequestBudgetExceeded:
+                    if workspace.react_state is None:
+                        raise
+                    response = None
+                    skipped = True
+                cancellation.raise_if_cancelled("planner_requested_routes_observe")
+                for provider_mode in group:
+                    observations[provider_mode] = response, failure, skipped
         pair_edges: list[SpatialRouteEdge] = []
         pair_facts: list[VerifiedFactSummary] = []
         for mode in args.transport_modes:
+            response, failure, skipped = observations[modes[mode]]
             edge_id = server_id(
                 workspace.generation_id,
                 pair.origin.kind,
@@ -386,7 +431,19 @@ async def _routes(
                         destination=pair.destination,
                         transport_mode=mode,
                         status="missing",
-                        missing_reason=missing_route_reason(modes[mode], response, failure),
+                        query_failure=route_query_failure(
+                            modes[mode],
+                            response,
+                            failure,
+                            previous_edges.get(edge_id),
+                            now,
+                            skipped=skipped,
+                        ),
+                        missing_reason=(
+                            "本次规划的外部请求预算已用完或收尾时间已到，未取得该方式的路线证据；不能认定没有路线。"
+                            if skipped
+                            else missing_route_reason(modes[mode], response, failure)
+                        ),
                     )
                 )
                 continue
@@ -540,6 +597,8 @@ async def _hotels(
     registry: CityRegistry,
     cancellation: ModelCancellation,
     now: datetime,
+    *,
+    reuse_prepare: bool = False,
 ) -> EvidenceUpdate:
     args = request.arguments
     assert isinstance(args, (HotelSearchArguments, HotelOfferRefreshArguments))
@@ -555,6 +614,7 @@ async def _hotels(
     applied = AppliedHotelConstraints(
         area_refs=tuple(key for key in refs if key.startswith("area:")),
         quality_tier=book.lodging_direction.hotel_quality_tier,
+        quality_tiers=tuple(book.lodging_direction.hotel_quality_tiers),
         nightly_budget_ref="lodging_budget" if book.lodging_direction.nightly_budget else None,
         property_types=tuple(
             item.value for item in book.lodging_direction.property_type_preferences
@@ -577,6 +637,35 @@ async def _hotels(
     facts = []
     offers: list[HotelOfferObservation] = []
     fixed_observation = None
+    attempts: list[HotelQueryAttempt] = []
+
+    def record_search(hotel_request: HotelSearchRequest, response=None, error=None) -> None:
+        attempts.append(
+            HotelQueryAttempt(
+                anchor_name=hotel_request.anchor_name,
+                search_keyword=hotel_request.query,
+                outcome="failed" if error else "results" if response.items else "empty",
+                result_count=len(response.items) if response else 0,
+                error_code=error.code.value if error else None,
+                retryable=error.retryable if error else False,
+                attempts=error.attempts if error else 1,
+                observed_at=response.fetched_at if response else now,
+            )
+        )
+        if response:
+            for failure in response.failures.values():
+                attempts.append(
+                    HotelQueryAttempt(
+                        anchor_name=hotel_request.anchor_name,
+                        search_keyword=hotel_request.query,
+                        outcome="failed",
+                        error_code=failure.code.value,
+                        retryable=failure.retryable,
+                        attempts=failure.attempts,
+                        observed_at=response.fetched_at,
+                    )
+                )
+
     if fixed:
         fixed_ref = next(
             item
@@ -587,7 +676,17 @@ async def _hotels(
             place = await _verified_hotel_place(
                 fixed.user_description, None, providers, registry, book, fixed.canonical_entity_id
             )
-        except ProviderError:
+        except ProviderError as error:
+            attempts.append(
+                HotelQueryAttempt(
+                    stage="identity",
+                    outcome="failed",
+                    error_code=error.code.value,
+                    retryable=error.retryable,
+                    attempts=error.attempts,
+                    observed_at=now,
+                )
+            )
             place = None
         if place:
             fact_id = server_id("fixed_hotel", place.source_place_id, place.fetched_at.isoformat())
@@ -624,7 +723,10 @@ async def _hotels(
         amap_city = registry.provider_scope(
             book.destination_and_dates.destination_name, ProviderCode.AMAP
         )
-        constraint_query = _hotel_constraint_query(book)
+        selected_keyword = args.search_keyword if isinstance(args, HotelSearchArguments) else None
+        constraint_query = selected_keyword or (
+            _hotel_constraint_query(book) if workspace.react_state is None else None
+        )
         places = {place.canonical_entity_id: place for place in workspace.place_evidence}
         clusters = {cluster.cluster_id: cluster for cluster in spatial.clusters}
         search_names = [
@@ -647,22 +749,96 @@ async def _hotels(
                         check_out=args.check_out_date,
                         anchor_name=anchor_name,
                         query=constraint_query,
+                        hotel_stars=[
+                            HOTEL_STARS[tier] for tier in book.lodging_direction.hotel_quality_tiers
+                        ],
+                        hotel_types=[
+                            cast(Literal["酒店", "民宿", "客栈"], item.value)
+                            for item in book.lodging_direction.property_type_preferences
+                            if item.value in {"酒店", "民宿"}
+                        ],
+                        sort="rate_desc" if book.lodging_direction.hotel_quality_tiers else None,
                     )
                     response = await providers.products.search_hotels(hotel_request)
-                    if not response.items and constraint_query is not None:
+                    record_search(hotel_request, response=response)
+                    if (
+                        not response.items
+                        and constraint_query is not None
+                        and workspace.react_state is None
+                        and selected_keyword is None
+                    ):
                         # FlyAI treats key-words as a search term, not a structured
                         # budget/facility filter. Keep the dates and real area anchor,
                         # then verify constraints separately on returned facts.
                         cancellation.raise_if_cancelled("planner_hotel_keyword_recovery")
                         relaxed_keyword_searches.add(anchor_name)
-                        response = await providers.products.search_hotels(
-                            hotel_request.model_copy(update={"query": None})
-                        )
+                        hotel_request = hotel_request.model_copy(update={"query": None})
+                        response = await providers.products.search_hotels(hotel_request)
+                        record_search(hotel_request, response=response)
                     return response
-                except ProviderError:
+                except ProviderError as error:
+                    record_search(hotel_request, error=error)
                     return None
 
-        responses = await asyncio.gather(*(search(anchor) for anchor in search_names))
+        use_prepare_examples = (
+            bool(book.lodging_direction.search_examples)
+            and (workspace.react_state is None or reuse_prepare)
+            and selected_keyword is None
+        )
+        if use_prepare_examples:
+            from backend.discovery.lodging_search import (
+                hotel_requests,
+                search_lodging_results,
+                top_hotels,
+            )
+
+            lodging = book.lodging_direction
+            requests = hotel_requests(
+                city=city,
+                check_in=args.check_in_date,
+                check_out=args.check_out_date,
+                examples=lodging.search_examples,
+                tiers=lodging.hotel_quality_tiers
+                or ([lodging.hotel_quality_tier] if lodging.hotel_quality_tier else []),
+                types=[item.value for item in lodging.property_type_preferences],
+            )
+            cancellation.raise_if_cancelled("planner_hotel_prepare_handoff")
+            results = await search_lodging_results(providers.products, requests)
+            cancellation.raise_if_cancelled("planner_hotel_prepare_handoff")
+            responses = []
+            for result in results:
+                if result.internal_error:
+                    attempts.append(
+                        HotelQueryAttempt(
+                            anchor_name=result.request.anchor_name,
+                            search_keyword=result.request.query,
+                            outcome="failed",
+                            error_code="internal_error",
+                            observed_at=now,
+                        )
+                    )
+                else:
+                    record_search(result.request, response=result.response, error=result.error)
+                if result.response is not None:
+                    responses.append(
+                        result.response.model_copy(
+                            update={"items": top_hotels(result.response.items)}
+                        )
+                    )
+        else:
+            responses = [
+                response
+                for response in await asyncio.gather(*(search(anchor) for anchor in search_names))
+                if response is not None
+            ]
+        identity_limit = (
+            21
+            if use_prepare_examples and workspace.react_state is None
+            else MAX_HOTEL_IDENTITY_ATTEMPTS
+        )
+        offer_limit = (
+            21 if use_prepare_examples and workspace.react_state is None else MAX_HOTEL_OFFERS
+        )
         candidate_offers: list[ProviderHotelOffer] = []
         seen_properties: set[str] = set()
         max_result_count = max(
@@ -693,9 +869,9 @@ async def _hotels(
                     continue
                 seen_properties.add(offer.source_hotel_id)
                 candidate_offers.append(offer)
-                if len(candidate_offers) >= MAX_HOTEL_IDENTITY_ATTEMPTS:
+                if len(candidate_offers) >= identity_limit:
                     break
-            if len(candidate_offers) >= MAX_HOTEL_IDENTITY_ATTEMPTS:
+            if len(candidate_offers) >= identity_limit:
                 break
 
         identity_semaphore = asyncio.Semaphore(MAX_PARALLEL_HOTEL_IDENTITIES)
@@ -714,18 +890,55 @@ async def _hotels(
                     place = await _verified_hotel_place(
                         offer.name, coordinates, providers, registry, book
                     )
-                except (ProviderError, ValueError):
+                except ProviderError as error:
+                    attempts.append(
+                        HotelQueryAttempt(
+                            stage="identity",
+                            anchor_name=offer.name,
+                            outcome="failed",
+                            error_code=error.code.value,
+                            retryable=error.retryable,
+                            attempts=error.attempts,
+                            observed_at=now,
+                        )
+                    )
+                    return None
+                except ValueError:
                     return None
                 return (offer, place) if place is not None else None
 
-        verified_results = await asyncio.gather(
-            *(verify_identity(offer) for offer in candidate_offers)
-        )
+        if workspace.react_state is not None:
+            # Preserve the same offer order and identity checks, but stop once
+            # enough verified options exist instead of checking discarded rows.
+            verified_results = []
+            for offset in range(0, len(candidate_offers), MAX_PARALLEL_HOTEL_IDENTITIES):
+                verified_results.extend(
+                    await asyncio.gather(
+                        *(
+                            verify_identity(offer)
+                            for offer in candidate_offers[
+                                offset : offset + MAX_PARALLEL_HOTEL_IDENTITIES
+                            ]
+                        )
+                    )
+                )
+                if sum(result is not None for result in verified_results) >= offer_limit:
+                    break
+        else:
+            verified_results = await asyncio.gather(
+                *(verify_identity(offer) for offer in candidate_offers)
+            )
         verified_offers = tuple(result for result in verified_results if result is not None)[
-            :MAX_HOTEL_OFFERS
+            :offer_limit
         ]
 
-        commute_cluster_ids = tuple(cluster_ids[:MAX_HOTEL_COMMUTE_CLUSTERS])
+        # The Agent can request comparisons through MCP. Automatic calculation
+        # only needs the chosen hotel's actual adjacent itinerary legs.
+        commute_cluster_ids = (
+            ()
+            if workspace.react_state is not None
+            else tuple(cluster_ids[:MAX_HOTEL_COMMUTE_CLUSTERS])
+        )
         commute_semaphore = asyncio.Semaphore(MAX_PARALLEL_HOTEL_COMMUTES)
 
         async def query_commute(
@@ -913,7 +1126,20 @@ async def _hotels(
                     expires_at=expires,
                 )
             )
+    query_status = (
+        "available"
+        if offers or (fixed_observation and fixed_observation.verification_status == "verified")
+        else "failed"
+        if any(item.outcome == "failed" for item in attempts)
+        else "unverified"
+        if fixed or any(item.result_count for item in attempts)
+        else "empty"
+    )
     hotel = HotelObservation(
+        query_status=query_status,
+        query_origin="prepare_handoff" if reuse_prepare else "planner_query",
+        query_attempts=tuple(attempts),
+        search_keyword=args.search_keyword if isinstance(args, HotelSearchArguments) else None,
         hotel_observation_id=observation_id,
         scope=request.scope,
         request_id=request.request_id,
@@ -946,9 +1172,13 @@ async def _hotels(
         artifact_reference_ids=(hotel.hotel_observation_id,),
         reason_summary=(
             (
-                "约束关键词没有匹配结果，已保留日期与活动区位进行一次扩展查询；"
+                "已接收 Prepare 住宿预查条件对应的结果，复用有效缓存并核验酒店实体；"
+                if reuse_prepare
+                else "约束关键词没有匹配结果，已保留日期与活动区位进行一次扩展查询；"
                 "已排除参考价明确超过每晚预算上限的候选；"
                 if not fixed and relaxed_keyword_searches
+                else "已按 Agent 选定的活动区域及可选关键词查询，保留任务书星级、类型和预算核验；"
+                if not fixed and workspace.react_state is not None
                 else "FlyAI查询已携带任务书中实际存在的住宿约束；"
                 if not fixed and _hotel_constraint_query(book) is not None
                 else "任务书没有可写入FlyAI查询的具体住宿约束；"

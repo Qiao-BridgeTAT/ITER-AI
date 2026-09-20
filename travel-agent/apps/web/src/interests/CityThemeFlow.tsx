@@ -3,7 +3,7 @@ import { useState } from "react";
 import { validatePublicContract } from "../contracts/validation";
 import type {
   CityThemeContent,
-  CityThemeSelection,
+  CityThemeSelection
 } from "../generated/contracts";
 
 interface CityThemeFlowProps {
@@ -19,13 +19,13 @@ export function CityThemeFlow({
   themes,
   onSubmit,
   initialSelection,
-  disabled = false,
+  disabled = false
 }: CityThemeFlowProps) {
   const [selectedThemeIds, setSelectedThemeIds] = useState<string[]>(
-    initialSelection?.selected_theme_ids ?? [],
+    initialSelection?.selected_theme_ids ?? []
   );
   const [openToAny, setOpenToAny] = useState(
-    initialSelection?.mode === "open_to_any",
+    initialSelection?.mode === "open_to_any"
   );
   const [freeText, setFreeText] = useState(initialSelection?.free_text ?? "");
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export function CityThemeFlow({
     const selection: CityThemeSelection = {
       mode: openToAny ? "open_to_any" : "selected",
       selected_theme_ids: openToAny ? [] : selectedThemeIds,
-      ...(note.length === 0 ? {} : { free_text: note }),
+      ...(note.length === 0 ? {} : { free_text: note })
     };
     if (!validatePublicContract("city_theme_selection", selection).success) {
       setSubmitError("至少选一个方向，或者明确告诉我“都可以”。");
@@ -72,7 +72,7 @@ export function CityThemeFlow({
                 setSelectedThemeIds((current) =>
                   selected
                     ? current.filter((themeId) => themeId !== theme.theme_id)
-                    : [...current, theme.theme_id],
+                    : [...current, theme.theme_id]
                 );
               }}
             >

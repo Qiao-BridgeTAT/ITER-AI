@@ -14,9 +14,13 @@ from backend.agent.planner.dependencies import (
     prepare_workspace_for_evidence_refresh,
     rebind_semantic_artifacts_after_evidence,
 )
+from backend.agent.planner.dining_context import deduplicate_inherited_dining, dining_place_blocked
+from backend.agent.planner.dining_recall import recall_initial_dining
+from backend.agent.planner.materializer import _refresh_route_mode, _select_route
 from backend.agent.planner.observation_router import EvidenceUpdate, observe_capability_results
+from backend.agent.planner.route_diagnostics import route_needs_retry
 from backend.agent.planner.spatial import build_spatial_observation
-from backend.agent.planner.ticket_prices import lookup_ticket_price
+from backend.agent.planner.ticket_prices import lookup_ticket_prices
 from backend.agent.planner.timing_quality import (
     afternoon_activity_opportunities,
     evening_activity_opportunities,
@@ -47,6 +51,7 @@ from backend.contracts.candidate_recall import (
 from backend.contracts.enums import PlaceCategory, ProviderCode
 from backend.contracts.v4.enums import CandidateEntityKind, CommitmentLevel, PlannerCapability
 from backend.contracts.v4.planner_decision import RequestEvidencePayload
+from backend.contracts.v4.planner_dining import PlannerDiningState
 from backend.contracts.v4.planner_draft import DraftItem
 from backend.contracts.v4.planner_evidence import (
     PlannerCapabilityObservation,
@@ -84,7 +89,7 @@ from backend.planning.city_registry import (
     default_city_registry,
 )
 from backend.planning.recall_plan import ModelRecallPlanGenerator
-from backend.providers.planning_set import PlanningProviderSet
+from backend.planning.runtime_backend import PlanningProviderSet
 from backend.providers.contracts import (
     HoursRequest,
     KeywordPlaceSearchRequest,
@@ -96,7 +101,9 @@ from backend.providers.contracts import (
     WeatherRequest,
 )
 from backend.providers.hours_rules import evaluate_regular_hours
+from backend.providers.place_copy import provider_place_cuisine
 from backend.providers.place_taxonomy import category_from_original_typecodes
+from backend.providers.request_budget import RequestBudgetExceeded
 
 MAX_SELECTED_ROUTE_PAIRS_PER_REQUEST = 40
 MAX_SELECTED_ROUTE_REQUESTS = 4
@@ -128,6 +135,11 @@ def _guard_repeated_evidence_request(
     if isinstance(arguments, HotelSearchArguments):
         observation = workspace.hotel_observation
         if observation is None or observation.mode != "search":
+            return
+        if observation.query_origin == "prepare_handoff":
+            # Prepare searched its chosen area keywords, not these activity anchors.
+            return
+        if arguments.search_keyword != observation.search_keyword:
             return
         requested_clusters = set(arguments.activity_cluster_refs)
         if any(
@@ -162,10 +174,13 @@ class PlannerEvidenceBackend:
         *,
         registry: CityRegistry | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        dining_review_gateway: ModelGateway | None = None,
     ) -> None:
         self.providers = providers
         self.registry = registry or default_city_registry()
         self.clock = clock
+        self.gateway = gateway
+        self.dining_review_gateway = dining_review_gateway
         self.recall = CandidateRecallService(
             registry=self.registry,
             places=providers.places,
@@ -185,31 +200,90 @@ class PlannerEvidenceBackend:
         cancellation: ModelCancellation,
         *,
         checkpoint: Callable[[PlannerWorkspaceState], Awaitable[None]] | None = None,
+        agent_driven: bool = False,
     ) -> PlannerWorkspaceState:
         city = self.registry.provider_scope(
             book.destination_and_dates.destination_name, ProviderCode.AMAP
         )
         intents = entity_intents(book)
         origins = {item.canonical_entity_id: item for item in workspace.candidate_origins}
+        seeds: dict[str, tuple[TaskBookEntityIntent | str, CandidateEntityKind, str | None]] = {
+            key: (item, kind, origins[key].provider_entity_id if key in origins else None)
+            for key, (item, kind) in intents.items()
+        }
+        for origin in workspace.candidate_origins:
+            if (
+                origin.inherit_as_neutral
+                and origin.display_name
+                and origin.canonical_entity_id not in seeds
+            ):
+                seeds[origin.canonical_entity_id] = (
+                    origin.display_name,
+                    origin.entity_kind,
+                    origin.provider_entity_id,
+                )
+        if workspace.dining_state is not None:
+            for place in workspace.place_evidence:
+                if (
+                    place.entity_kind is CandidateEntityKind.RESTAURANT
+                    and place.canonical_entity_id in workspace.dining_state.admitted_canonical_ids
+                ):
+                    seeds.setdefault(
+                        place.canonical_entity_id,
+                        (place.display_name, place.entity_kind, place.provider_entity_id),
+                    )
         semaphore = asyncio.Semaphore(3)
+        previous_places = {p.canonical_entity_id: p for p in workspace.place_evidence}
 
         async def resolve(key: str) -> tuple[PlannerPlaceEvidence | None, str]:
-            item, kind = intents[key]
-            if item.disposition.value == "avoid":
+            item, kind, provider_id = seeds[key]
+            if isinstance(item, TaskBookEntityIntent) and item.disposition.value == "avoid":
                 return None, "excluded"
             async with semaphore:
                 cancellation.raise_if_cancelled("planner_initial_place")
-                origin = origins.get(key)
-                return await self._resolve_selected_place(
+                previous = previous_places.get(key)
+                if (
+                    agent_driven
+                    and previous is not None
+                    and previous.provider_entity_id == provider_id
+                    and previous.city_id == city.city_id
+                    and previous.entity_kind is kind
+                    and category_from_original_typecodes(previous.provider_typecode)
+                    is _category(kind)
+                    and timedelta(0) <= self.clock() - previous.observed_at < timedelta(hours=24)
+                    and not (
+                        kind is CandidateEntityKind.RESTAURANT
+                        and dining_place_blocked(previous, book)
+                    )
+                ):
+                    return previous, "reused_fresh_prepared_identity"
+                place, code = await self._resolve_selected_place(
                     key,
                     item,
                     kind,
                     city,
-                    origin.provider_entity_id if origin else None,
+                    provider_id,
                     cancellation,
                 )
+                if (
+                    place is not None
+                    and kind is CandidateEntityKind.RESTAURANT
+                    and dining_place_blocked(place, book)
+                ):
+                    return None, "excluded_or_known_unavailable"
+                previous = previous_places.get(key)
+                if (
+                    place is None
+                    and kind is CandidateEntityKind.RESTAURANT
+                    and previous is not None
+                    and previous.city_id == city.city_id
+                    and "known_identity_invalid" not in code
+                    and not dining_place_blocked(previous, book)
+                ):
+                    return previous, f"retained_previous_evidence:{code}"
+                return place, code
 
-        resolved = await asyncio.gather(*(resolve(key) for key in intents))
+        resolved = await asyncio.gather(*(resolve(key) for key in seeds))
         places = tuple(place for place, _ in resolved if place is not None)
         resolved_identities = {
             (place.canonical_entity_id, place.provider_entity_id) for place in places
@@ -225,12 +299,27 @@ class PlannerEvidenceBackend:
                 reason_summary=f"任务书实体身份核验：{code}；仅精确实体、原始类型与城市一致时接受。",
                 observed_at=self.clock(),
             )
-            for key, (place, code) in zip(intents, resolved, strict=True)
+            for key, (place, code) in zip(seeds, resolved, strict=True)
             if code != "excluded"
         )
         workspace = advance(
             workspace,
             place_evidence=places,
+            dining_state=(workspace.dining_state or PlannerDiningState()).model_copy(
+                update={
+                    "initial_threshold": 3 * len(service_dates(book)) + 2,
+                    "inherited_canonical_ids": tuple(
+                        p.canonical_entity_id
+                        for p in places
+                        if p.entity_kind is CandidateEntityKind.RESTAURANT
+                    ),
+                    "admitted_canonical_ids": tuple(
+                        p.canonical_entity_id
+                        for p in places
+                        if p.entity_kind is CandidateEntityKind.RESTAURANT
+                    ),
+                }
+            ),
             # A full replan replaces the initial identity set. Discard hours
             # for removed supplementary POIs or a changed provider identity in
             # the SAME atomic update, before workspace ownership validation.
@@ -245,16 +334,27 @@ class PlannerEvidenceBackend:
             ),
             capability_observations=(*workspace.capability_observations, *observations),
         )
+        workspace = deduplicate_inherited_dining(workspace, book)
         workspace = refresh_pool(workspace, book, self.clock())
         if checkpoint is not None:
             await checkpoint(workspace)
+        if agent_driven:
+            workspace = await build_spatial_observation(
+                workspace,
+                book,
+                routes=self.providers.routes,
+                city=city,
+                cancellation=cancellation,
+                now=self.clock(),
+                query_routes=False,
+            )
+            return advance(workspace, initial_evidence_ready=True)
         # Initial recall fills an observation pool, not a daily plan. All selected
         # identities remain protected; the model can request further gaps later.
         recall_snapshot = workspace
         recall_requests: list[PlannerCapabilityRequest] = []
         for kind, minimum in (
             (CandidateEntityKind.ATTRACTION, min(14, 3 * len(service_dates(book)))),
-            (CandidateEntityKind.RESTAURANT, min(10, 2 * len(service_dates(book)))),
         ):
             count = sum(place.entity_kind is kind for place in recall_snapshot.place_evidence)
             if count < minimum:
@@ -280,21 +380,22 @@ class PlannerEvidenceBackend:
             # snapshot. asyncio.gather preserves request order even when the
             # Provider calls complete in the opposite order, so one merge gives
             # deterministic observations and one checkpoint.
-            recall_updates = await asyncio.gather(
-                *(
-                    self._execute(request, recall_snapshot, book, cancellation)
-                    for request in recall_requests
-                )
+            recall_updates, workspace = await asyncio.gather(
+                asyncio.gather(
+                    *(
+                        self._execute(request, recall_snapshot, book, cancellation)
+                        for request in recall_requests
+                    )
+                ),
+                self._initialize_dining(recall_snapshot, book, cancellation, checkpoint=checkpoint),
             )
-            workspace = self._merge_updates(recall_snapshot, book, tuple(recall_updates))
+            workspace = self._merge_updates(workspace, book, tuple(recall_updates))
             if checkpoint is not None:
                 await checkpoint(workspace)
-        supplemented = await self._supplement_restaurants(workspace, book, cancellation)
-        if checkpoint is not None and supplemented is not workspace:
-            workspace = supplemented
-            await checkpoint(workspace)
         else:
-            workspace = supplemented
+            workspace = await self._initialize_dining(
+                workspace, book, cancellation, checkpoint=checkpoint
+            )
         calendar_targets = tuple(
             entry.candidate_ref.candidate_id
             for entry in workspace.candidate_pool.candidates
@@ -323,11 +424,39 @@ class PlannerEvidenceBackend:
                 ),
             )
             calendar_requests.append(request)
-        calendar_updates, spatial_workspace = await asyncio.gather(
+        trip_dates = service_dates(book)
+        weather_requests = [
+            PlannerCapabilityRequest(
+                request_id=server_id(
+                    workspace.generation_id,
+                    "initial-weather",
+                    dates[0].isoformat(),
+                    dates[-1].isoformat(),
+                ),
+                scope=workspace.current_scope,
+                capability=PlannerCapability.WEATHER_FORECAST,
+                purpose="complete_initial_evidence",
+                service_dates=dates,
+                blocking=False,
+                arguments=WeatherForecastArguments(
+                    destination_ref="destination",
+                    service_dates=dates,
+                    weather_fields=(
+                        "condition_day",
+                        "condition_night",
+                        "high_celsius",
+                        "low_celsius",
+                    ),
+                ),
+            )
+            for offset in range(0, len(trip_dates), 5)
+            if (dates := trip_dates[offset : offset + 5])
+        ]
+        evidence_updates, spatial_workspace = await asyncio.gather(
             asyncio.gather(
                 *(
                     self._execute(request, workspace, book, cancellation)
-                    for request in calendar_requests
+                    for request in (*calendar_requests, *weather_requests)
                 )
             ),
             self._spatial(workspace, book, cancellation),
@@ -335,8 +464,8 @@ class PlannerEvidenceBackend:
         # Opening dates do not change geometry. The calendar-only merge rebinds
         # the real route clusters to the refreshed pool without querying again.
         workspace = spatial_workspace
-        if calendar_updates:
-            workspace = self._merge_updates(workspace, book, tuple(calendar_updates))
+        if evidence_updates:
+            workspace = self._merge_updates(workspace, book, tuple(evidence_updates))
             if checkpoint is not None:
                 await checkpoint(workspace)
         return advance(
@@ -345,10 +474,33 @@ class PlannerEvidenceBackend:
             initial_evidence_ready=True,
         )
 
+    async def _initialize_dining(
+        self,
+        workspace: PlannerWorkspaceState,
+        book: TaskBookV4,
+        cancellation: ModelCancellation,
+        *,
+        checkpoint: Callable[[PlannerWorkspaceState], Awaitable[None]] | None = None,
+    ) -> PlannerWorkspaceState:
+        return await recall_initial_dining(
+            workspace,
+            book,
+            cancellation,
+            gateway=self.gateway,
+            review_gateway=self.dining_review_gateway,
+            search_places=self.providers.places.search_places,
+            city=self.registry.provider_scope(
+                book.destination_and_dates.destination_name, ProviderCode.AMAP
+            ),
+            normalize=lambda place: _place_evidence(place, CandidateEntityKind.RESTAURANT),
+            clock=self.clock,
+            checkpoint=checkpoint,
+        )
+
     async def _resolve_selected_place(
         self,
         canonical_id: str,
-        intent: TaskBookEntityIntent,
+        intent: TaskBookEntityIntent | str,
         kind: CandidateEntityKind,
         city: ProviderCityScope,
         provider_id: str | None,
@@ -371,7 +523,7 @@ class PlannerEvidenceBackend:
                     else await self.providers.places.search_places(
                         KeywordPlaceSearchRequest(
                             city=city,
-                            query=intent.display_name,
+                            query=intent if isinstance(intent, str) else intent.display_name,
                             category_hint=_category(kind),
                             page_size=25,
                         )
@@ -381,12 +533,10 @@ class PlannerEvidenceBackend:
                 failures.append(f"{mode}:{error.code.value}")
                 continue
             for place in response.items:
-                if (
-                    str(uuid5(NAMESPACE_URL, f"amap:{place.source_place_id}")) == canonical_id
-                    and place.city_id == city.city_id
-                    and _real_category(place, kind)
-                ):
-                    return _place_evidence(place, kind), f"verified_by_{mode}"
+                if str(uuid5(NAMESPACE_URL, f"amap:{place.source_place_id}")) == canonical_id:
+                    if place.city_id == city.city_id and _real_category(place, kind):
+                        return _place_evidence(place, kind), f"verified_by_{mode}"
+                    return None, "known_identity_invalid"
             failures.append(f"{mode}:exact_identity_or_type_missing")
         return None, ";".join(failures)
 
@@ -442,18 +592,30 @@ class PlannerEvidenceBackend:
         endpoints rather than cluster representatives.
         """
 
-        requests = selected_itinerary_route_requests(workspace, book)
-        for request in requests:
-            # This is a program-owned materialization prerequisite, not one of
-            # the model's optional evidence actions, so it does not consume the
-            # Planner's segment_evidence_count budget.
-            self._validate_request(request, workspace, book)
-            update = await self._execute(request, workspace, book, cancellation)
-            workspace = self._merge_updates(workspace, book, (update,))
-            workspace = advance(
-                workspace,
-                readiness_observation=readiness(workspace, book, self.clock()),
-            )
+        refresh_baseline = (
+            workspace.materialized_schedule
+            if workspace.react_state and workspace.react_state.route_refresh_only
+            else None
+        )
+        for _ in range(4 if workspace.react_state is not None else 1):
+            requests = selected_itinerary_route_requests(workspace, book, now=self.clock())
+            if not requests:
+                break
+            for request in requests:
+                # Follow the declared preference order. Only failed/unusable
+                # primary routes require the next permitted mode. Independent
+                # legs remain parallel inside the provider operation.
+                self._validate_request(request, workspace, book)
+                update = await self._execute(request, workspace, book, cancellation)
+                workspace = self._merge_updates(workspace, book, (update,))
+                if refresh_baseline is not None:
+                    workspace = workspace.model_copy(
+                        update={"materialized_schedule": refresh_baseline}
+                    )
+                workspace = advance(
+                    workspace,
+                    readiness_observation=readiness(workspace, book, self.clock()),
+                )
         return workspace
 
     async def ensure_selected_hours(
@@ -508,7 +670,7 @@ class PlannerEvidenceBackend:
         targets = {ref: dates for ref, dates in targets.items() if dates}
         semaphore = asyncio.Semaphore(4)
 
-        async def lookup(ref: CandidateRef, dates: set[date]) -> EvidenceUpdate:
+        async def lookup(ref: CandidateRef, dates: set[date]) -> EvidenceUpdate | None:
             request_dates = tuple(sorted(dates))
             request = PlannerCapabilityRequest(
                 request_id=server_id(
@@ -523,10 +685,18 @@ class PlannerEvidenceBackend:
             )
             async with semaphore:
                 self._validate_request(request, workspace, book)
-                return await self._execute(request, workspace, book, cancellation)
+                try:
+                    return await self._execute(request, workspace, book, cancellation)
+                except RequestBudgetExceeded:
+                    if workspace.react_state is None:
+                        raise
+                    # Preserve completed siblings. An unexecuted lookup gets no
+                    # receipt or fact, so it cannot masquerade as an unknown result.
+                    return None
 
         updates = await asyncio.gather(*(lookup(ref, dates) for ref, dates in targets.items()))
-        return self._merge_updates(workspace, book, tuple(updates)) if updates else workspace
+        completed = tuple(update for update in updates if update is not None)
+        return self._merge_updates(workspace, book, completed) if completed else workspace
 
     async def ensure_selected_prices(
         self,
@@ -730,11 +900,17 @@ class PlannerEvidenceBackend:
             self._validate_request(request, workspace, book)
 
     def _validate_request(
-        self, request: PlannerCapabilityRequest, workspace: PlannerWorkspaceState, book: TaskBookV4
+        self,
+        request: PlannerCapabilityRequest,
+        workspace: PlannerWorkspaceState,
+        book: TaskBookV4,
+        *,
+        cached_observation: bool = False,
     ) -> None:
         from backend.agent.planner.location_capabilities import validate_location_request
 
-        _guard_repeated_evidence_request(request, workspace)
+        if not cached_observation:
+            _guard_repeated_evidence_request(request, workspace)
         validate_location_request(request, workspace, book)
         require_same_scope_ownership(request.scope, workspace.current_scope)
         if request.scope.workspace_revision > workspace.workspace_revision:
@@ -854,9 +1030,7 @@ class PlannerEvidenceBackend:
             elif isinstance(arguments, TicketAvailabilityArguments):
                 tickets = await self._tickets(arguments, workspace, book)
                 status = "partial"
-                reason = (
-                    "已查询地点商品；当前来源不提供指定日期的预约余量，不能将商品存在视为可预约。"
-                )
+                reason = "已查询地点商品与参考票价；仅用于费用估算，本次不核验用户预约或预约余量。"
             else:
                 # Spatial/hotel adapters are implemented separately, sharing this
                 # request and observation boundary rather than arbitrary tool names.
@@ -892,6 +1066,13 @@ class PlannerEvidenceBackend:
         ):
             status = "partial"
             reason = "部分地点的营业信息缺失，不能默认为全天开放。"
+        if (
+            weather
+            and isinstance(arguments, WeatherForecastArguments)
+            and ({item.service_date for item in weather} != set(arguments.service_dates))
+        ):
+            status = "partial"
+            reason = "天气来源只返回了部分旅行日期；缺失日期保持未知。"
         if (
             places
             and isinstance(arguments, PlaceFactsArguments)
@@ -1126,47 +1307,6 @@ class PlannerEvidenceBackend:
             workspace, expanded, refresh_clusters=bool(additions)
         )
 
-    async def _supplement_restaurants(
-        self,
-        workspace: PlannerWorkspaceState,
-        book: TaskBookV4,
-        cancellation: ModelCancellation,
-    ) -> PlannerWorkspaceState:
-        """One bounded nearby pass gives the Agent real lunch/dinner choices."""
-        minimum = min(10, 2 * len(service_dates(book)))
-        restaurants = sum(
-            place.entity_kind is CandidateEntityKind.RESTAURANT
-            for place in workspace.place_evidence
-        )
-        anchors = tuple(
-            entry.candidate_ref
-            for entry in workspace.candidate_pool.candidates
-            if entry.entity_kind is CandidateEntityKind.ATTRACTION
-        )[:3]
-        request_id = server_id(workspace.generation_id, "nearby-meal-supplement")
-        if (
-            restaurants >= minimum
-            or not anchors
-            or any(item.request_id == request_id for item in workspace.capability_observations)
-        ):
-            return workspace
-        request = PlannerCapabilityRequest(
-            request_id=request_id,
-            scope=workspace.current_scope,
-            capability=PlannerCapability.CANDIDATE_RECALL,
-            purpose="complete_initial_evidence",
-            blocking=False,
-            arguments=CandidateRecallArguments(
-                domain=CandidateEntityKind.RESTAURANT,
-                gap_code="nearby_lunch_and_dinner",
-                task_book_preference_refs=("destination",),
-                nearby_candidate_refs=anchors,
-                limit=min(14, minimum + 2),
-            ),
-        )
-        update = await self._execute(request, workspace, book, cancellation)
-        return self._merge_updates(workspace, book, (update,))
-
     async def _recall(
         self,
         args: CandidateRecallArguments,
@@ -1321,6 +1461,21 @@ class PlannerEvidenceBackend:
         for reference in args.candidate_refs:
             cancellation.raise_if_cancelled("planner_opening_hours")
             place = places[reference.canonical_entity_id]
+            cached = next(
+                (
+                    hours
+                    for hours in workspace.hours_evidence
+                    if workspace.react_state is not None
+                    and hours.canonical_entity_id == reference.canonical_entity_id
+                    and hours.provider_entity_id == place.provider_entity_id
+                    and hours.observed_at <= self.clock() < hours.expires_at
+                    and set(args.service_dates) <= {day.service_date for day in hours.days}
+                ),
+                None,
+            )
+            if cached is not None:
+                results.append(cached)
+                continue
             try:
                 response = await self.providers.hours.get_regular_hours(
                     HoursRequest(
@@ -1414,6 +1569,15 @@ class PlannerEvidenceBackend:
             if item.forecast_date in args.service_dates
         )
 
+    def fresh_ticket_facts(
+        self, workspace: PlannerWorkspaceState
+    ) -> dict[tuple[str, date], PlannerTicketEvidence]:
+        return {
+            (ticket.canonical_entity_id, ticket.service_date): ticket
+            for ticket in workspace.ticket_evidence
+            if timedelta(0) <= self.clock() - ticket.observed_at <= timedelta(minutes=15)
+        }
+
     async def _tickets(
         self, args: TicketAvailabilityArguments, workspace: PlannerWorkspaceState, book: TaskBookV4
     ) -> tuple[PlannerTicketEvidence, ...]:
@@ -1421,17 +1585,24 @@ class PlannerEvidenceBackend:
             book.destination_and_dates.destination_name, ProviderCode.FLYAI
         )
         entries = workspace.candidate_pool.candidate_by_id()
+        cached = self.fresh_ticket_facts(workspace) if workspace.react_state is not None else {}
         results = []
         for reference in args.candidate_refs:
             entry = entries[reference.candidate_id]
+            missing = []
             for day in args.service_dates:
-                results.append(
-                    await lookup_ticket_price(
+                if existing := cached.get((reference.canonical_entity_id, day)):
+                    results.append(existing)
+                    continue
+                missing.append(day)
+            if missing:
+                results.extend(
+                    await lookup_ticket_prices(
                         self.providers.products,
                         city=city,
                         canonical_id=reference.canonical_entity_id,
                         name=entry.display_name,
-                        day=day,
+                        days=tuple(missing),
                     )
                 )
         return tuple(results)
@@ -1481,9 +1652,12 @@ class PlannerEvidenceBackend:
 def selected_itinerary_route_requests(
     workspace: PlannerWorkspaceState,
     book: TaskBookV4,
+    *,
+    now: datetime | None = None,
 ) -> tuple[PlannerCapabilityRequest, ...]:
     """Build deterministic requests for currently selected adjacent exact endpoints."""
 
+    now = now or datetime.now(UTC)
     draft = workspace.working_itinerary
     if draft is None:
         return ()
@@ -1538,8 +1712,29 @@ def selected_itinerary_route_requests(
 
     ordered_pairs: list[SpatialRoutePair] = []
     seen_pairs: set[tuple[str, str, str, str]] = set()
-    modes: list[RoutePreference] = ["taxi", "public_transit", "walking"]
+    pair_modes: dict[tuple[str, str, str, str], list[RoutePreference]] = {}
+    modes: list[RoutePreference] = (
+        [] if workspace.react_state is not None else ["taxi", "public_transit", "walking"]
+    )
+    observed_edges = {
+        (
+            edge.origin.kind,
+            edge.origin.reference_id,
+            edge.destination.kind,
+            edge.destination.reference_id,
+            edge.transport_mode,
+        ): edge
+        for edge in (
+            *(workspace.spatial_observation.route_edges if workspace.spatial_observation else ()),
+            *workspace.route_evidence,
+        )
+    }
+    if workspace.react_state is not None:
+        observed_edges = {
+            key: edge for key, edge in observed_edges.items() if not route_needs_retry(edge, now)
+        }
     for day in draft.days:
+        walked_m = 0
         for mode in day.transport_preferences:
             if mode not in modes:
                 modes.append(mode)
@@ -1555,6 +1750,39 @@ def selected_itinerary_route_requests(
                 destination.kind,
                 destination.reference_id,
             )
+            selected_modes = next(
+                (
+                    (selection.transport_mode,)
+                    for selection in day.route_mode_selections
+                    if selection.origin == origin and selection.destination == destination
+                ),
+                day.transport_preferences,
+            )
+            if old_mode := _refresh_route_mode(origin, destination, workspace, day):
+                selected_modes = (old_mode,)
+            if workspace.react_state is not None:
+                needed: tuple[RoutePreference, ...] = ()
+                for index, mode in enumerate(selected_modes):
+                    if (*identity, mode) not in observed_edges:
+                        needed = (mode,)
+                        break
+                    selected = _select_route(
+                        origin,
+                        destination,
+                        selected_modes[: index + 1],
+                        workspace,
+                        day=day,
+                        book=book,
+                        walked_m=walked_m,
+                    )
+                    if selected is not None:
+                        if selected.mode.value == "walking":
+                            walked_m += selected.edge.distance_meters or 0
+                        break
+                selected_modes = needed
+            for mode in selected_modes:
+                if mode not in pair_modes.setdefault(identity, []):
+                    pair_modes[identity].append(mode)
             if identity in seen_pairs:
                 continue
             seen_pairs.add(identity)
@@ -1576,6 +1804,8 @@ def selected_itinerary_route_requests(
             *(workspace.spatial_observation.route_edges if workspace.spatial_observation else ()),
         )
     }
+    if workspace.react_state is not None:
+        observed = set(observed_edges)
     missing_pairs = tuple(
         pair
         for pair in ordered_pairs
@@ -1591,16 +1821,37 @@ def selected_itinerary_route_requests(
             for mode in modes
         )
     )
-    if not missing_pairs:
+    if not missing_pairs and workspace.react_state is None:
         return ()
 
+    grouped: dict[tuple[RoutePreference, ...], list[SpatialRoutePair]] = {}
+    if workspace.react_state is not None:
+        # Different days can choose different modes. An observed mode for an
+        # exact pair is reusable even when another mode still needs a lookup.
+        for pair in ordered_pairs:
+            identity = (
+                pair.origin.kind,
+                pair.origin.reference_id,
+                pair.destination.kind,
+                pair.destination.reference_id,
+            )
+            missing_modes = tuple(
+                mode for mode in pair_modes.get(identity, ()) if (*identity, mode) not in observed
+            )
+            if missing_modes:
+                grouped.setdefault(missing_modes, []).append(pair)
+    else:
+        grouped[tuple(modes)] = list(missing_pairs)
+
     requests = []
-    for request_index, offset in enumerate(
-        range(0, len(missing_pairs), MAX_SELECTED_ROUTE_PAIRS_PER_REQUEST)
-    ):
-        if request_index >= MAX_SELECTED_ROUTE_REQUESTS:
+    batches = [
+        (requested_modes, tuple(pairs[offset : offset + MAX_SELECTED_ROUTE_PAIRS_PER_REQUEST]))
+        for requested_modes, pairs in grouped.items()
+        for offset in range(0, len(pairs), MAX_SELECTED_ROUTE_PAIRS_PER_REQUEST)
+    ]
+    for request_index, (requested_modes, pairs) in enumerate(batches):
+        if workspace.react_state is None and request_index >= MAX_SELECTED_ROUTE_REQUESTS:
             raise PlannerGuardError("planner_selected_route_request_budget_exceeded")
-        pairs = missing_pairs[offset : offset + MAX_SELECTED_ROUTE_PAIRS_PER_REQUEST]
         departure_date = draft.days[0].service_date
         requests.append(
             PlannerCapabilityRequest(
@@ -1615,7 +1866,7 @@ def selected_itinerary_route_requests(
                         f"{pair.destination.kind}:{pair.destination.reference_id}"
                         for pair in pairs
                     ),
-                    *modes,
+                    *requested_modes,
                 ),
                 scope=workspace.current_scope,
                 capability=PlannerCapability.SPATIAL_ROUTES,
@@ -1624,7 +1875,7 @@ def selected_itinerary_route_requests(
                 blocking=False,
                 arguments=SpatialRoutesArguments(
                     endpoint_pairs=pairs,
-                    transport_modes=tuple(modes),
+                    transport_modes=requested_modes,
                     departure_service_date=departure_date,
                 ),
             )
@@ -1744,6 +1995,7 @@ def _place_evidence(place: ProviderPlace, kind: CandidateEntityKind) -> PlannerP
         address=place.address,
         rating=place.rating,
         average_cost=place.average_cost,
+        cuisine=provider_place_cuisine(place) if kind is CandidateEntityKind.RESTAURANT else None,
         fact_reference_id=server_id("place", place.source_place_id, place.fetched_at.isoformat()),
         observed_at=place.fetched_at,
     )

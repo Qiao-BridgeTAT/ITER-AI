@@ -57,11 +57,11 @@ def ticket_fact(
     if admission == "free":
         prices = [CnyAmountRange(minimum_fen=0, maximum_fen=0)]
     reason = (
-        "来源标记基础参观免费；不含收费特展或讲解，预约余量仍未知。"
+        "来源标记基础参观免费；不含收费特展或讲解，如需预约请提前办理。"
         if admission == "free"
         else "来源标记非免费，但未返回可用门票价格。"
         if admission == "paid" and not prices
-        else "地点商品查询不代表指定日期可预约，预约余量仍未知。"
+        else "参考票价仅用于费用估算；如需预约请提前办理，本次不核验预约状态或余量。"
     )
     if rechecked:
         reason += (
@@ -102,33 +102,59 @@ async def lookup_ticket_price(
     name: str,
     day: date,
 ) -> PlannerTicketEvidence:
-    response = await provider.search_place_products(
-        ProductSearchRequest(city=city, visit_date=day, query=name)
-    )
+    return (
+        await lookup_ticket_prices(
+            provider, city=city, canonical_id=canonical_id, name=name, days=(day,)
+        )
+    )[0]
+
+
+async def lookup_ticket_prices(
+    provider: TravelProductProvider,
+    *,
+    city: ProviderCityScope,
+    canonical_id: str,
+    name: str,
+    days: tuple[date, ...],
+) -> tuple[PlannerTicketEvidence, ...]:
+    """FlyAI searches a product keyword, not dated inventory. Share that observation.
+
+    Keep each product's actual price_date when projecting to travel dates; an
+    undated reference price never proves availability for any of those dates.
+    """
+    if not days:
+        return ()
+    response = await provider.search_place_products(ProductSearchRequest(city=city, query=name))
     offers = list(response.items)
-    fact = ticket_fact(
-        offers, canonical_id=canonical_id, name=name, day=day, observed_at=response.fetched_at
+    initial = tuple(
+        ticket_fact(
+            offers, canonical_id=canonical_id, name=name, day=day, observed_at=response.fetched_at
+        )
+        for day in days
     )
-    if fact.reference_price is not None:
-        return fact
+    if all(fact.reference_price is not None for fact in initial):
+        return initial
     # A different, explicit product query, not repeated model calls or an
     # indefinite retry of the same failed capability. Missing facts stay unknown.
     observed_at = response.fetched_at
     try:
         async with asyncio.timeout(12):
             recheck = await provider.search_place_products(
-                ProductSearchRequest(city=city, visit_date=day, query=f"{name} 成人门票")
+                ProductSearchRequest(city=city, query=f"{name} 成人门票")
             )
         offers.extend(recheck.items)
         observed_at = max(observed_at, recheck.fetched_at)
     except (ProviderError, TimeoutError):
         # Keep the original paid/free evidence even if the optional recheck fails.
         pass
-    return ticket_fact(
-        offers,
-        canonical_id=canonical_id,
-        name=name,
-        day=day,
-        observed_at=observed_at,
-        rechecked=True,
+    return tuple(
+        ticket_fact(
+            offers,
+            canonical_id=canonical_id,
+            name=name,
+            day=day,
+            observed_at=observed_at,
+            rechecked=True,
+        )
+        for day in days
     )

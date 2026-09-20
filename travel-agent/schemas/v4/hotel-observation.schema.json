@@ -1,0 +1,854 @@
+{
+  "$defs": {
+    "AppliedHotelConstraints": {
+      "additionalProperties": false,
+      "properties": {
+        "area_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Area Refs",
+          "type": "array"
+        },
+        "facility_requirement_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Facility Requirement Refs",
+          "type": "array"
+        },
+        "nightly_budget_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nightly Budget Ref"
+        },
+        "property_types": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Property Types",
+          "type": "array"
+        },
+        "quality_tier": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quality Tier"
+        },
+        "quality_tiers": {
+          "default": [],
+          "items": {
+            "enum": [
+              "economy",
+              "comfort",
+              "upscale",
+              "luxury"
+            ],
+            "type": "string"
+          },
+          "title": "Quality Tiers",
+          "type": "array"
+        },
+        "source_task_book_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Task Book Refs",
+          "type": "array"
+        }
+      },
+      "title": "AppliedHotelConstraints",
+      "type": "object"
+    },
+    "FixedBookingObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "commitment_ref": {
+          "$ref": "#/$defs/FixedCommitmentRef"
+        },
+        "conflict_issue_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Conflict Issue Refs",
+          "type": "array"
+        },
+        "property_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Property Id"
+        },
+        "verification_status": {
+          "enum": [
+            "verified",
+            "ambiguous",
+            "unavailable"
+          ],
+          "title": "Verification Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commitment_ref",
+        "verification_status"
+      ],
+      "title": "FixedBookingObservation",
+      "type": "object"
+    },
+    "FixedCommitmentRef": {
+      "additionalProperties": false,
+      "description": "Reference to a user-owned immutable commitment in the task book.",
+      "properties": {
+        "commitment_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Commitment Id",
+          "type": "string"
+        },
+        "commitment_kind": {
+          "enum": [
+            "reservation",
+            "arrival",
+            "departure",
+            "named_hotel",
+            "existing_booking"
+          ],
+          "title": "Commitment Kind",
+          "type": "string"
+        },
+        "kind": {
+          "const": "fixed_commitment",
+          "default": "fixed_commitment",
+          "title": "Kind",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "task_book_id",
+        "task_book_version",
+        "commitment_id",
+        "commitment_kind"
+      ],
+      "title": "FixedCommitmentRef",
+      "type": "object"
+    },
+    "HotelClusterCommute": {
+      "additionalProperties": false,
+      "properties": {
+        "cluster_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Cluster Id",
+          "type": "string"
+        },
+        "duration_minutes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Minutes"
+        },
+        "route_observation_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Route Observation Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cluster_id",
+        "route_observation_ref"
+      ],
+      "title": "HotelClusterCommute",
+      "type": "object"
+    },
+    "HotelOfferObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "area_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Area Ref",
+          "type": "string"
+        },
+        "availability_status": {
+          "enum": [
+            "available",
+            "limited",
+            "unknown",
+            "unavailable"
+          ],
+          "title": "Availability Status",
+          "type": "string"
+        },
+        "commute_to_clusters": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/HotelClusterCommute"
+          },
+          "title": "Commute To Clusters",
+          "type": "array"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expires At"
+        },
+        "facility_feature_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Facility Feature Refs",
+          "type": "array"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "offer_ref": {
+          "$ref": "#/$defs/HotelOfferRef"
+        },
+        "price_missing": {
+          "title": "Price Missing",
+          "type": "boolean"
+        },
+        "property_name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Property Name",
+          "type": "string"
+        },
+        "quality_feature_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Quality Feature Refs",
+          "type": "array"
+        },
+        "reference_price": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MoneyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Provider list reference price per room-night; not a bookable total."
+        },
+        "reference_price_fact_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Reference Price Fact Refs",
+          "type": "array"
+        },
+        "room_and_price_fact_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Room And Price Fact Refs",
+          "type": "array"
+        },
+        "source_reference_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Reference Ids",
+          "type": "array"
+        },
+        "total_price": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MoneyAmount"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "offer_ref",
+        "property_name",
+        "area_ref",
+        "availability_status",
+        "price_missing",
+        "source_reference_ids",
+        "observed_at"
+      ],
+      "title": "HotelOfferObservation",
+      "type": "object"
+    },
+    "HotelOfferRef": {
+      "additionalProperties": false,
+      "description": "Inventory-snapshot-bound reference to a normalized hotel offer.",
+      "properties": {
+        "hotel_observation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Hotel Observation Id",
+          "type": "string"
+        },
+        "inventory_snapshot_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Inventory Snapshot Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "hotel_offer",
+          "default": "hotel_offer",
+          "title": "Kind",
+          "type": "string"
+        },
+        "offer_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Offer Id",
+          "type": "string"
+        },
+        "property_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Property Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hotel_observation_id",
+        "offer_id",
+        "property_id",
+        "inventory_snapshot_id"
+      ],
+      "title": "HotelOfferRef",
+      "type": "object"
+    },
+    "HotelQueryAttempt": {
+      "additionalProperties": false,
+      "description": "Safe diagnostics only; never vendor payloads, URLs or credentials.",
+      "properties": {
+        "anchor_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Anchor Name"
+        },
+        "attempts": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Attempts",
+          "type": "integer"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Code"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "results",
+            "empty",
+            "failed"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "result_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Result Count",
+          "type": "integer"
+        },
+        "retryable": {
+          "default": false,
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "search_keyword": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Search Keyword"
+        },
+        "stage": {
+          "default": "search",
+          "enum": [
+            "search",
+            "identity"
+          ],
+          "title": "Stage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "outcome",
+        "observed_at"
+      ],
+      "title": "HotelQueryAttempt",
+      "type": "object"
+    },
+    "HotelStaySegment": {
+      "additionalProperties": false,
+      "properties": {
+        "activity_cluster_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Activity Cluster Ids",
+          "type": "array"
+        },
+        "check_in_date": {
+          "format": "date",
+          "title": "Check In Date",
+          "type": "string"
+        },
+        "check_out_date": {
+          "format": "date",
+          "title": "Check Out Date",
+          "type": "string"
+        },
+        "nights": {
+          "maximum": 4,
+          "minimum": 1,
+          "title": "Nights",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "check_in_date",
+        "check_out_date",
+        "nights",
+        "activity_cluster_ids"
+      ],
+      "title": "HotelStaySegment",
+      "type": "object"
+    },
+    "MoneyAmount": {
+      "additionalProperties": false,
+      "properties": {
+        "amount_minor": {
+          "minimum": 1,
+          "title": "Amount Minor",
+          "type": "integer"
+        },
+        "currency": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "currency",
+        "amount_minor"
+      ],
+      "title": "MoneyAmount",
+      "type": "object"
+    },
+    "MoneyAmountRange": {
+      "additionalProperties": false,
+      "description": "A bounded Provider reference range, not a bookable stay total.",
+      "properties": {
+        "currency": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_minor": {
+          "minimum": 1,
+          "title": "Maximum Minor",
+          "type": "integer"
+        },
+        "minimum_minor": {
+          "minimum": 1,
+          "title": "Minimum Minor",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "currency",
+        "minimum_minor",
+        "maximum_minor"
+      ],
+      "title": "MoneyAmountRange",
+      "type": "object"
+    },
+    "PlannerScope": {
+      "additionalProperties": false,
+      "description": "Optimistic-concurrency scope shared by one Planner decision round.",
+      "properties": {
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_state_version": {
+          "minimum": 0,
+          "title": "Task Book State Version",
+          "type": "integer"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "workspace_revision": {
+          "minimum": 0,
+          "title": "Workspace Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "trip_id",
+        "generation_id",
+        "task_book_id",
+        "task_book_version",
+        "task_book_state_version",
+        "workspace_revision"
+      ],
+      "title": "PlannerScope",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/hotel-observation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "applied_constraints": {
+      "$ref": "#/$defs/AppliedHotelConstraints"
+    },
+    "expires_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expires At"
+    },
+    "fixed_booking": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FixedBookingObservation"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "hotel_observation_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Hotel Observation Id",
+      "type": "string"
+    },
+    "missing_fact_kinds": {
+      "default": [],
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Missing Fact Kinds",
+      "type": "array"
+    },
+    "mode": {
+      "enum": [
+        "not_applicable",
+        "fixed_booking_verification",
+        "search"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "offers": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/HotelOfferObservation"
+      },
+      "title": "Offers",
+      "type": "array"
+    },
+    "query_attempts": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/HotelQueryAttempt"
+      },
+      "title": "Query Attempts",
+      "type": "array"
+    },
+    "query_origin": {
+      "anyOf": [
+        {
+          "enum": [
+            "prepare_handoff",
+            "planner_query"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Query Origin"
+    },
+    "query_status": {
+      "anyOf": [
+        {
+          "enum": [
+            "available",
+            "empty",
+            "failed",
+            "unverified"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Query Status"
+    },
+    "request_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/PlannerScope"
+    },
+    "search_keyword": {
+      "anyOf": [
+        {
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Search Keyword"
+    },
+    "source_reference_ids": {
+      "default": [],
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Source Reference Ids",
+      "type": "array"
+    },
+    "status": {
+      "enum": [
+        "complete",
+        "partial",
+        "unavailable"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "stay_segments": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/HotelStaySegment"
+      },
+      "title": "Stay Segments",
+      "type": "array"
+    }
+  },
+  "required": [
+    "hotel_observation_id",
+    "scope",
+    "request_id",
+    "mode",
+    "status",
+    "observed_at",
+    "applied_constraints"
+  ],
+  "title": "HotelObservation",
+  "type": "object"
+}

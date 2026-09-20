@@ -1,0 +1,63 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/user-memory-view.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "preference",
+        "feedback"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "memory_id": {
+      "format": "uuid",
+      "title": "Memory Id",
+      "type": "string"
+    },
+    "source_message_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Message Id"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "trip_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Trip Id"
+    }
+  },
+  "required": [
+    "memory_id",
+    "kind",
+    "text",
+    "created_at"
+  ],
+  "title": "UserMemoryView",
+  "type": "object"
+}

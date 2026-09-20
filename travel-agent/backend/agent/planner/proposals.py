@@ -131,6 +131,15 @@ class PlannerReferenceCatalog:
         )
 
     @property
+    def selectable_hotels(self) -> dict[str, HotelOfferObservation]:
+        """Unknown inventory stays explicit; confirmed unavailable offers cannot be selected."""
+        return {
+            key: offer
+            for key, offer in self.hotels.items()
+            if offer.availability_status != "unavailable"
+        }
+
+    @property
     def alternative_hotels(self) -> dict[str, HotelOfferObservation]:
         """Expose usable replacement hotels without offering the current baseline."""
 

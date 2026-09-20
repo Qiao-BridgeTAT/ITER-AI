@@ -1,0 +1,478 @@
+{
+  "$defs": {
+    "CandidateAdvisoryFeatures": {
+      "additionalProperties": false,
+      "properties": {
+        "accessibility_fit": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "unknown"
+          ],
+          "title": "Accessibility Fit",
+          "type": "string"
+        },
+        "city_representativeness": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "unknown"
+          ],
+          "title": "City Representativeness",
+          "type": "string"
+        },
+        "preference_fit": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "unknown"
+          ],
+          "title": "Preference Fit",
+          "type": "string"
+        },
+        "price_band": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Price Band"
+        },
+        "typical_duration_minutes": {
+          "anyOf": [
+            {
+              "maximum": 1440,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Typical Duration Minutes"
+        }
+      },
+      "required": [
+        "preference_fit",
+        "city_representativeness",
+        "accessibility_fit"
+      ],
+      "title": "CandidateAdvisoryFeatures",
+      "type": "object"
+    },
+    "CandidateEntityKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "activity"
+      ],
+      "title": "CandidateEntityKind",
+      "type": "string"
+    },
+    "CandidatePoolEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "advisory_features": {
+          "$ref": "#/$defs/CandidateAdvisoryFeatures"
+        },
+        "candidate_ref": {
+          "$ref": "#/$defs/CandidateRef"
+        },
+        "cluster_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Cluster Ids",
+          "type": "array"
+        },
+        "commitment_level": {
+          "$ref": "#/$defs/CommitmentLevel"
+        },
+        "display_name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Display Name",
+          "type": "string"
+        },
+        "eligibility": {
+          "enum": [
+            "eligible",
+            "needs_evidence",
+            "unavailable",
+            "excluded"
+          ],
+          "title": "Eligibility",
+          "type": "string"
+        },
+        "entity_kind": {
+          "$ref": "#/$defs/CandidateEntityKind"
+        },
+        "fact_reference_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Fact Reference Ids",
+          "type": "array"
+        },
+        "feasible_dates": {
+          "default": [],
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "title": "Feasible Dates",
+          "type": "array"
+        },
+        "fixed_window_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Fixed Window Refs",
+          "type": "array"
+        },
+        "infeasible_dates": {
+          "default": [],
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "title": "Infeasible Dates",
+          "type": "array"
+        },
+        "missing_fact_kinds": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Missing Fact Kinds",
+          "type": "array"
+        },
+        "selection_permission": {
+          "enum": [
+            "required",
+            "allowed",
+            "filler_only",
+            "forbidden"
+          ],
+          "title": "Selection Permission",
+          "type": "string"
+        },
+        "source_intent_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Intent Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "candidate_ref",
+        "display_name",
+        "entity_kind",
+        "commitment_level",
+        "selection_permission",
+        "eligibility",
+        "advisory_features"
+      ],
+      "title": "CandidatePoolEntry",
+      "type": "object"
+    },
+    "CandidateRef": {
+      "additionalProperties": false,
+      "description": "Revision-bound reference to one candidate in the current pool.",
+      "properties": {
+        "candidate_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "candidate_pool_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Pool Id",
+          "type": "string"
+        },
+        "candidate_pool_revision": {
+          "minimum": 1,
+          "title": "Candidate Pool Revision",
+          "type": "integer"
+        },
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "entity_kind": {
+          "$ref": "#/$defs/CandidateEntityKind"
+        },
+        "kind": {
+          "const": "candidate",
+          "default": "candidate",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_pool_id",
+        "candidate_pool_revision",
+        "candidate_id",
+        "entity_kind",
+        "canonical_entity_id"
+      ],
+      "title": "CandidateRef",
+      "type": "object"
+    },
+    "CommitmentLevel": {
+      "enum": [
+        "immutable",
+        "strong",
+        "soft",
+        "filler",
+        "neutral",
+        "forbidden"
+      ],
+      "title": "CommitmentLevel",
+      "type": "string"
+    },
+    "FixedCommitmentRef": {
+      "additionalProperties": false,
+      "description": "Reference to a user-owned immutable commitment in the task book.",
+      "properties": {
+        "commitment_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Commitment Id",
+          "type": "string"
+        },
+        "commitment_kind": {
+          "enum": [
+            "reservation",
+            "arrival",
+            "departure",
+            "named_hotel",
+            "existing_booking"
+          ],
+          "title": "Commitment Kind",
+          "type": "string"
+        },
+        "kind": {
+          "const": "fixed_commitment",
+          "default": "fixed_commitment",
+          "title": "Kind",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "task_book_id",
+        "task_book_version",
+        "commitment_id",
+        "commitment_kind"
+      ],
+      "title": "FixedCommitmentRef",
+      "type": "object"
+    },
+    "PlannerScope": {
+      "additionalProperties": false,
+      "description": "Optimistic-concurrency scope shared by one Planner decision round.",
+      "properties": {
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_state_version": {
+          "minimum": 0,
+          "title": "Task Book State Version",
+          "type": "integer"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "workspace_revision": {
+          "minimum": 0,
+          "title": "Workspace Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "trip_id",
+        "generation_id",
+        "task_book_id",
+        "task_book_version",
+        "task_book_state_version",
+        "workspace_revision"
+      ],
+      "title": "PlannerScope",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/candidate-pool-summary.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Read-only, sourced candidate observation; ranking remains advisory.",
+  "properties": {
+    "candidate_pool_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Candidate Pool Id",
+      "type": "string"
+    },
+    "candidates": {
+      "items": {
+        "$ref": "#/$defs/CandidatePoolEntry"
+      },
+      "title": "Candidates",
+      "type": "array"
+    },
+    "fixed_commitments": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/FixedCommitmentRef"
+      },
+      "title": "Fixed Commitments",
+      "type": "array"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "missing_required_candidate_refs": {
+      "default": [],
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Missing Required Candidate Refs",
+      "type": "array"
+    },
+    "pool_fingerprint": {
+      "maxLength": 128,
+      "minLength": 16,
+      "pattern": "\\S",
+      "title": "Pool Fingerprint",
+      "type": "string"
+    },
+    "revision": {
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "scope": {
+      "$ref": "#/$defs/PlannerScope"
+    },
+    "source_reference_ids": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Source Reference Ids",
+      "type": "array"
+    },
+    "spatial_observation_id": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Spatial Observation Id"
+    }
+  },
+  "required": [
+    "candidate_pool_id",
+    "revision",
+    "scope",
+    "pool_fingerprint",
+    "generated_at",
+    "source_reference_ids",
+    "candidates"
+  ],
+  "title": "CandidatePoolSummary",
+  "type": "object"
+}

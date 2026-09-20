@@ -1,0 +1,23 @@
+{
+  "$id": "https://travel-agent.local/schemas/v2/sms-verify-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "code": {
+      "pattern": "^\\d{4,8}$",
+      "title": "Code",
+      "type": "string"
+    },
+    "phone": {
+      "pattern": "^\\+[1-9]\\d{7,14}$",
+      "title": "Phone",
+      "type": "string"
+    }
+  },
+  "required": [
+    "phone",
+    "code"
+  ],
+  "title": "SmsVerifyRequest",
+  "type": "object"
+}

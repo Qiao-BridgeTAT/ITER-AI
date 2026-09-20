@@ -1,0 +1,36 @@
+{
+  "$id": "https://travel-agent.local/schemas/v1/create-trip-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "anonymous_session_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Anonymous Session Id"
+    },
+    "trip_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Trip Id"
+    }
+  },
+  "title": "CreateTripRequest",
+  "type": "object"
+}

@@ -2,7 +2,7 @@ import { EchoText } from "./EchoText";
 
 /** Shared visual only; readiness and cancellation belong to the caller. */
 export function BootLoadingVisual({
-  text = "稍等一下，在为你准备中。",
+  text = "稍等一下，在为你准备中。"
 }: {
   text?: string;
 }) {

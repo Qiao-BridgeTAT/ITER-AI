@@ -22,11 +22,11 @@ export function WeatherIcon({
   condition,
   label,
   forceStatic = false,
-  simulateAnimatedFailure = false,
+  simulateAnimatedFailure = false
 }: WeatherIconProps) {
   const definition = weatherIconMap[condition];
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(
-    reducedMotionIsPreferred,
+    reducedMotionIsPreferred
   );
   const [animatedFailed, setAnimatedFailed] = useState(false);
   const [staticFailed, setStaticFailed] = useState(false);

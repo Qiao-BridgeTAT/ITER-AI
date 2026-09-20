@@ -1,0 +1,150 @@
+{
+  "$defs": {
+    "PlannerDraftDayPreview": {
+      "additionalProperties": false,
+      "properties": {
+        "service_date": {
+          "format": "date",
+          "title": "Service Date",
+          "type": "string"
+        },
+        "stops": {
+          "items": {
+            "$ref": "#/$defs/PlannerDraftStopPreview"
+          },
+          "title": "Stops",
+          "type": "array"
+        },
+        "theme": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Theme",
+          "type": "string"
+        },
+        "transport_summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Transport Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_date",
+        "theme",
+        "transport_summary",
+        "stops"
+      ],
+      "title": "PlannerDraftDayPreview",
+      "type": "object"
+    },
+    "PlannerDraftStopPreview": {
+      "additionalProperties": false,
+      "properties": {
+        "draft_item_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Draft Item Id",
+          "type": "string"
+        },
+        "time_hint": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Time Hint",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "draft_item_id",
+        "title",
+        "time_hint"
+      ],
+      "title": "PlannerDraftStopPreview",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/planner-draft-preview.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "content_digest": {
+      "maxLength": 128,
+      "minLength": 16,
+      "pattern": "\\S",
+      "title": "Content Digest",
+      "type": "string"
+    },
+    "days": {
+      "items": {
+        "$ref": "#/$defs/PlannerDraftDayPreview"
+      },
+      "maxItems": 5,
+      "minItems": 1,
+      "title": "Days",
+      "type": "array"
+    },
+    "draft_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Draft Id",
+      "type": "string"
+    },
+    "draft_revision": {
+      "minimum": 1,
+      "title": "Draft Revision",
+      "type": "integer"
+    },
+    "lodging_summary": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Lodging Summary",
+      "type": "string"
+    },
+    "notice": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Notice",
+      "type": "string"
+    },
+    "status": {
+      "const": "unverified",
+      "default": "unverified",
+      "title": "Status",
+      "type": "string"
+    },
+    "unresolved_issues": {
+      "items": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Unresolved Issues",
+      "type": "array"
+    }
+  },
+  "required": [
+    "draft_id",
+    "draft_revision",
+    "content_digest",
+    "notice",
+    "days",
+    "lodging_summary",
+    "unresolved_issues"
+  ],
+  "title": "PlannerDraftPreview",
+  "type": "object"
+}

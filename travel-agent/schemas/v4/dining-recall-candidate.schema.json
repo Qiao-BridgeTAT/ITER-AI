@@ -1,0 +1,347 @@
+{
+  "$defs": {
+    "CandidateEntityKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "activity"
+      ],
+      "title": "CandidateEntityKind",
+      "type": "string"
+    },
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    },
+    "DiningQueryHit": {
+      "additionalProperties": false,
+      "properties": {
+        "fact_reference_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Fact Reference Id",
+          "type": "string"
+        },
+        "page": {
+          "maximum": 2,
+          "minimum": 1,
+          "title": "Page",
+          "type": "integer"
+        },
+        "provider_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Provider Entity Id",
+          "type": "string"
+        },
+        "provider_rank": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Provider Rank",
+          "type": "integer"
+        },
+        "query_key": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Query Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "query_key",
+        "page",
+        "provider_rank",
+        "provider_entity_id",
+        "fact_reference_id"
+      ],
+      "title": "DiningQueryHit",
+      "type": "object"
+    },
+    "Gcj02Coordinates": {
+      "additionalProperties": false,
+      "description": "Canonical coordinates used by every internal planning contract.",
+      "properties": {
+        "coord_system": {
+          "const": "gcj_02",
+          "title": "Coord System",
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Gcj02Coordinates",
+      "type": "object"
+    },
+    "PlannerPlaceEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Address"
+        },
+        "average_cost": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "business_fact_reference_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Business Fact Reference Id"
+        },
+        "business_observed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Business Observed At"
+        },
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "city_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "City Id",
+          "type": "string"
+        },
+        "coordinates": {
+          "$ref": "#/$defs/Gcj02Coordinates"
+        },
+        "cuisine": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cuisine"
+        },
+        "display_name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Display Name",
+          "type": "string"
+        },
+        "entity_kind": {
+          "$ref": "#/$defs/CandidateEntityKind"
+        },
+        "fact_reference_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Fact Reference Id",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "provider": {
+          "const": "amap",
+          "title": "Provider",
+          "type": "string"
+        },
+        "provider_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Provider Entity Id",
+          "type": "string"
+        },
+        "provider_parent_place_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider Parent Place Id"
+        },
+        "provider_typecode": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Provider Typecode",
+          "type": "string"
+        },
+        "rating": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rating"
+        }
+      },
+      "required": [
+        "canonical_entity_id",
+        "entity_kind",
+        "display_name",
+        "city_id",
+        "coordinates",
+        "provider",
+        "provider_entity_id",
+        "provider_typecode",
+        "fact_reference_id",
+        "observed_at"
+      ],
+      "title": "PlannerPlaceEvidence",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/dining-recall-candidate.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "allocation_query_key": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Allocation Query Key"
+    },
+    "candidate_key": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Candidate Key",
+      "type": "string"
+    },
+    "place": {
+      "$ref": "#/$defs/PlannerPlaceEvidence"
+    },
+    "query_hits": {
+      "items": {
+        "$ref": "#/$defs/DiningQueryHit"
+      },
+      "minItems": 1,
+      "title": "Query Hits",
+      "type": "array"
+    },
+    "source_evidence": {
+      "items": {
+        "$ref": "#/$defs/PlannerPlaceEvidence"
+      },
+      "minItems": 1,
+      "title": "Source Evidence",
+      "type": "array"
+    }
+  },
+  "required": [
+    "candidate_key",
+    "place",
+    "query_hits",
+    "source_evidence"
+  ],
+  "title": "DiningRecallCandidate",
+  "type": "object"
+}

@@ -1,7 +1,7 @@
 """Readable projection of user-submitted defaults, never inferred trip requirements."""
 
 from backend.contracts.enums import DayReturn, DayStart, FiveLevel, MobilityTolerance, PriorityGoal
-from backend.contracts.v4.state import ColdStartProfileSnapshot
+from backend.contracts.v4.state import ColdStartProfileSnapshot, TripSemanticState
 from backend.contracts.v4.task_book import EvidenceBackedText
 
 _START = {
@@ -65,3 +65,36 @@ def cold_start_default_notes(profile: ColdStartProfileSnapshot | None) -> list[E
         )
         for text in notes
     ]
+
+
+def saved_preference_notes(state: TripSemanticState) -> list[EvidenceBackedText]:
+    """Freeze explicit preferences into a new task book, never turn feedback into rules."""
+    defaults = cold_start_default_notes(state.cold_start_profile_snapshot)
+    preferences = [m for m in state.long_term_memory_snapshot or () if m.kind == "preference"]
+    if not preferences:
+        return defaults
+    sources = [f"memory:{memory.memory_id}" for memory in preferences]
+    result = [
+        EvidenceBackedText(
+            value="偏好使用规则：本次明确要求优先；未明确覆盖的长期偏好发生冲突时，按保存时间较新的记录执行。冷启动设置属于历史默认，不覆盖后来明确保存的偏好。",
+            source_evidence_refs=sources,
+        )
+    ]
+    if state.cold_start_profile_snapshot:
+        saved = state.cold_start_profile_snapshot.captured_at.isoformat(timespec="seconds")
+        result.extend(
+            item.model_copy(update={"value": f"{item.value}（保存于 {saved}）"})
+            for item in defaults
+        )
+    for memory in sorted(preferences, key=lambda m: (m.created_at, str(m.memory_id))):
+        saved = memory.created_at.isoformat(timespec="seconds")
+        # Preserve every character of the original statement while respecting
+        # the existing 2,000-character display field, including its source label.
+        for offset in range(0, len(memory.text), 1850):
+            result.append(
+                EvidenceBackedText(
+                    value=f"明确长期偏好（保存于 {saved}）｜{memory.text[offset : offset + 1850]}",
+                    source_evidence_refs=[f"memory:{memory.memory_id}"],
+                )
+            )
+    return result

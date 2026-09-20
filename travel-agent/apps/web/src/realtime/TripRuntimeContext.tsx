@@ -5,7 +5,7 @@ import { useStore } from "zustand";
 import {
   createTripRuntimeStore,
   type TripRuntimeState,
-  type TripRuntimeStore,
+  type TripRuntimeStore
 } from "./tripRuntimeStore";
 
 const TripRuntimeContext = createContext<TripRuntimeStore | null>(null);
@@ -17,7 +17,7 @@ interface TripRuntimeProviderProps {
 
 export function TripRuntimeProvider({
   children,
-  store,
+  store
 }: TripRuntimeProviderProps) {
   const storeRef = useRef<TripRuntimeStore | undefined>(undefined);
   if (storeRef.current === undefined) {
@@ -42,7 +42,7 @@ export function useTripRuntimeStore(): TripRuntimeStore {
   const store = useContext(TripRuntimeContext);
   if (store === null) {
     throw new Error(
-      "useTripRuntimeStore must be used inside TripRuntimeProvider",
+      "useTripRuntimeStore must be used inside TripRuntimeProvider"
     );
   }
   return store;

@@ -1,0 +1,60 @@
+{
+  "$id": "https://travel-agent.local/schemas/v2/plan-publication-result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "generation_id": {
+      "format": "uuid",
+      "title": "Generation Id",
+      "type": "string"
+    },
+    "idempotent_replay": {
+      "title": "Idempotent Replay",
+      "type": "boolean"
+    },
+    "plan_version_id": {
+      "format": "uuid",
+      "title": "Plan Version Id",
+      "type": "string"
+    },
+    "publication_key": {
+      "maxLength": 128,
+      "minLength": 8,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]+$",
+      "title": "Publication Key",
+      "type": "string"
+    },
+    "published_at": {
+      "format": "date-time",
+      "title": "Published At",
+      "type": "string"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "state_version": {
+      "minimum": 1,
+      "title": "State Version",
+      "type": "integer"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "publication_key",
+    "trip_id",
+    "generation_id",
+    "plan_version_id",
+    "state_version",
+    "idempotent_replay",
+    "published_at"
+  ],
+  "title": "PlanPublicationResult",
+  "type": "object"
+}

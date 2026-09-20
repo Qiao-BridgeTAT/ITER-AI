@@ -4,13 +4,13 @@ import {
   useMotionValue,
   useReducedMotion,
   useSpring,
-  useTransform,
+  useTransform
 } from "motion/react";
 import {
   MouseEvent as ReactMouseEvent,
   ReactNode,
   useRef,
-  useState,
+  useState
 } from "react";
 
 import "./Dock.css";
@@ -47,7 +47,7 @@ function DockItem({
   mouseX,
   baseItemSize,
   magnification,
-  distance,
+  distance
 }: DockItemProps) {
   const itemRef = useRef<HTMLButtonElement>(null);
   const [showLabel, setShowLabel] = useState(false);
@@ -59,12 +59,12 @@ function DockItem({
   const targetSize = useTransform(
     pointerDistance,
     [-distance, 0, distance],
-    [baseItemSize, magnification, baseItemSize],
+    [baseItemSize, magnification, baseItemSize]
   );
   const animatedSize = useSpring(targetSize, {
     mass: 0.12,
     stiffness: 250,
-    damping: 18,
+    damping: 18
   });
 
   return (
@@ -76,7 +76,7 @@ function DockItem({
       aria-pressed={active}
       style={{
         width: reduceMotion ? baseItemSize : animatedSize,
-        height: reduceMotion ? baseItemSize : animatedSize,
+        height: reduceMotion ? baseItemSize : animatedSize
       }}
       onClick={onClick}
       onFocus={() => setShowLabel(true)}
@@ -109,7 +109,7 @@ export function Dock({
   ariaLabel,
   baseItemSize = 38,
   magnification = 50,
-  distance = 104,
+  distance = 104
 }: DockProps) {
   const mouseX = useMotionValue(Number.POSITIVE_INFINITY);
 

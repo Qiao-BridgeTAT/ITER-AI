@@ -3,7 +3,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useState,
+  useState
 } from "react";
 
 import { useModalFocus } from "../accessibility/useModalFocus";
@@ -29,11 +29,11 @@ export function AccountSessionOverlay({
   nickname,
   onClose,
   onUpdateNickname,
-  onLogout,
+  onLogout
 }: AccountSessionOverlayProps) {
   const displayNickname = useMemo(
     () => nickname?.trim() || defaultNickname(userId),
-    [nickname, userId],
+    [nickname, userId]
   );
   const [editing, setEditing] = useState(false);
   const [draftNickname, setDraftNickname] = useState(displayNickname);

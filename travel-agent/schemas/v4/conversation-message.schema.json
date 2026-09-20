@@ -187,6 +187,20 @@
           "default": null,
           "title": "Quality Tier"
         },
+        "quality_tiers": {
+          "default": [],
+          "items": {
+            "enum": [
+              "economy",
+              "comfort",
+              "upscale",
+              "luxury"
+            ],
+            "type": "string"
+          },
+          "title": "Quality Tiers",
+          "type": "array"
+        },
         "source_task_book_refs": {
           "default": [],
           "items": {
@@ -353,6 +367,57 @@
         "prompt"
       ],
       "title": "AttractionPreferenceCard",
+      "type": "object"
+    },
+    "AttractionSearchHints": {
+      "additionalProperties": false,
+      "properties": {
+        "representative_places": {
+          "items": {
+            "$ref": "#/$defs/AttractionSearchPlace"
+          },
+          "maxItems": 4,
+          "title": "Representative Places",
+          "type": "array"
+        },
+        "search_queries": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Search Queries",
+          "type": "array"
+        }
+      },
+      "title": "AttractionSearchHints",
+      "type": "object"
+    },
+    "AttractionSearchPlace": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "subcategory": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Subcategory",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "subcategory"
+      ],
+      "title": "AttractionSearchPlace",
       "type": "object"
     },
     "BestHotelRecommendation": {
@@ -656,7 +721,8 @@
           "enum": [
             "qwen",
             "safe_seed_fallback",
-            "provider_composed"
+            "provider_composed",
+            "static"
           ],
           "title": "Generation Mode",
           "type": "string"
@@ -691,7 +757,10 @@
           "enum": [
             "legacy",
             "attraction-v2",
-            "dining-v2"
+            "attraction-v3",
+            "dining-v2",
+            "dining-v3",
+            "lodging-v2"
           ],
           "title": "Strategy Version",
           "type": "string"
@@ -711,6 +780,17 @@
           "anyOf": [
             {
               "$ref": "#/$defs/CompositionRole"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "coordinates": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Gcj02Coordinates"
             },
             {
               "type": "null"
@@ -792,6 +872,17 @@
           "title": "Label",
           "type": "string"
         },
+        "lodging_area_copy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LodgingAreaCopy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "observed_at": {
           "anyOf": [
             {
@@ -811,6 +902,22 @@
           "pattern": "\\S",
           "title": "Option Id",
           "type": "string"
+        },
+        "selection_group": {
+          "anyOf": [
+            {
+              "enum": [
+                "quality",
+                "property_type"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selection Group"
         },
         "selection_state": {
           "$ref": "#/$defs/SelectionState",
@@ -835,6 +942,18 @@
           },
           "title": "Source Refs",
           "type": "array"
+        },
+        "suggested_visit_duration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VisitDurationRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "模型估计的基本到深度游览分钟范围，不含交通、排队和用餐，不是营业事实。"
         }
       },
       "required": [
@@ -1621,8 +1740,7 @@
           "items": {
             "$ref": "#/$defs/CardOption"
           },
-          "maxItems": 5,
-          "minItems": 5,
+          "minItems": 1,
           "title": "Options",
           "type": "array"
         },
@@ -1656,9 +1774,71 @@
       "title": "DiningPreferenceCard",
       "type": "object"
     },
+    "DiningSearchHints": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "local_specialty",
+            "regular"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "representative_restaurants": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 1,
+          "title": "Representative Restaurants",
+          "type": "array"
+        },
+        "search_keywords": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 1,
+          "title": "Search Keywords",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "DiningSearchHints",
+      "type": "object"
+    },
     "DirectionSemanticValue": {
       "additionalProperties": false,
       "properties": {
+        "attraction_search_hints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttractionSearchHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "dining_search_hints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiningSearchHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "direction_id": {
           "maxLength": 200,
           "minLength": 1,
@@ -1699,6 +1879,14 @@
           "const": "direction",
           "title": "Kind",
           "type": "string"
+        },
+        "lodging_examples": {
+          "items": {
+            "$ref": "#/$defs/LodgingExample"
+          },
+          "maxItems": 3,
+          "title": "Lodging Examples",
+          "type": "array"
         },
         "nightly_budget_maximum_minor": {
           "anyOf": [
@@ -2763,6 +2951,17 @@
     "ExcludePreferenceDirectionOperation": {
       "additionalProperties": false,
       "properties": {
+        "attraction_search_hints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttractionSearchHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "confidence": {
           "$ref": "#/$defs/ConfidenceLevel"
         },
@@ -2780,6 +2979,17 @@
           ],
           "default": null,
           "title": "Description"
+        },
+        "dining_search_hints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiningSearchHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "direction_id": {
           "maxLength": 200,
@@ -2805,10 +3015,23 @@
           "title": "Local Operation Key",
           "type": "string"
         },
+        "lodging_examples": {
+          "items": {
+            "$ref": "#/$defs/LodgingExample"
+          },
+          "maxItems": 3,
+          "title": "Lodging Examples",
+          "type": "array"
+        },
         "operation_type": {
           "const": "exclude_preference_direction",
           "title": "Operation Type",
           "type": "string"
+        },
+        "replace_lodging_area_choices": {
+          "default": false,
+          "title": "Replace Lodging Area Choices",
+          "type": "boolean"
         },
         "search_query": {
           "anyOf": [
@@ -3252,6 +3475,48 @@
           "title": "Offers",
           "type": "array"
         },
+        "query_attempts": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/HotelQueryAttempt"
+          },
+          "title": "Query Attempts",
+          "type": "array"
+        },
+        "query_origin": {
+          "anyOf": [
+            {
+              "enum": [
+                "prepare_handoff",
+                "planner_query"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query Origin"
+        },
+        "query_status": {
+          "anyOf": [
+            {
+              "enum": [
+                "available",
+                "empty",
+                "failed",
+                "unverified"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query Status"
+        },
         "request_id": {
           "maxLength": 200,
           "minLength": 1,
@@ -3261,6 +3526,20 @@
         },
         "scope": {
           "$ref": "#/$defs/PlannerScope"
+        },
+        "search_keyword": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Search Keyword"
         },
         "source_reference_ids": {
           "default": [],
@@ -3502,6 +3781,97 @@
       "title": "HotelOfferRef",
       "type": "object"
     },
+    "HotelQueryAttempt": {
+      "additionalProperties": false,
+      "description": "Safe diagnostics only; never vendor payloads, URLs or credentials.",
+      "properties": {
+        "anchor_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Anchor Name"
+        },
+        "attempts": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Attempts",
+          "type": "integer"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Code"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "results",
+            "empty",
+            "failed"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "result_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Result Count",
+          "type": "integer"
+        },
+        "retryable": {
+          "default": false,
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "search_keyword": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Search Keyword"
+        },
+        "stage": {
+          "default": "search",
+          "enum": [
+            "search",
+            "identity"
+          ],
+          "title": "Stage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "outcome",
+        "observed_at"
+      ],
+      "title": "HotelQueryAttempt",
+      "type": "object"
+    },
     "HotelStaySegment": {
       "additionalProperties": false,
       "properties": {
@@ -3674,6 +4044,39 @@
       "type": "object",
       "x-travel-itinerary-validation-result": true
     },
+    "LodgingAreaCopy": {
+      "additionalProperties": false,
+      "properties": {
+        "advantage": {
+          "maxLength": 50,
+          "minLength": 2,
+          "title": "Advantage",
+          "type": "string"
+        },
+        "examples": {
+          "items": {
+            "$ref": "#/$defs/LodgingExample"
+          },
+          "maxItems": 3,
+          "minItems": 1,
+          "title": "Examples",
+          "type": "array"
+        },
+        "tradeoff": {
+          "maxLength": 50,
+          "minLength": 2,
+          "title": "Tradeoff",
+          "type": "string"
+        }
+      },
+      "required": [
+        "examples",
+        "advantage",
+        "tradeoff"
+      ],
+      "title": "LodgingAreaCopy",
+      "type": "object"
+    },
     "LodgingAreaPreferenceCard": {
       "additionalProperties": false,
       "properties": {
@@ -3804,7 +4207,10 @@
             {
               "enum": [
                 "provider_unavailable",
-                "no_verified_hotel"
+                "no_verified_hotel",
+                "not_queried",
+                "no_results",
+                "query_failed"
               ],
               "type": "string"
             },
@@ -3877,7 +4283,7 @@
           "items": {
             "$ref": "#/$defs/CardOption"
           },
-          "maxItems": 5,
+          "maxItems": 6,
           "minItems": 5,
           "title": "Options",
           "type": "array"
@@ -3964,6 +4370,20 @@
           "default": null,
           "title": "Hotel Quality Tier"
         },
+        "hotel_quality_tiers": {
+          "items": {
+            "enum": [
+              "economy",
+              "comfort",
+              "upscale",
+              "luxury"
+            ],
+            "type": "string"
+          },
+          "maxItems": 4,
+          "title": "Hotel Quality Tiers",
+          "type": "array"
+        },
         "nightly_budget": {
           "anyOf": [
             {
@@ -3986,9 +4406,40 @@
           },
           "title": "Property Type Preferences",
           "type": "array"
+        },
+        "search_examples": {
+          "items": {
+            "$ref": "#/$defs/LodgingExample"
+          },
+          "maxItems": 7,
+          "title": "Search Examples",
+          "type": "array"
         }
       },
       "title": "LodgingDirection",
+      "type": "object"
+    },
+    "LodgingExample": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 80,
+          "minLength": 2,
+          "title": "Name",
+          "type": "string"
+        },
+        "search_keyword": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Search Keyword",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "search_keyword"
+      ],
+      "title": "LodgingExample",
       "type": "object"
     },
     "MapMarker": {
@@ -4495,6 +4946,21 @@
         "coordinates": {
           "$ref": "#/$defs/Gcj02Coordinates"
         },
+        "cuisine": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cuisine"
+        },
         "display_name": {
           "maxLength": 2000,
           "minLength": 1,
@@ -4691,6 +5157,14 @@
           "title": "Plan Version Id",
           "type": "string"
         },
+        "planning_notes": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Planning Notes",
+          "type": "array"
+        },
         "publication_key": {
           "maxLength": 200,
           "minLength": 1,
@@ -4769,6 +5243,16 @@
         },
         "validation_report": {
           "$ref": "#/$defs/ItineraryValidationResult"
+        },
+        "verification_status": {
+          "default": "verified",
+          "enum": [
+            "verified",
+            "with_issues",
+            "not_reviewed"
+          ],
+          "title": "Verification Status",
+          "type": "string"
         },
         "weather_evidence": {
           "default": [],
@@ -5558,6 +6042,68 @@
       "title": "RouteMode",
       "type": "string"
     },
+    "RouteQueryFailure": {
+      "additionalProperties": false,
+      "description": "Safe recovery metadata, not evidence that endpoints are unreachable.",
+      "properties": {
+        "attempts": {
+          "maximum": 2,
+          "minimum": 1,
+          "title": "Attempts",
+          "type": "integer"
+        },
+        "code": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Code",
+          "type": "string"
+        },
+        "query_count": {
+          "minimum": 1,
+          "title": "Query Count",
+          "type": "integer"
+        },
+        "retry_after": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "upstream_code": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{3,5}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Upstream Code"
+        }
+      },
+      "required": [
+        "code",
+        "retryable",
+        "attempts",
+        "query_count"
+      ],
+      "title": "RouteQueryFailure",
+      "type": "object"
+    },
     "ScheduleActivityKind": {
       "enum": [
         "attraction",
@@ -5765,6 +6311,17 @@
     "SelectPreferenceDirectionOperation": {
       "additionalProperties": false,
       "properties": {
+        "attraction_search_hints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttractionSearchHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "confidence": {
           "$ref": "#/$defs/ConfidenceLevel"
         },
@@ -5782,6 +6339,17 @@
           ],
           "default": null,
           "title": "Description"
+        },
+        "dining_search_hints": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiningSearchHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "direction_id": {
           "maxLength": 200,
@@ -5807,10 +6375,23 @@
           "title": "Local Operation Key",
           "type": "string"
         },
+        "lodging_examples": {
+          "items": {
+            "$ref": "#/$defs/LodgingExample"
+          },
+          "maxItems": 3,
+          "title": "Lodging Examples",
+          "type": "array"
+        },
         "operation_type": {
           "const": "select_preference_direction",
           "title": "Operation Type",
           "type": "string"
+        },
+        "replace_lodging_area_choices": {
+          "default": false,
+          "title": "Replace Lodging Area Choices",
+          "type": "boolean"
         },
         "search_query": {
           "anyOf": [
@@ -6231,6 +6812,28 @@
           "default": null,
           "title": "Hotel Quality Tier"
         },
+        "hotel_quality_tiers": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "economy",
+                  "comfort",
+                  "upscale",
+                  "luxury"
+                ],
+                "type": "string"
+              },
+              "maxItems": 4,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hotel Quality Tiers"
+        },
         "local_operation_key": {
           "maxLength": 200,
           "minLength": 1,
@@ -6283,6 +6886,26 @@
           ],
           "default": null,
           "title": "Property Type"
+        },
+        "property_types": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "酒店",
+                  "民宿"
+                ],
+                "type": "string"
+              },
+              "maxItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Property Types"
         },
         "source_refs": {
           "items": {
@@ -6648,6 +7271,17 @@
           },
           "title": "Polyline",
           "type": "array"
+        },
+        "query_failure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RouteQueryFailure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "route_edge_id": {
           "maxLength": 200,
@@ -7067,6 +7701,22 @@
           "title": "Commitment Level",
           "type": "string"
         },
+        "planner_reason": {
+          "anyOf": [
+            {
+              "maxLength": 160,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Agent 在已授权景点容量或餐厅整体安排取舍下给出的具体原因，不代表用户逐项确认。",
+          "title": "Planner Reason"
+        },
         "reason_code": {
           "enum": [
             "infeasible_date",
@@ -7345,6 +7995,29 @@
       "title": "ValidationTargetKind",
       "type": "string"
     },
+    "VisitDurationRange": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum_minutes": {
+          "maximum": 600,
+          "minimum": 15,
+          "title": "Maximum Minutes",
+          "type": "integer"
+        },
+        "minimum_minutes": {
+          "maximum": 600,
+          "minimum": 15,
+          "title": "Minimum Minutes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_minutes",
+        "maximum_minutes"
+      ],
+      "title": "VisitDurationRange",
+      "type": "object"
+    },
     "WorkingItineraryDay": {
       "additionalProperties": false,
       "properties": {
@@ -7386,6 +8059,19 @@
           "title": "Dining Goals",
           "type": "array"
         },
+        "end_time": {
+          "anyOf": [
+            {
+              "format": "time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Time"
+        },
         "ordered_items": {
           "default": [],
           "items": {
@@ -7421,6 +8107,19 @@
           "format": "date",
           "title": "Service Date",
           "type": "string"
+        },
+        "start_time": {
+          "anyOf": [
+            {
+              "format": "time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Time"
         },
         "transport_preferences": {
           "items": {

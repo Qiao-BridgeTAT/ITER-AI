@@ -1,27 +1,31 @@
-import { ArrowsOut, MapTrifold, X } from "@phosphor-icons/react";
 import {
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
+  type CSSProperties
 } from "react";
 import { createPortal } from "react-dom";
+import { ArrowLeft, ArrowsOut, MapTrifold, X } from "@phosphor-icons/react";
 
-import { PlacePhoto } from "../conversation/PlacePhoto";
-import type { PlanDay, PlanStop } from "../conversation/PlanReadyAttachment";
 import type { MapUpdatePayload } from "../generated/contracts";
+import type { PlanDay, PlanStop } from "../conversation/PlanReadyAttachment";
+import { PlacePhoto } from "../conversation/PlacePhoto";
 import { formatItineraryDayTimes } from "../planning/itineraryTime";
 import {
   ItineraryMapCanvas,
   type AmapApi,
-  type AmapConfig,
+  type AmapConfig
 } from "./ItineraryMapCanvas";
 import "./itinerary-map.css";
+import { DiscoveryMapCanvas } from "./DiscoveryMapCanvas";
+import type { DiscoveryMapPreview } from "./discoveryMap";
 
 interface AmapSpaceBoardProps {
   update: MapUpdatePayload | null;
+  discovery?: DiscoveryMapPreview;
+  onExitDiscovery?: () => void;
   highlightedPlaceId: string | null;
   onHighlightPlace: (placeId: string) => void;
   routeNotice?: string | null;
@@ -37,6 +41,8 @@ const DAY_COLORS = ["#176de5", "#257969", "#926039", "#7962a8", "#2f7789"];
 
 export function AmapSpaceBoard({
   update,
+  discovery,
+  onExitDiscovery,
   highlightedPlaceId,
   onHighlightPlace,
   routeNotice = null,
@@ -45,7 +51,7 @@ export function AmapSpaceBoard({
   days = [],
   onSelectDay,
   expanded: controlledExpanded,
-  onExpandedChange,
+  onExpandedChange
 }: AmapSpaceBoardProps) {
   const [localExpanded, setLocalExpanded] = useState(false);
   const expanded = controlledExpanded ?? localExpanded;
@@ -60,20 +66,25 @@ export function AmapSpaceBoard({
     setLocalExpanded(next);
     onExpandedChange?.(next);
   };
-  const rows = useMemo<PlanStop[]>(
-    () =>
-      day?.stops.filter((stop) => stop.placeId) ??
-      (update?.markers ?? []).map((marker) => ({
-        placeId: marker.place_id,
-        title: marker.label,
-        category: entryKindLabel(marker.kind),
-        time: "",
-        plannedStay: "",
-        imageAlt: `${marker.label}实景`,
-        description: "",
-      })),
-    [day, update],
-  );
+  const rows = useMemo<PlanStop[]>(() => {
+    if (day) {
+      const stops = day.stops.filter((stop) => stop.placeId);
+      if (day.startStop?.placeId && day.startStop.placeId !== stops[0]?.placeId)
+        stops.unshift(day.startStop);
+      if (day.endStop?.placeId && day.endStop.placeId !== stops.at(-1)?.placeId)
+        stops.push(day.endStop);
+      return stops;
+    }
+    return (update?.markers ?? []).map((marker) => ({
+      placeId: marker.place_id,
+      title: marker.label,
+      category: entryKindLabel(marker.kind),
+      time: "",
+      plannedStay: "",
+      imageAlt: `${marker.label}实景`,
+      description: ""
+    }));
+  }, [day, update]);
   // Closing the portal mounts a new sidebar button; focus its latest DOM node.
   const focusToggle = useCallback(() => toggleRef.current?.focus(), []);
 
@@ -110,7 +121,7 @@ export function AmapSpaceBoard({
 
   const body = (
     <div
-      className={`itinerary-map${expanded ? " is-expanded" : ""}`}
+      className={`itinerary-map${expanded ? " is-expanded" : ""}${discovery ? " is-discovery" : ""}`}
       style={{ "--map-day-color": color } as CSSProperties}
     >
       <header className="itinerary-map-header">
@@ -118,15 +129,28 @@ export function AmapSpaceBoard({
           <MapTrifold size={20} />
           <h2 id="route-map-title">行程地图</h2>
         </div>
-        <button
-          className="map-icon-button"
-          ref={toggleRef}
-          type="button"
-          aria-label={expanded ? "关闭行程地图" : "展开行程地图"}
-          onClick={() => setExpanded(!expanded)}
-        >
-          {expanded ? <X size={20} /> : <ArrowsOut size={18} />}
-        </button>
+        <div>
+          {discovery && onExitDiscovery ? (
+            <button
+              className="map-icon-button"
+              type="button"
+              aria-label="返回行程地图"
+              title="返回行程地图"
+              onClick={onExitDiscovery}
+            >
+              <ArrowLeft size={18} />
+            </button>
+          ) : null}
+          <button
+            className="map-icon-button"
+            ref={toggleRef}
+            type="button"
+            aria-label={expanded ? "关闭行程地图" : "展开行程地图"}
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded ? <X size={20} /> : <ArrowsOut size={18} />}
+          </button>
+        </div>
       </header>
       {days.length > 0 ? (
         <nav className="itinerary-map-days" aria-label="地图日期">
@@ -144,15 +168,24 @@ export function AmapSpaceBoard({
         </nav>
       ) : null}
       <div className="itinerary-map-layout">
-        <ItineraryMapCanvas
-          update={update}
-          highlightedPlaceId={highlightedPlaceId}
-          onHighlightPlace={onHighlightPlace}
-          config={config}
-          loadApi={loadApi}
-          color={color}
-        />
-        {expanded ? (
+        {discovery ? (
+          <DiscoveryMapCanvas
+            preview={discovery}
+            onHighlightPlace={onHighlightPlace}
+            config={config}
+            loadApi={loadApi}
+          />
+        ) : (
+          <ItineraryMapCanvas
+            update={update}
+            highlightedPlaceId={highlightedPlaceId}
+            onHighlightPlace={onHighlightPlace}
+            config={config}
+            loadApi={loadApi}
+            color={color}
+          />
+        )}
+        {expanded && !discovery ? (
           <div className="itinerary-map-itinerary">
             <div className="itinerary-map-route-heading">
               <strong>{day ? `${day.ordinal}路线` : "当天路线"}</strong>
@@ -166,7 +199,7 @@ export function AmapSpaceBoard({
               {rows.map((stop, index) => {
                 const selected = stop.placeId === highlightedPlaceId;
                 const mapped = update?.markers?.some(
-                  (marker) => marker.place_id === stop.placeId,
+                  (marker) => marker.place_id === stop.placeId
                 );
                 return (
                   <li key={`${stop.placeId}-${index}`}>
@@ -177,7 +210,7 @@ export function AmapSpaceBoard({
                         selected &&
                         index ===
                           rows.findIndex(
-                            (row) => row.placeId === highlightedPlaceId,
+                            (row) => row.placeId === highlightedPlaceId
                           )
                           ? selectedRowRef
                           : undefined
@@ -205,9 +238,13 @@ export function AmapSpaceBoard({
                                   : "预计到达时间"
                               }
                             >
-                              {times?.stopTimes[
-                                day?.stops.indexOf(stop) ?? -1
-                              ] ?? stop.time}
+                              {stop === day?.startStop
+                                ? times?.startTime
+                                : stop === day?.endStop
+                                  ? times?.endTime
+                                  : (times?.stopTimes[
+                                      day?.stops.indexOf(stop) ?? -1
+                                    ] ?? stop.time)}
                             </time>
                           ) : null}
                           {stop.category}
@@ -254,7 +291,7 @@ export function AmapSpaceBoard({
         >
           {body}
         </dialog>,
-        document.body,
+        document.body
       )
     : body;
 }
@@ -266,7 +303,7 @@ function entryKindLabel(kind: string): string {
         attraction: "景点",
         restaurant: "餐厅",
         hotel: "住宿",
-        transport: "交通",
+        transport: "交通"
       } as Record<string, string>
     )[kind] ?? "行程地点"
   );

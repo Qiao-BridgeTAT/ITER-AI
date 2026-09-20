@@ -8,10 +8,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from uuid import NAMESPACE_URL, uuid5
 
-from backend.agent.prepare.section_guard import (
-    effective_domain_delegation,
-    semantic_delegation_refs,
-)
+from backend.agent.prepare.section_guard import semantic_delegation_refs
 from backend.contracts.v4.content_quality import (
     attraction_direction_quality_issue,
     visible_text_quality_issue,
@@ -40,7 +37,7 @@ from backend.contracts.v4.task_book import (
     TaskBookV4,
     TravelersAndTripGoal,
 )
-from backend.domain.discovery.cold_start import cold_start_default_notes
+from backend.domain.discovery.cold_start import saved_preference_notes
 
 
 @dataclass(frozen=True, slots=True)
@@ -205,9 +202,6 @@ def _completion_matches_semantic(
             DiscoverySection.ATTRACTION_SPECIFIC,
             DiscoverySection.DINING_PREFERENCE,
             DiscoverySection.DINING_SPECIFIC,
-            # Product §11.1 explicitly permits no preference for both lodging cards.
-            DiscoverySection.LODGING_AREA_PREFERENCE,
-            DiscoverySection.LODGING_CLASS_PREFERENCE,
         }
     if mode is CompletionMode.EXISTING_BOOKING:
         return section in {
@@ -248,6 +242,7 @@ def _completion_matches_semantic(
     if section is DiscoverySection.LODGING_CLASS_PREFERENCE:
         return bool(
             semantic.lodging.hotel_quality_tier
+            or semantic.lodging.hotel_quality_tiers
             or semantic.lodging.property_type_preferences
             or semantic.lodging.nightly_budget
             or semantic.lodging.facility_requirements
@@ -345,7 +340,7 @@ class TaskBookBuilder:
             ],
             existing_bookings=semantic.existing_bookings,
             tradeoffs_and_assumptions=[
-                *cold_start_default_notes(semantic.cold_start_profile_snapshot),
+                *saved_preference_notes(semantic),
                 EvidenceBackedText(
                     value=(
                         "营业时间、票务、路线、具体酒店与价格将在正式规划时通过实时能力重新核验。"
@@ -501,6 +496,13 @@ def _lodging_direction(semantic: TripSemanticState) -> LodgingDirection:
             for item in semantic.lodging.area_preferences
         ],
         hotel_quality_tier=semantic.lodging.hotel_quality_tier,
+        hotel_quality_tiers=semantic.lodging.hotel_quality_tiers,
+        search_examples=[
+            example
+            for area in semantic.lodging.area_preferences
+            if area.selected
+            for example in area.lodging_examples
+        ],
         property_type_preferences=[
             EvidenceBackedText(
                 value=item,
@@ -525,7 +527,7 @@ def _lodging_direction(semantic: TripSemanticState) -> LodgingDirection:
         existing_booking=(
             semantic.lodging.existing_bookings[0] if semantic.lodging.existing_bookings else None
         ),
-        delegated_scope=effective_domain_delegation(semantic, "lodging"),
+        delegated_scope=semantic.lodging.delegation,
         not_applicable=semantic.lodging.not_applicable,
     )
 
@@ -554,7 +556,7 @@ def _attraction_direction(semantic: TripSemanticState) -> AttractionDirection:
             if item.disposition == AttractionDisposition.IF_CONVENIENT.value
         ],
         exclusions=[_entity_intent(item, AttractionDisposition.AVOID) for item in exclusions],
-        delegated_scope=effective_domain_delegation(semantic, "attraction"),
+        delegated_scope=semantic.attractions.delegation,
     )
 
 
@@ -588,7 +590,7 @@ def _dining_direction(semantic: TripSemanticState) -> DiningDirection:
             if item.disposition == DiningDisposition.IF_CONVENIENT.value
         ],
         excluded_restaurants=[_entity_intent(item, DiningDisposition.AVOID) for item in exclusions],
-        delegated_scope=effective_domain_delegation(semantic, "dining"),
+        delegated_scope=semantic.dining.delegation,
     )
 
 
@@ -626,6 +628,11 @@ def _all_source_refs(
     refs.extend(semantic.trip_basics.date_source_operation_refs)
     if semantic.cold_start_profile_snapshot is not None:
         refs.extend(semantic.cold_start_profile_snapshot.source_evidence_refs)
+    refs.extend(
+        f"memory:{memory.memory_id}"
+        for memory in semantic.long_term_memory_snapshot or ()
+        if memory.kind == "preference"
+    )
     refs.extend(
         ref for coverage in runtime.section_coverage.values() for ref in coverage.evidence_refs
     )

@@ -1,0 +1,101 @@
+{
+  "$defs": {
+    "CompletionMode": {
+      "enum": [
+        "selected",
+        "explicitly_none",
+        "existing_booking",
+        "delegated",
+        "not_applicable"
+      ],
+      "title": "CompletionMode",
+      "type": "string"
+    },
+    "CoverageStatus": {
+      "enum": [
+        "not_started",
+        "in_progress",
+        "complete",
+        "reopened",
+        "not_applicable"
+      ],
+      "title": "CoverageStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/section-coverage.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "blocking_conflict_ids": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Blocking Conflict Ids",
+      "type": "array"
+    },
+    "completed_at_state_version": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Completed At State Version"
+    },
+    "completion_mode": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CompletionMode"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "covered_targets": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Covered Targets",
+      "type": "array"
+    },
+    "evidence_refs": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "required_targets": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Required Targets",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/CoverageStatus",
+      "default": "not_started"
+    }
+  },
+  "title": "SectionCoverage",
+  "type": "object"
+}

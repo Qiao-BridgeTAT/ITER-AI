@@ -6,7 +6,8 @@ import asyncio
 import hashlib
 import json
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
+from hashlib import sha256
 from typing import Annotated, Literal
 
 from pydantic import Field, StringConstraints, model_validator
@@ -22,6 +23,13 @@ from backend.agent.model_gateway import (
     ModelRequest,
     ModelRole,
 )
+from backend.agent.prepare.progress import (
+    AttractionProgress,
+    DiningProgress,
+    report_attraction_progress,
+    report_dining_progress,
+)
+from backend.contracts.v4.attraction_search import AttractionSearchHints, AttractionSearchPlace
 from backend.contracts.v4.base import Identifier, V4ContractModel, require_unique
 from backend.contracts.v4.content_quality import (
     attraction_direction_quality_issue,
@@ -31,8 +39,20 @@ from backend.contracts.v4.content_quality import (
     require_meaningful_label,
     require_visible_text,
 )
+from backend.contracts.v4.dining_search import DiningSearchHints
 from backend.contracts.v4.enums import CompositionRole, DiscoverySection
+from backend.contracts.v4.lodging_preferences import LodgingAreaPlan
 from backend.contracts.v4.state import TripSemanticState
+from backend.discovery.cards.attraction_preference_prompt import (
+    ATTRACTION_PREFERENCE_PROMPT_VERSION,
+    ATTRACTION_PREFERENCE_SYSTEM_PROMPT,
+)
+from backend.discovery.cards.attraction_schema import attraction_schema
+from backend.discovery.cards.dining.prompts import (
+    DINING_PREFERENCE_PROMPT_VERSION,
+    MAIN_MEAL_DIRECTION_RULES,
+)
+from backend.discovery.cards.lodging_prompt import LODGING_AREA_SYSTEM_PROMPT
 from backend.domain.discovery.cold_start import cold_start_default_notes
 
 PREFERENCE_DIRECTION_PROMPT_VERSION = "prepare-card-directions-v4-03-12"
@@ -86,8 +106,44 @@ class DirectionDraft(V4ContractModel):
         return self
 
 
+class AttractionDirectionDraft(V4ContractModel):
+    direction_id: Identifier
+    label: GeneratedLabelText = Field(
+        description="约4至12字，以体验方向为主，尽量少用具体景点名；有助于理解时可自然点到。"
+    )
+    description: GeneratedDescriptionText = Field(
+        description="约20至45字，具体自然且有适度文采的体验说明；少量地点名可酌情出现，不罗列或重复强调。"
+    )
+    composition_role: CompositionRole
+    tags: list[Identifier] = Field(default_factory=list, max_length=8)
+    representative_places: list[AttractionSearchPlace] = Field(max_length=4)
+    search_queries: list[GeneratedLabelText] = Field(min_length=2, max_length=2)
+
+    @model_validator(mode="after")
+    def valid_search_hints(self) -> AttractionDirectionDraft:
+        require_meaningful_label(self.label, "direction label")
+        require_meaningful_description(self.description, "direction description")
+        require_unique((word.casefold().strip() for word in self.search_queries), "search query")
+        require_unique(
+            (place.name.casefold().strip() for place in self.representative_places),
+            "representative place",
+        )
+        return self
+
+    @property
+    def search_query(self) -> str:
+        return self.search_queries[0]
+
+    @property
+    def attraction_search_hints(self) -> AttractionSearchHints:
+        return AttractionSearchHints(
+            representative_places=self.representative_places,
+            search_queries=self.search_queries,
+        )
+
+
 class AttractionDirectionPlan(V4ContractModel):
-    directions: list[DirectionDraft] = Field(min_length=6, max_length=7)
+    directions: list[AttractionDirectionDraft] = Field(min_length=6, max_length=7)
 
     @model_validator(mode="after")
     def has_city_representative_quota(self) -> AttractionDirectionPlan:
@@ -268,7 +324,7 @@ def _require_lodging_class_families(
 class FlexibleAttractionDirectionPlan(V4ContractModel):
     """Qwen-owned attraction content and roles before code-owned IDs."""
 
-    directions: list[DirectionDraft] = Field(
+    directions: list[AttractionDirectionDraft] = Field(
         min_length=6,
         max_length=7,
         description="六到七个内容完整、语义彼此不同的中文景点体验方向。",
@@ -285,11 +341,27 @@ class FlexibleDiningDirectionPlan(V4ContractModel):
     )
 
 
+class DiningDirectionDraft(DirectionDraft):
+    dining_search_hints: DiningSearchHints
+
+
+class DiningPreferencePlan(V4ContractModel):
+    directions: list[DiningDirectionDraft] = Field(min_length=1)
+
+
 class PreferenceDirectionGenerator:
     """Let Qwen choose city-specific content while code owns composition rules."""
 
-    def __init__(self, gateway: ModelGateway) -> None:
+    def __init__(
+        self,
+        gateway: ModelGateway,
+        *,
+        attraction_gateway: ModelGateway | None = None,
+        dining_gateway: ModelGateway | None = None,
+    ) -> None:
         self._gateway = gateway
+        self._attraction_gateway = attraction_gateway or gateway
+        self._dining_gateway = dining_gateway
 
     async def generate_attraction(
         self,
@@ -301,30 +373,7 @@ class PreferenceDirectionGenerator:
             state,
             section=DiscoverySection.ATTRACTION_PREFERENCE,
             output_type=FlexibleAttractionDirectionPlan,
-            rules=(
-                "依据你自身的城市知识和用户上下文生成6到7个发散的景点体验方向。"
-                "3到4个城市代表方向标为 representative_extra，2到3个个性化方向"
-                "结合同行人、节奏、限制、冷启和已知偏好，"
-                "标为 personalized_top。"
-                "默认6项采用4个城市代表+2个个性化，7项采用4+3。"
-                "城市代表要体现当地主要景点风格，不是把同一历史方向改写四次。"
-                "标题和描述都不准出现具体景点名，不举具体景点的例子。"
-                "专有地名也算具体景点名：如把某个著名湖泊/寺院/景区名称加上‘意境/文化/慢游’"
-                "仍不合格。要抽象成湖山园林、宗教古建、山野远眺等类型，不在标题放具体地名。"
-                "可以表达博物馆与城市记忆、城市绿肺、历史街巷、精致打卡摄影、购物与设计空间等，"
-                "但不要照抄这些示例作为固定列表。购物中心购物是合法体验方向。"
-                "标题约4到12个汉字，描述一句话约15到40个汉字，不重述标题。"
-                "个性化必须有上下文依据；两位成人不代表情侣，不擅自推荐浪漫亲密体验。"
-                "不能把‘初访经典地标’伪装成个性化标签，它与城市代表重复且不能表达偏好。"
-                "个性化也必须是可选择的体验类型，而非‘多元体验/节奏平衡/经典巡礼’等规划原则。"
-                "兴趣信息少时，从冷启和场景提出摄影打卡、设计购物、夜色观景、轻户外等体验方向，"
-                "不用泛泛的‘为你定制’充当兴趣，也不必把全部候选标签都写成城市通用标签。"
-                "方向不是具体景点，不能编造营业时间、票价或地址。"
-                "景点方向不得以美食、小吃、探店、餐厅、茶馆茶社、酒店住宿为主题，这些属于后续章节。"
-                "茶文化与市井氛围可围绕公园漫步、历史街区和文化场馆表达，不以吃喝或店名作为景点偏好。"
-                "输出前自行检查抽象性、互不重复、排除要求、城市/个性化组成。"
-                "每个标签必须是完整、可理解的短语，每段说明必须是完整句子；不得输出单字、残句、占位词或内部枚举。"
-            ),
+            rules=ATTRACTION_PREFERENCE_SYSTEM_PROMPT,
             fallback=None,
             normalize=lambda value: _normalize_attraction_directions(
                 value,
@@ -340,12 +389,52 @@ class PreferenceDirectionGenerator:
         state: TripSemanticState,
         *,
         cancellation: ModelCancellation | None = None,
-    ) -> tuple[DiningDirectionPlan, Literal["qwen", "safe_seed_fallback"]]:
+    ) -> tuple[DiningDirectionPlan | DiningPreferencePlan, Literal["qwen", "safe_seed_fallback"]]:
+        await report_dining_progress(DiningProgress.PREFERENCE_DISCOVERY)
+        if self._dining_gateway is not None:
+            from backend.discovery.cards.dining.model import (
+                preference_context,
+                preference_errors,
+                run_task,
+            )
+
+            output = await run_task(
+                self._dining_gateway,
+                "B",
+                preference_context(state),
+                cancellation=cancellation,
+                validator=preference_errors,
+            )
+            await report_dining_progress(DiningProgress.PREFERENCE_READY)
+            return DiningPreferencePlan(
+                directions=[
+                    DiningDirectionDraft(
+                        direction_id="dining_"
+                        + sha256(
+                            f"{state.trip_basics.destination_canonical_id}:{row['kind']}:{row['label']}".encode()
+                        ).hexdigest()[:16],
+                        label=row["label"],
+                        description=row["description"],
+                        composition_role=CompositionRole.REPRESENTATIVE_EXTRA
+                        if row["kind"] == "local_specialty"
+                        else CompositionRole.PERSONALIZED_TOP,
+                        tags=[],
+                        search_query=row["search_keywords"][0],
+                        dining_search_hints=DiningSearchHints(
+                            kind=row["kind"],
+                            representative_restaurants=row["representative_restaurants"],
+                            search_keywords=row["search_keywords"],
+                        ),
+                    )
+                    for row in output["directions"]
+                ]
+            ), "qwen"
         result, mode = await self._generate(
             state,
             section=DiscoverySection.DINING_PREFERENCE,
             output_type=FlexibleDiningDirectionPlan,
             rules=(
+                MAIN_MEAL_DIRECTION_RULES + "\n"
                 "生成正好5个餐饮方向。正好2个是该城市代表性饮食，标为 representative_extra；"
                 "另外3个结合用户偏好和常规菜系，标为 personalized_top。"
                 "每个 representative_extra 的标签或说明中必须明确写出目的地城市名，"
@@ -370,40 +459,18 @@ class PreferenceDirectionGenerator:
         self,
         state: TripSemanticState,
         *,
-        provider_feedback: dict[str, object] | None = None,
         cancellation: ModelCancellation | None = None,
-    ) -> tuple[LodgingAreaDirectionPlan, Literal["qwen", "safe_seed_fallback"]]:
+    ) -> tuple[LodgingAreaPlan, Literal["qwen", "safe_seed_fallback"]]:
         result, mode = await self._generate(
             state,
             section=DiscoverySection.LODGING_AREA_PREFERENCE,
-            output_type=FlexibleLodgingAreaDirectionPlan,
-            rules=(
-                "生成5到6个城市化住宿区位方向。每个方向提供一个可交给地图地点搜索的真实区域、商圈或交通节点查询词，"
-                "并说明城市氛围、与must/want景点及destination餐厅锚点的适配、交通特点和主要取舍。"
-                "description是唯一公开说明，用一句亲切自然的话讲主要区位特点和必要取舍，约20到40字。"
-                "city_atmosphere、anchor_fit、transport_characteristics、main_tradeoff是完整内部分析，"
-                "不要逐项复制到description，也不写锚点适配、匹配用户、筛选候选等过程话术。"
-                "search_query只能是目的地内真实区域、商圈或交通节点的短名称，彼此不能重复，且不得包含酒店、宾馆、"
-                "饭店、客栈、民宿、hotel等住宿词；不得输出酒店名称；if_convenient对象不能主动拉动区位。"
-                "湖畔、景区周边或历史街区是方向，不要直接拿景点名称搜索后把旁边商店当区域。"
-                "search_query优先使用该方向对应的真实街道、片区或完整地铁站名；"
-                "不得选择某家公寓、住宅楼、门店或地铁出入口作为区域。"
-                "查询必须是具体地名而非方向描述；同名区域和该区域地铁站算同一个位置。"
-                "如果提供provider_feedback，说明首轮真实解析不足6项。这是唯一一次追加候选轮："
-                "只生成5到6个新的候选方向，不要重复resolved_directions、attempted_queries中的查询或真实位置，"
-                "也不必在本轮输出中复述已解析方向。优先扩大到新的真实商圈、街道、片区、完整地铁站或铁路枢纽，"
-                "让程序从通过项中补齐missing_option_count。失败查询不能原样重试，也不能仅添加城市名前缀；"
-                "不得使用景点、公园、古城、桥梁、住宅楼、门店或出入口作为search_query，"
-                "不要选择不匹配的搜索结果。"
-            ),
-            fallback=FlexibleLodgingAreaDirectionPlan(
-                directions=_fallback_lodging_area(state).directions
-            ),
-            normalize=_normalize_lodging_area_directions,
+            output_type=LodgingAreaPlan,
+            rules=LODGING_AREA_SYSTEM_PROMPT,
+            fallback=None,
+            normalize=lambda value: value,
             cancellation=cancellation,
-            provider_feedback=provider_feedback,
         )
-        assert isinstance(result, LodgingAreaDirectionPlan)
+        assert isinstance(result, LodgingAreaPlan)
         return result, mode
 
     async def generate_lodging_class(
@@ -444,48 +511,81 @@ class PreferenceDirectionGenerator:
         cancellation: ModelCancellation | None,
         provider_feedback: dict[str, object] | None = None,
     ) -> tuple[V4ContractModel, Literal["qwen", "safe_seed_fallback"]]:
+        is_attraction = section is DiscoverySection.ATTRACTION_PREFERENCE
+        is_lodging = section is DiscoverySection.LODGING_AREA_PREFERENCE
+        structured = is_attraction or is_lodging
+        if is_attraction:
+            await report_attraction_progress(AttractionProgress.PREFERENCE_DISCOVERY)
+        gateway = self._attraction_gateway if structured else self._gateway
+        prompt_version = (
+            ATTRACTION_PREFERENCE_PROMPT_VERSION
+            if is_attraction
+            else "lodging-area-v8"
+            if is_lodging
+            else DINING_PREFERENCE_PROMPT_VERSION
+            if section is DiscoverySection.DINING_PREFERENCE
+            else PREFERENCE_DIRECTION_PROMPT_VERSION
+        )
         payload: dict[str, object] = {
-            "prompt_version": PREFERENCE_DIRECTION_PROMPT_VERSION,
+            "prompt_version": prompt_version,
             "section": section.value,
-            "rules": rules,
-            "visible_text_quality_contract": _visible_text_quality_contract(state, section),
-            "required_output_json_schema": output_type.model_json_schema(),
             "trip_context": _state_excerpt(state),
         }
+        if is_lodging:
+            payload = {
+                "destination": state.trip_basics.destination_name,
+                "attractions": [
+                    {"name": item.display_name, "intention": item.disposition}
+                    for item in state.attractions.concrete_intents
+                ],
+                "preferences": state.transport_and_pace.model_dump(mode="json"),
+                "travelers": state.trip_basics.travelers,
+            }
+        if structured:
+            system_prompt = rules
+        else:
+            payload = {
+                "prompt_version": prompt_version,
+                "section": section.value,
+                "rules": rules,
+                "visible_text_quality_contract": _visible_text_quality_contract(state, section),
+                "required_output_json_schema": output_type.model_json_schema(),
+                "trip_context": payload["trip_context"],
+            }
+            system_prompt = (
+                "你为旅行 Prepare Agent 生成城市化偏好方向。只输出请求的结构；"
+                "不输出思维过程，不把模型记忆中的动态事实当作已核验事实。"
+                "只输出一个 JSON 对象，不要 Markdown。"
+                "所有字符串字段都必须填写有语义的完整中文内容，"
+                "绝不能用单字或最短占位符填充结构。"
+                "必须逐字段遵守 required_output_json_schema，"
+                "不得改名、漏字段或增加 schema 之外的字段。"
+            )
         if provider_feedback is not None:
             payload["provider_feedback"] = provider_feedback
         last_call_id: str | None = None
         for attempt in range(2):
             result_call_id: str | None = None
             if attempt:
-                payload["repair_instruction"] = _repair_instruction(section)
+                payload["repair_instruction"] = (
+                    "请按原 Schema 修正上一轮不合规字段，保留简洁的展示文案。"
+                    if is_lodging
+                    else _repair_instruction(section)
+                )
             try:
-                result = await self._gateway.generate_structured(
+                result = await gateway.generate_structured(
                     ModelRequest(
                         audit=ModelAuditMetadata(
                             stage=f"prepare_{section.value}_direction_generation",
                             node="prepare_main_action",
-                            contract_version=PREFERENCE_DIRECTION_PROMPT_VERSION,
+                            contract_version=prompt_version,
                             repair=attempt > 0,
                             attempt=attempt + 1,
                         ),
                         messages=[
                             ModelMessage(
                                 role=ModelRole.SYSTEM,
-                                content=(
-                                    "你为旅行 Prepare Agent 生成城市化偏好方向。只输出请求的结构；"
-                                    "不输出思维过程，不把模型记忆中的动态事实当作已核验事实。"
-                                    "只输出一个 JSON 对象，不要 Markdown。"
-                                    "所有字符串字段都必须填写有语义的完整中文内容，"
-                                    "绝不能用单字或最短占位符填充结构。"
-                                    "必须逐字段遵守 required_output_json_schema，"
-                                    "不得改名、漏字段或增加 schema 之外的字段。"
-                                    + (
-                                        rules
-                                        if section is DiscoverySection.ATTRACTION_PREFERENCE
-                                        else ""
-                                    )
-                                ),
+                                content=system_prompt,
                             ),
                             ModelMessage(
                                 role=ModelRole.USER,
@@ -494,15 +594,15 @@ class PreferenceDirectionGenerator:
                                 ),
                             ),
                         ],
-                        max_output_tokens=4_000,
-                        structured_output_mode="json_object",
+                        max_output_tokens=(
+                            6_144 if section is DiscoverySection.ATTRACTION_PREFERENCE else 4_000
+                        ),
+                        structured_output_mode="json_schema" if structured else "json_object",
+                        output_schema_override=attraction_schema(output_type)
+                        if structured
+                        else None,
                         temperature_override=0.65,
-                        thinking_budget_tokens=(
-                            1_024 if section is DiscoverySection.ATTRACTION_PREFERENCE else None
-                        ),
-                        reasoning_timeout_seconds=(
-                            90 if section is DiscoverySection.ATTRACTION_PREFERENCE else None
-                        ),
+                        request_timeout_seconds=90 if structured else None,
                     ),
                     output_type,
                     cancellation=cancellation,
@@ -515,7 +615,7 @@ class PreferenceDirectionGenerator:
                     ]
                 normalized = normalize(result.value)
                 await record_model_call_annotation(
-                    self._gateway,
+                    gateway,
                     result_call_id,
                     "llm_business_guard",
                     {
@@ -548,7 +648,7 @@ class PreferenceDirectionGenerator:
             except ValueError as error:
                 last_call_id = result_call_id or last_call_id
                 await record_model_call_annotation(
-                    self._gateway,
+                    gateway,
                     result_call_id,
                     "llm_business_guard",
                     {
@@ -582,7 +682,7 @@ class PreferenceDirectionGenerator:
             )
         normalized_fallback = normalize(fallback)
         await record_model_call_annotation(
-            self._gateway,
+            gateway,
             last_call_id,
             "llm_fallback_selected",
             {
@@ -605,13 +705,14 @@ def _repair_instruction(section: DiscoverySection) -> str:
     )
     section_rules = {
         DiscoverySection.ATTRACTION_PREFERENCE: (
-            "输出6到7个抽象方向，3到4个城市代表、2到3个个性化，默认4+2或4+3；"
-            "标签和描述均不出现具体景点名，不举具体地点例子；自行检查语义差异和排除要求。"
+            "输出6到7个体验方向，3到4个城市代表、2到3个个性化，默认4+2或4+3；"
+            "标题尽量少用具体景点名，描述也少量酌情点到；合理点名不是错误。避免整组句式雷同，检查语义差异和排除要求。"
             "不得出现以美食、小吃、茶社茶馆、探店、餐厅或住宿为主题的景点标签，"
             "必须将这些错误方向重写为公园、街区、人文历史、自然或艺术空间的体验。"
             "程序只规范内部ID，不替你决定城市代表角色。"
         ),
         DiscoverySection.DINING_PREFERENCE: (
+            MAIN_MEAL_DIRECTION_RULES + "\n"
             "输出正好5个语义不同的方向，标签不得同义重复；每个代表性方向的标签或说明必须写出目的地城市名；"
             "先尊重饮食硬约束。description只用一句简短的口味或体验介绍，不复述标题或生成过程。"
         ),
@@ -830,7 +931,7 @@ def _canonical_direction_id(label: str) -> str:
     return f"direction-{digest}"
 
 
-def _validate_directions(directions: list[DirectionDraft]) -> None:
+def _validate_directions(directions: Sequence[DirectionDraft | AttractionDirectionDraft]) -> None:
     require_unique((item.direction_id for item in directions), "direction_id")
     require_distinct_visible_labels(
         (item.label for item in directions),
@@ -914,14 +1015,14 @@ def _fallback_dining(state: TripSemanticState) -> DiningDirectionPlan:
     values = (
         (
             "local_signature",
-            f"{city}代表味道",
-            "优先理解本地最有辨识度的饮食传统。",
+            f"{city}特色正餐",
+            "以本地代表菜肴搭配主食，品尝一顿完整的午餐或晚餐。",
             "representative_extra",
         ),
         (
             "local_daily",
-            f"{city}日常小吃",
-            "从本地人日常吃法中补充城市感。",
+            f"{city}家常正餐",
+            "用当地家常菜搭配主食，吃一顿踏实的午餐或晚餐。",
             "representative_extra",
         ),
         ("light_balanced", "清淡均衡", "减少重油重辣，兼顾同行人舒适度。", "personalized_top"),

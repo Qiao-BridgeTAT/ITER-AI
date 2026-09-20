@@ -30,6 +30,7 @@ from backend.providers.contracts import (
     ProviderResultStatus,
     ProviderTicketOffer,
 )
+from backend.providers.request_budget import budgeted_external_request
 
 FLYAI_MAX_OUTPUT_BYTES = 2 * 1024 * 1024
 FLYAI_PRICE_NOTICE = "价格和可售情况仅代表飞猪平台本次查询结果，以详情页实时展示为准。"
@@ -72,6 +73,7 @@ class FlyAiCliTransport:
         self._executable = executable
         self._timeout_seconds = timeout_seconds
 
+    @budgeted_external_request
     async def execute(self, command: str, arguments: Sequence[str]) -> dict[str, Any]:
         environment = os.environ.copy()
         environment["FLYAI_API_KEY"] = self._api_key
@@ -160,6 +162,12 @@ class FlyAiProductProvider:
             arguments.extend(["--key-words", request.query])
         if request.anchor_name is not None:
             arguments.extend(["--poi-name", request.anchor_name])
+        if request.hotel_stars:
+            arguments.extend(["--hotel-stars", ",".join(str(star) for star in request.hotel_stars)])
+        if request.hotel_types:
+            arguments.extend(["--hotel-types", ",".join(request.hotel_types)])
+        if request.sort:
+            arguments.extend(["--sort", request.sort])
         payload = await self._transport.execute("search-hotel", arguments)
         return self._parse_hotels(payload, request)
 

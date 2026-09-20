@@ -1,0 +1,479 @@
+{
+  "$defs": {
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    },
+    "Gcj02Coordinates": {
+      "additionalProperties": false,
+      "description": "Canonical coordinates used by every internal planning contract.",
+      "properties": {
+        "coord_system": {
+          "const": "gcj_02",
+          "title": "Coord System",
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Gcj02Coordinates",
+      "type": "object"
+    },
+    "PlannerScope": {
+      "additionalProperties": false,
+      "description": "Optimistic-concurrency scope shared by one Planner decision round.",
+      "properties": {
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_state_version": {
+          "minimum": 0,
+          "title": "Task Book State Version",
+          "type": "integer"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "workspace_revision": {
+          "minimum": 0,
+          "title": "Workspace Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "trip_id",
+        "generation_id",
+        "task_book_id",
+        "task_book_version",
+        "task_book_state_version",
+        "workspace_revision"
+      ],
+      "title": "PlannerScope",
+      "type": "object"
+    },
+    "RouteComparisonDay": {
+      "additionalProperties": false,
+      "properties": {
+        "ordered_endpoints": {
+          "items": {
+            "$ref": "#/$defs/SpatialRouteEndpoint"
+          },
+          "maxItems": 24,
+          "title": "Ordered Endpoints",
+          "type": "array"
+        },
+        "service_date": {
+          "format": "date",
+          "title": "Service Date",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_date",
+        "ordered_endpoints"
+      ],
+      "title": "RouteComparisonDay",
+      "type": "object"
+    },
+    "RouteComparisonInput": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline_days": {
+          "items": {
+            "$ref": "#/$defs/RouteComparisonDay"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Baseline Days",
+          "type": "array"
+        },
+        "proposed_days": {
+          "items": {
+            "$ref": "#/$defs/RouteComparisonDay"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Proposed Days",
+          "type": "array"
+        },
+        "transport_mode": {
+          "enum": [
+            "public_transit",
+            "taxi",
+            "walking",
+            "driving"
+          ],
+          "title": "Transport Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "baseline_days",
+        "proposed_days",
+        "transport_mode"
+      ],
+      "title": "RouteComparisonInput",
+      "type": "object"
+    },
+    "RouteQueryFailure": {
+      "additionalProperties": false,
+      "description": "Safe recovery metadata, not evidence that endpoints are unreachable.",
+      "properties": {
+        "attempts": {
+          "maximum": 2,
+          "minimum": 1,
+          "title": "Attempts",
+          "type": "integer"
+        },
+        "code": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Code",
+          "type": "string"
+        },
+        "query_count": {
+          "minimum": 1,
+          "title": "Query Count",
+          "type": "integer"
+        },
+        "retry_after": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "upstream_code": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{3,5}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Upstream Code"
+        }
+      },
+      "required": [
+        "code",
+        "retryable",
+        "attempts",
+        "query_count"
+      ],
+      "title": "RouteQueryFailure",
+      "type": "object"
+    },
+    "SpatialRouteEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "destination": {
+          "$ref": "#/$defs/SpatialRouteEndpoint"
+        },
+        "distance_meters": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Distance Meters"
+        },
+        "duration_minutes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Minutes"
+        },
+        "fact_reference_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Fact Reference Ids",
+          "type": "array"
+        },
+        "fare": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "origin": {
+          "$ref": "#/$defs/SpatialRouteEndpoint"
+        },
+        "polyline": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Gcj02Coordinates"
+          },
+          "title": "Polyline",
+          "type": "array"
+        },
+        "query_failure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RouteQueryFailure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "route_edge_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Route Edge Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "available",
+            "partial",
+            "missing"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "transfer_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transfer Count"
+        },
+        "transport_mode": {
+          "enum": [
+            "public_transit",
+            "taxi",
+            "walking",
+            "driving"
+          ],
+          "title": "Transport Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "route_edge_id",
+        "origin",
+        "destination",
+        "transport_mode",
+        "status"
+      ],
+      "title": "SpatialRouteEdge",
+      "type": "object"
+    },
+    "SpatialRouteEndpoint": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "candidate",
+            "cluster",
+            "hotel_offer",
+            "fixed_commitment"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "reference_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reference Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reference_id"
+      ],
+      "title": "SpatialRouteEndpoint",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/planner-route-comparison-observation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "baseline_duration_minutes": {
+      "minimum": 0,
+      "title": "Baseline Duration Minutes",
+      "type": "integer"
+    },
+    "candidate_pool_revision": {
+      "minimum": 1,
+      "title": "Candidate Pool Revision",
+      "type": "integer"
+    },
+    "comparison": {
+      "$ref": "#/$defs/RouteComparisonInput"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "observation_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Observation Id",
+      "type": "string"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "proposed_duration_minutes": {
+      "minimum": 0,
+      "title": "Proposed Duration Minutes",
+      "type": "integer"
+    },
+    "route_edges": {
+      "items": {
+        "$ref": "#/$defs/SpatialRouteEdge"
+      },
+      "minItems": 1,
+      "title": "Route Edges",
+      "type": "array"
+    },
+    "scope": {
+      "$ref": "#/$defs/PlannerScope"
+    }
+  },
+  "required": [
+    "observation_id",
+    "scope",
+    "candidate_pool_revision",
+    "comparison",
+    "route_edges",
+    "baseline_duration_minutes",
+    "proposed_duration_minutes",
+    "observed_at",
+    "expires_at"
+  ],
+  "title": "PlannerRouteComparisonObservation",
+  "type": "object"
+}

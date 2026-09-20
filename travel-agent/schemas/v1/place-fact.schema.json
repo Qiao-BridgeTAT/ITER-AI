@@ -1,0 +1,180 @@
+{
+  "$defs": {
+    "DataAvailability": {
+      "enum": [
+        "available",
+        "partial",
+        "missing"
+      ],
+      "title": "DataAvailability",
+      "type": "string"
+    },
+    "EvidenceStatus": {
+      "enum": [
+        "confirmed",
+        "inferred",
+        "assumed",
+        "unknown"
+      ],
+      "title": "EvidenceStatus",
+      "type": "string"
+    },
+    "JsonValue": {},
+    "PlaceFactKind": {
+      "enum": [
+        "address",
+        "rating",
+        "popularity",
+        "review_count",
+        "regular_hours",
+        "price",
+        "phone",
+        "website",
+        "other"
+      ],
+      "title": "PlaceFactKind",
+      "type": "string"
+    },
+    "ProviderCode": {
+      "enum": [
+        "amap",
+        "baidu",
+        "flyai",
+        "weather",
+        "city_content",
+        "official",
+        "manual"
+      ],
+      "title": "ProviderCode",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/place-fact.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "else": {
+        "not": {
+          "properties": {
+            "value": {
+              "type": "null"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
+      "if": {
+        "properties": {
+          "availability": {
+            "const": "missing"
+          }
+        },
+        "required": [
+          "availability"
+        ]
+      },
+      "then": {
+        "properties": {
+          "missing_reason": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "value": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "missing_reason"
+        ]
+      }
+    }
+  ],
+  "properties": {
+    "availability": {
+      "$ref": "#/$defs/DataAvailability"
+    },
+    "evidence_status": {
+      "$ref": "#/$defs/EvidenceStatus"
+    },
+    "fact_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Fact Id",
+      "type": "string"
+    },
+    "fetched_at": {
+      "format": "date-time",
+      "title": "Fetched At",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/PlaceFactKind"
+    },
+    "missing_reason": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Missing Reason"
+    },
+    "place_id": {
+      "format": "uuid",
+      "title": "Place Id",
+      "type": "string"
+    },
+    "provider": {
+      "$ref": "#/$defs/ProviderCode"
+    },
+    "raw_value": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/JsonValue"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "source_record_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Source Record Id",
+      "type": "string"
+    },
+    "value": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/JsonValue"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "fact_id",
+    "place_id",
+    "kind",
+    "provider",
+    "source_record_id",
+    "availability",
+    "evidence_status",
+    "fetched_at"
+  ],
+  "title": "PlaceFact",
+  "type": "object"
+}

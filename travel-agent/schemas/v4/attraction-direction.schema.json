@@ -1,0 +1,215 @@
+{
+  "$defs": {
+    "AttractionDisposition": {
+      "enum": [
+        "must",
+        "want",
+        "if_convenient",
+        "avoid"
+      ],
+      "title": "AttractionDisposition",
+      "type": "string"
+    },
+    "DelegatedScope": {
+      "additionalProperties": false,
+      "properties": {
+        "boundary_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Boundary Refs",
+          "type": "array"
+        },
+        "delegated_targets": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Delegated Targets",
+          "type": "array"
+        },
+        "domain": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Domain",
+          "type": "string"
+        },
+        "source_operation_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Operation Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "domain",
+        "delegated_targets",
+        "source_operation_refs"
+      ],
+      "title": "DelegatedScope",
+      "type": "object"
+    },
+    "DiningDisposition": {
+      "enum": [
+        "destination",
+        "if_convenient",
+        "avoid"
+      ],
+      "title": "DiningDisposition",
+      "type": "string"
+    },
+    "EvidenceBackedText": {
+      "additionalProperties": false,
+      "properties": {
+        "source_evidence_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Evidence Refs",
+          "type": "array"
+        },
+        "value": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "source_evidence_refs"
+      ],
+      "title": "EvidenceBackedText",
+      "type": "object"
+    },
+    "TaskBookEntityIntent": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "display_name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Display Name",
+          "type": "string"
+        },
+        "disposition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttractionDisposition"
+            },
+            {
+              "$ref": "#/$defs/DiningDisposition"
+            }
+          ],
+          "title": "Disposition"
+        },
+        "facts_to_verify": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Facts To Verify",
+          "type": "array"
+        },
+        "source_operation_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Operation Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "canonical_entity_id",
+        "display_name",
+        "disposition",
+        "source_operation_refs"
+      ],
+      "title": "TaskBookEntityIntent",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/attraction-direction.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "delegated_scope": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DelegatedScope"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "exclusions": {
+      "items": {
+        "$ref": "#/$defs/TaskBookEntityIntent"
+      },
+      "title": "Exclusions",
+      "type": "array"
+    },
+    "if_convenient": {
+      "items": {
+        "$ref": "#/$defs/TaskBookEntityIntent"
+      },
+      "title": "If Convenient",
+      "type": "array"
+    },
+    "must_visit": {
+      "items": {
+        "$ref": "#/$defs/TaskBookEntityIntent"
+      },
+      "title": "Must Visit",
+      "type": "array"
+    },
+    "preferences": {
+      "items": {
+        "$ref": "#/$defs/EvidenceBackedText"
+      },
+      "title": "Preferences",
+      "type": "array"
+    },
+    "wanted": {
+      "items": {
+        "$ref": "#/$defs/TaskBookEntityIntent"
+      },
+      "title": "Wanted",
+      "type": "array"
+    }
+  },
+  "title": "AttractionDirection",
+  "type": "object"
+}

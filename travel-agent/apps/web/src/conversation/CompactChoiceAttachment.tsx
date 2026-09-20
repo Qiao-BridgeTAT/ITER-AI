@@ -20,7 +20,7 @@ export function CompactChoiceAttachment({
   options,
   selectedId,
   disabled = false,
-  onSelect,
+  onSelect
 }: CompactChoiceAttachmentProps) {
   const visibleOptions = options.slice(0, 4);
 
@@ -65,7 +65,7 @@ export function CompactMultiChoiceAttachment({
   selectedIds,
   disabled = false,
   onToggle,
-  onConfirm,
+  onConfirm
 }: CompactMultiChoiceAttachmentProps) {
   const visibleOptions = options.slice(0, 4);
 

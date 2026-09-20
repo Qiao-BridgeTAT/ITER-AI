@@ -167,6 +167,7 @@ class SpatialRoutesArguments(V4ContractModel):
 
 
 class HotelSearchArguments(V4ContractModel):
+    search_keyword: str | None = Field(default=None, min_length=1, max_length=100)
     check_in_date: date
     check_out_date: date
     party_size_ref: Identifier
@@ -260,6 +261,17 @@ class SpatialCluster(V4ContractModel):
     representative_area_refs: tuple[Identifier, ...] = ()
 
 
+class RouteQueryFailure(V4ContractModel):
+    """Safe recovery metadata, not evidence that endpoints are unreachable."""
+
+    code: Identifier
+    upstream_code: str | None = Field(default=None, pattern=r"^[0-9]{3,5}$")
+    retryable: bool
+    attempts: int = Field(ge=1, le=2, strict=True)
+    query_count: int = Field(ge=1, strict=True)
+    retry_after: AwareDatetime | None = None
+
+
 class SpatialRouteEdge(V4ContractModel):
     route_edge_id: Identifier
     origin: SpatialRouteEndpoint
@@ -273,12 +285,15 @@ class SpatialRouteEdge(V4ContractModel):
     polyline: tuple[Gcj02Coordinates, ...] = ()
     fact_reference_ids: tuple[Identifier, ...] = ()
     missing_reason: DisplayText | None = None
+    query_failure: RouteQueryFailure | None = Field(default=None, exclude_if=lambda v: v is None)
 
     @model_validator(mode="after")
     def status_controls_route_values(self) -> SpatialRouteEdge:
         if self.origin == self.destination:
             raise ValueError("spatial route edge endpoints must be distinct")
         require_unique(self.fact_reference_ids, "spatial route fact references")
+        if self.query_failure is not None and self.status != "missing":
+            raise ValueError("only missing routes may retain a query failure")
         if len(self.polyline) == 1:
             raise ValueError("route polyline must be empty or contain at least two points")
         if self.status == "available":
@@ -456,6 +471,7 @@ class HotelStaySegment(V4ContractModel):
 
 
 class AppliedHotelConstraints(V4ContractModel):
+    quality_tiers: tuple[Literal["economy", "comfort", "upscale", "luxury"], ...] = ()
     area_refs: tuple[Identifier, ...] = ()
     quality_tier: Identifier | None = None
     nightly_budget_ref: Identifier | None = None
@@ -542,7 +558,27 @@ class HotelOfferObservation(V4ContractModel):
         return self
 
 
+class HotelQueryAttempt(V4ContractModel):
+    """Safe diagnostics only; never vendor payloads, URLs or credentials."""
+
+    stage: Literal["search", "identity"] = "search"
+    anchor_name: str | None = None
+    search_keyword: str | None = None
+    outcome: Literal["results", "empty", "failed"]
+    result_count: int = Field(default=0, ge=0)
+    error_code: Identifier | None = None
+    retryable: bool = False
+    attempts: int = Field(default=1, ge=1)
+    observed_at: AwareDatetime
+
+
 class HotelObservation(V4ContractModel):
+    query_status: Literal["available", "empty", "failed", "unverified"] | None = None
+    query_origin: Literal["prepare_handoff", "planner_query"] | None = None
+    query_attempts: tuple[HotelQueryAttempt, ...] = ()
+    search_keyword: str | None = Field(
+        default=None, min_length=1, max_length=100, exclude_if=lambda value: value is None
+    )
     hotel_observation_id: Identifier
     scope: PlannerScope
     request_id: Identifier
@@ -762,6 +798,7 @@ class PlannerInteraction(V4ContractModel):
     scope: PlannerScope
     reason_code: AskUserReasonCode
     issue_ids: tuple[Identifier, ...] = Field(min_length=1)
+    question: str | None = Field(default=None, max_length=240)
     decision_scope: Literal["global", "date", "item", "hotel"]
     affected_dates: tuple[date, ...] = ()
     option_contracts: tuple[PlannerInteractionOption, ...] = Field(min_length=1)

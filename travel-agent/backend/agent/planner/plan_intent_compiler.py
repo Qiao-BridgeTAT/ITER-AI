@@ -125,7 +125,8 @@ def compile_default_strategy_decision(
     # Pace controls time, travel and rests, not a lower implicit POI ceiling.
     # Four is capacity for a feasible plan, never a target to fill every day.
     maximum = MAX_DAILY_MAJOR_ACTIVITIES
-    minimum = 0 if strong_count == 0 else 1
+    # This is the usual target; a genuine full-day venue can stand alone.
+    minimum = 2 if workspace.react_state is not None else (0 if strong_count == 0 else 1)
     modes = preferred_transport_modes(book)
     lodging = _lodging_policy(book, references)
     required_meals: tuple[Literal["lunch", "dinner"], ...] = ("lunch", "dinner")
@@ -225,6 +226,8 @@ def compile_plan_intent_decision(
     book: TaskBookV4,
     *,
     base_draft: WorkingItineraryDraft | None = None,
+    preserve_agent_choices: bool = False,
+    capacity_tradeoffs: dict[str, str] | None = None,
 ) -> PlannerDecision:
     """Resolve local c/h keys and deterministically fill the formal draft shape."""
 
@@ -237,7 +240,23 @@ def compile_plan_intent_decision(
         entry.candidate_ref.canonical_entity_id: entry.candidate_ref
         for entry in catalog.candidates.values()
     }
+    from backend.agent.planner.candidate_tradeoffs import (
+        authorized_omission,
+        candidate_answer,
+        capacity_omission,
+    )
+
     accepted_omissions = {}
+    for ref in current_refs.values():
+        answer = candidate_answer(workspace, ref.canonical_entity_id)
+        if answer and answer.semantic_action == "omit_required_candidate":
+            accepted_omissions[ref.canonical_entity_id] = UnassignedIntent(
+                candidate_ref=ref,
+                commitment_level="strong",
+                reason_code="user_requested",
+                supporting_observation_refs=(answer.answer_id,),
+                requires_user_resolution=False,
+            )
     for item in workspace.recovery_omissions:
         current_ref = current_refs.get(item.candidate_ref.canonical_entity_id)
         if current_ref is None or any(
@@ -249,6 +268,19 @@ def compile_plan_intent_decision(
         accepted_omissions[current_ref.canonical_entity_id] = item.model_copy(
             update={"candidate_ref": current_ref}
         )
+    if preserve_agent_choices and workspace.react_state and base_draft:
+        for item in base_draft.unassigned_intents:
+            current_ref = current_refs.get(item.candidate_ref.canonical_entity_id)
+            if current_ref and item.reason_code == "capacity_conflict" and item.planner_reason:
+                rebound = item.model_copy(update={"candidate_ref": current_ref})
+                if authorized_omission(workspace, rebound):
+                    accepted_omissions[current_ref.canonical_entity_id] = rebound
+    selected_keys = {s.candidate_key for d in intent.days for s in d.stops}
+    for key, reason in (capacity_tradeoffs or {}).items():
+        if not preserve_agent_choices or key not in catalog.candidates or key in selected_keys:
+            raise PlannerGuardError(f"capacity_tradeoff_requires_omitted_candidate:{key}")
+        ref = catalog.candidates[key].candidate_ref
+        accepted_omissions[ref.canonical_entity_id] = capacity_omission(workspace, ref, reason)
     dates = service_dates(book)
     submitted_days: dict[int, object] = {}
     for model_day in intent.days:
@@ -262,8 +294,13 @@ def compile_plan_intent_decision(
             )
         submitted_days[model_day.day_index] = model_day
 
+    if preserve_agent_choices and set(submitted_days) != set(range(1, len(dates) + 1)):
+        raise PlannerGuardError("planner_plan_all_dates_required")
+
     stops_by_day: dict[int, list[ModelPlanStop]] = {
-        index: _without_unrequested_extra_meal(
+        index: list(getattr(submitted_days.get(index), "stops", ()))
+        if preserve_agent_choices
+        else _without_unrequested_extra_meal(
             list(getattr(submitted_days.get(index), "stops", ())), catalog, book
         )
         for index in range(1, len(dates) + 1)
@@ -291,16 +328,32 @@ def compile_plan_intent_decision(
             # onsite flag must not compile a second meal over the same period.
             # Preserve all selected places/order; actual feasibility is still
             # materialized and validated, including the long visit's duration.
+            if preserve_agent_choices and any(stop.onsite_lunch for stop in stops):
+                onsite = [stop.candidate_key for stop in stops if stop.onsite_lunch]
+                restaurants = [stop.candidate_key for stop in stops if stop.meal_slot == "lunch"]
+                raise PlannerGuardError(
+                    f"planner_plan_duplicate_onsite_lunch:path=days[{index - 1}].stops:"
+                    f"onsite_candidates={onsite}:lunch_restaurants={restaurants}:"
+                    "repair=保留园内午餐并移除本日午餐餐厅，"
+                    "或将 onsite_lunch 改为 false 保留餐厅；二选一后重新试算"
+                )
             stops_by_day[index] = [
                 stop.model_copy(update={"onsite_lunch": False}) if stop.onsite_lunch else stop
                 for stop in stops
             ]
-    stops_by_day = align_days_with_opening_evidence(stops_by_day, dates, catalog, workspace, book)
+    if not preserve_agent_choices:
+        stops_by_day = align_days_with_opening_evidence(
+            stops_by_day, dates, catalog, workspace, book
+        )
     seen: dict[str, tuple[int, int]] = {}
     for day_index, stops in stops_by_day.items():
         unique_stops = []
         for stop_index, stop in enumerate(stops):
             if stop.candidate_key in seen:
+                if preserve_agent_choices:
+                    raise PlannerGuardError(
+                        f"planner_plan_duplicate_candidate:{stop.candidate_key}"
+                    )
                 # Exact duplicate references need no second whole-plan model
                 # call. Keep the first calendar-aligned placement; the common
                 # day/meal repair ledger measures and repairs the resulting gap.
@@ -314,6 +367,16 @@ def compile_plan_intent_decision(
                     "planner_plan_candidate_key_invalid:"
                     f"path=days[{day_index - 1}].stops[{stop_index}].candidate_key:"
                     "allowed_values=" + ",".join(_allowed_candidate_keys(catalog))
+                )
+            if (
+                preserve_agent_choices
+                and entry.entity_kind is CandidateEntityKind.RESTAURANT
+                and stop.meal_slot is None
+            ):
+                raise PlannerGuardError(
+                    "planner_plan_restaurant_requires_meal_slot:"
+                    f"candidate_key={stop.candidate_key}:"
+                    "repair=该候选是餐厅，必须明确选择 lunch 或 dinner；不能当作景点安排"
                 )
             if stop.onsite_lunch:
                 estimate = next(
@@ -366,9 +429,11 @@ def compile_plan_intent_decision(
             raise PlannerGuardError(
                 "planner_plan_missing_required_restaurant:"
                 f"path=days[].stops:candidate_key={key}:"
-                "repair=保留该必吃餐厅并明确选择合适日期的lunch或dinner；"
-                "可以替换普通餐厅，不得补到晚餐后作为额外下午茶"
+                "repair=选择合适日期的lunch或dinner；或在capacity_tradeoffs说明绕路等具体取舍原因，"
+                "另选合适餐厅。用户明确回答仍要保留的不能省略；不得补为餐后额外用餐"
             )
+        if preserve_agent_choices:
+            raise PlannerGuardError(f"planner_plan_missing_required_candidate:{key}")
         feasible_indices = [
             index
             for index, value in enumerate(dates, 1)
@@ -657,26 +722,23 @@ def _compile_lodging(
             observation_id,
         )
     observation = workspace.hotel_observation
-    selectable = {
-        key: offer
-        for key, offer in catalog.hotels.items()
-        if offer.availability_status != "unavailable"
-    }
+    selectable = catalog.selectable_hotels
     if observation is None or not selectable:
         if intent.selected_hotel_key is not None:
             raise PlannerGuardError(
                 "planner_plan_hotel_selection_forbidden:path=selected_hotel_key:allowed_values=null"
             )
-        provider_unavailable = observation is None or (
-            observation.status == "unavailable"
-            or "provider_city_binding" in observation.missing_fact_kinds
-        )
+        from backend.agent.planner.hotel_status import hotel_query_status
+
+        unresolved_reason = {
+            "not_queried": "not_queried",
+            "empty": "no_results",
+            "failed": "query_failed",
+        }.get(hotel_query_status(workspace), "no_verified_hotel")
         return (
             LodgingBaseline(
                 mode="unresolved",
-                unresolved_reason=(
-                    "provider_unavailable" if provider_unavailable else "no_verified_hotel"
-                ),
+                unresolved_reason=unresolved_reason,
             ),
             None,
             observation.hotel_observation_id if observation is not None else None,

@@ -1,7 +1,7 @@
 /* Published itinerary: route order, geographic context, and a larger read-only view. */
 .route-map-section:has(.itinerary-map) {
   padding: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .itinerary-map {
@@ -98,11 +98,14 @@
 }
 .itinerary-map-viewport {
   position: relative;
+  isolation: isolate;
   min-height: 200px;
   background: #eef2ef;
 }
 .itinerary-map-canvas {
   position: absolute;
+  /* Keep SDK markers and attribution below page dialogs and local controls. */
+  z-index: 0;
   inset: 0;
 }
 .itinerary-map-message {
@@ -437,9 +440,6 @@
 }
 
 @media (max-width: 760px) {
-  .itinerary-map-layout {
-    min-height: 400px;
-  }
   .itinerary-map-dialog {
     width: 100vw;
     height: 100dvh;
@@ -485,4 +485,54 @@
     width: 62px;
     height: 54px;
   }
+}
+
+.discovery-map-marker {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #9eb9d8;
+  box-shadow: 0 1px 5px rgb(35 69 109 / 20%);
+  cursor: pointer;
+}
+.discovery-map-marker.is-active {
+  background: #3489ed;
+  box-shadow: 0 0 0 6px rgb(52 137 237 / 16%);
+}
+.discovery-map-marker > span {
+  display: none;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: #fff;
+  color: #23496f;
+  box-shadow: 0 2px 8px rgb(35 69 109 / 14%);
+  white-space: nowrap;
+  font-size: 12px;
+}
+.discovery-map-marker.is-active > span,
+.discovery-map-marker:focus-visible > span {
+  display: block;
+}
+.discovery-map-caption {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  max-width: calc(100% - 76px);
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 92%);
+  color: #39546f;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.itinerary-map.is-discovery .itinerary-map-layout {
+  grid-template-columns: 1fr;
 }

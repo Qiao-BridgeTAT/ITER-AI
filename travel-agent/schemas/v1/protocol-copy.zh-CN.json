@@ -1,0 +1,349 @@
+{
+  "CityCode": {
+    "beijing": "北京",
+    "nanjing": "南京"
+  },
+  "TripPhase": {
+    "cold_start": "个人偏好冷启",
+    "city_selection": "选择城市",
+    "city_brief": "认识城市",
+    "trip_setup": "设置本次旅行",
+    "interest_selection": "选择城市兴趣",
+    "attraction_selection": "选择景点",
+    "dining_selection": "选择餐饮",
+    "lodging_selection": "选择住宿",
+    "task_reflection": "确认旅行任务书",
+    "planning": "生成行程",
+    "draft_ready": "行程草案",
+    "revising": "修改行程",
+    "confirmed": "已确认"
+  },
+  "DayStart": {
+    "before_07": "7 点以前",
+    "around_08": "8 点左右",
+    "around_09": "9 点左右",
+    "around_10": "10 点左右",
+    "after_11": "11 点以后",
+    "flexible": "都行，睡够了再出门"
+  },
+  "DayReturn": {
+    "before_20": "20 点以前",
+    "around_21": "21 点左右",
+    "after_22": "22 点以后",
+    "flexible": "都行，玩尽兴就好"
+  },
+  "MobilityTolerance": {
+    "never": "不考虑",
+    "within_5": "5 分钟以内",
+    "around_10": "10 分钟左右",
+    "15_plus": "15 分钟以上也可以"
+  },
+  "FiveLevel": {
+    "1": "第一档",
+    "2": "第二档",
+    "3": "第三档",
+    "4": "第四档",
+    "5": "第五档"
+  },
+  "PriorityGoal": {
+    "must_see_places": "最想去的地方不留遗憾",
+    "comfortable_stay": "住得舒服",
+    "satisfying_food": "吃得满意",
+    "smooth_routes": "路线顺、少折腾",
+    "good_value": "整体花费划算"
+  },
+  "PreferenceDecisionMode": {
+    "use_defaults": "这次按我的画像来",
+    "adjust_for_trip": "调整本次画像",
+    "use_neutral": "采用系统默认画像"
+  },
+  "CityBriefStatus": {
+    "viewed": "已查看城市介绍",
+    "skipped_intro": "我很熟，跳过介绍"
+  },
+  "CityThemeMode": {
+    "selected": "按所选主题",
+    "open_to_any": "都可以，先带我看看"
+  },
+  "AttractionIntent": {
+    "must": "必去",
+    "want": "想去",
+    "if_convenient": "可去（顺路去）",
+    "avoid": "不想去"
+  },
+  "RestaurantIntent": {
+    "destination": "想专程去",
+    "if_convenient": "顺路可以",
+    "avoid": "不感兴趣"
+  },
+  "FeedbackSource": {
+    "card": "卡片选择",
+    "dialogue": "对话表达",
+    "system_default": "系统默认"
+  },
+  "DiningOptionKind": {
+    "local_cuisine": "当地特色菜或菜系",
+    "popular_eatery": "有来源的热门小馆"
+  },
+  "CoordinateSystem": {
+    "gcj_02": "GCJ-02",
+    "wgs_84": "WGS-84",
+    "bd_09": "BD-09"
+  },
+  "ProviderCode": {
+    "amap": "高德",
+    "baidu": "百度",
+    "flyai": "FlyAI（飞猪平台）",
+    "weather": "天气服务",
+    "city_content": "城市内容库",
+    "official": "官方来源",
+    "manual": "人工修正"
+  },
+  "PlaceCategory": {
+    "attraction": "景点",
+    "restaurant": "餐厅",
+    "hotel": "酒店",
+    "transport": "交通地点",
+    "activity": "活动",
+    "other": "其他地点"
+  },
+  "DataAvailability": {
+    "available": "信息完整可用",
+    "partial": "信息部分可用",
+    "missing": "暂无该信息"
+  },
+  "PlaceFactKind": {
+    "address": "地址",
+    "rating": "评分",
+    "popularity": "热度",
+    "review_count": "评论量",
+    "regular_hours": "常规营业时间",
+    "price": "价格",
+    "phone": "电话",
+    "website": "网站",
+    "other": "其他事实"
+  },
+  "AnchorRole": {
+    "fixed_event": "既定活动",
+    "fixed_hotel": "已订或指定酒店",
+    "must_attraction": "必去景点",
+    "want_attraction": "想去景点",
+    "destination_restaurant": "专程餐厅",
+    "convenient_attraction": "顺路景点",
+    "convenient_restaurant": "顺路餐厅"
+  },
+  "LodgingCenterKind": {
+    "area": "住宿区域",
+    "transit_station": "交通站点步行圈",
+    "walking_radius": "地点步行圈"
+  },
+  "HotelSelectionSource": {
+    "prebooked": "已订或指定酒店",
+    "user_favorites": "用户收藏",
+    "system_candidates": "系统候选"
+  },
+  "LodgingAnchorDecision": {
+    "no_prebooked_hotel": "没有已订酒店",
+    "single_base_ready": "单一住宿基地已明确",
+    "requires_single_base_clarification": "需要选择一个住宿基地"
+  },
+  "ItineraryEntryKind": {
+    "attraction": "景点",
+    "restaurant": "具体餐厅",
+    "activity": "活动",
+    "hotel": "酒店",
+    "rest": "休息",
+    "buffer": "缓冲"
+  },
+  "TransportMode": {
+    "walk": "步行",
+    "bicycle": "共享单车或骑行",
+    "public_transit": "公共交通",
+    "taxi": "打车"
+  },
+  "CostCategory": {
+    "lodging": "住宿",
+    "dining": "餐饮",
+    "attraction_tickets": "门票与体验",
+    "local_transport": "市内交通"
+  },
+  "ExcludedCostKind": {
+    "airfare": "飞机",
+    "rail": "高铁或火车",
+    "intercity_transport": "其他跨城交通"
+  },
+  "PlanningIssueCode": {
+    "date_conflict": "日期冲突",
+    "opening_hours_conflict": "营业时间冲突",
+    "fixed_event_conflict": "既定活动冲突",
+    "insufficient_travel_time": "交通时间不足",
+    "time_overlap": "时段重叠",
+    "walking_limit": "步行超出接受范围",
+    "daily_load": "当日负荷过高",
+    "lodging_coverage": "住宿未覆盖全部夜晚",
+    "repeated_experience": "同类体验堆叠",
+    "cross_area_backtracking": "跨区折返",
+    "meal_timing": "用餐时间不合理",
+    "insufficient_buffer": "缓冲不足",
+    "weather_risk": "天气风险",
+    "missing_data": "关键数据缺失"
+  },
+  "AssumptionKind": {
+    "user_override": "用户主动覆盖",
+    "system_default": "系统默认假设",
+    "data_missing": "数据缺失假设",
+    "planning_tradeoff": "规划取舍"
+  },
+  "EvidenceSource": {
+    "cold_start": "冷启",
+    "card": "卡片选择",
+    "dialogue": "对话表达",
+    "agent_inference": "Agent 推断",
+    "system_default": "系统默认",
+    "provider": "外部数据源"
+  },
+  "ConfirmationStatus": {
+    "pending": "待确认",
+    "confirmed": "已确认",
+    "rejected": "已拒绝"
+  },
+  "EvidenceStatus": {
+    "confirmed": "已确认事实",
+    "inferred": "推断",
+    "assumed": "假设",
+    "unknown": "未知"
+  },
+  "Confidence": {
+    "high": "高置信",
+    "medium": "中置信",
+    "low": "低置信"
+  },
+  "IssueSeverity": {
+    "info": "提示",
+    "warning": "风险",
+    "hard": "硬冲突"
+  },
+  "VersionStatus": {
+    "draft": "草案",
+    "confirmed": "确认版本",
+    "superseded": "已被后续版本取代"
+  },
+  "OwnerType": {
+    "anonymous": "匿名用户",
+    "user": "登录用户"
+  },
+  "DateInputMode": {
+    "suggestion": "日期建议",
+    "natural_language": "直接告诉我时间"
+  },
+  "DateSuggestionKind": {
+    "nearest_weekend": "最近的周末",
+    "nearby_holiday": "邻近的节假日"
+  },
+  "FixedEventKind": {
+    "attraction": "已确定景点",
+    "restaurant": "已确定餐厅",
+    "hotel": "已订酒店",
+    "activity": "已确定活动",
+    "other": "其他既定安排"
+  },
+  "ConstraintKind": {
+    "mobility": "行动与体力",
+    "schedule": "时间限制",
+    "dietary": "饮食限制",
+    "accessibility": "无障碍需求",
+    "companion": "同行特殊情况",
+    "other": "其他限制"
+  },
+  "CommandType": {
+    "cold_start_submit": "提交初始旅行偏好",
+    "city_select": "选择城市",
+    "city_brief_acknowledge": "确认城市介绍",
+    "personal_defaults_confirm": "沿用个人默认偏好",
+    "personal_defaults_adjust": "调整本次旅行偏好",
+    "personal_defaults_not_use": "本次不使用个人默认偏好",
+    "trip_setup_submit": "提交旅行日期和约束",
+    "city_themes_submit": "提交城市兴趣主题",
+    "attraction_feedback_submit": "提交景点意愿",
+    "dining_preferences_submit": "提交饮食偏好",
+    "restaurant_feedback_submit": "提交餐厅意愿",
+    "hotel_favorites_submit": "提交心仪酒店",
+    "task_book_confirm": "确认旅行任务书",
+    "user_message": "发送对话消息",
+    "accept_plan": "确认行程方案",
+    "cancel_generation": "取消本次生成",
+    "reset_trip": "重新开始本次旅行"
+  },
+  "EventType": {
+    "state_patch": "状态增量",
+    "stream_token": "流式文案",
+    "gesture_ready": "交互卡片就绪",
+    "map_update": "地图更新",
+    "itinerary_update": "行程更新",
+    "generation_status": "生成状态",
+    "issue": "规划问题",
+    "error": "错误"
+  },
+  "GestureKind": {
+    "city_brief": "城市介绍卡",
+    "personal_profile": "个人偏好确认卡",
+    "trip_setup": "旅行日期与约束卡",
+    "city_themes": "城市主题卡",
+    "attractions": "景点意愿卡",
+    "dining_options": "饮食方向卡",
+    "restaurants": "餐厅意愿卡",
+    "lodging": "住宿选择卡",
+    "task_book": "旅行任务书卡",
+    "plan_ready": "行程草案就绪",
+    "export_ready": "长图导出就绪"
+  },
+  "GenerationStatus": {
+    "started": "开始生成",
+    "running": "生成中",
+    "completed": "生成完成",
+    "cancelled": "已取消生成",
+    "failed": "生成失败"
+  },
+  "HttpMethod": {
+    "GET": "读取",
+    "POST": "创建或执行",
+    "PATCH": "局部修改",
+    "DELETE": "删除"
+  },
+  "RestAuthMode": {
+    "public": "公开访问",
+    "session": "需要有效会话"
+  },
+  "RestResourceKind": {
+    "account": "账号",
+    "anonymous_session": "匿名会话",
+    "trip": "旅行",
+    "preference": "长期个人偏好",
+    "export": "导出文件"
+  },
+  "RestOwnershipPolicy": {
+    "none": "不涉及资源归属",
+    "same_owner": "仅资源本人可访问",
+    "anonymous_handoff": "登录后迁移当前匿名旅行"
+  },
+  "ArtifactStatus": {
+    "pending": "生成中",
+    "ready": "已就绪",
+    "failed": "生成失败"
+  },
+  "CityHistoryStatus": {
+    "available": "有可靠历史内容",
+    "not_applicable": "不适用历史介绍",
+    "unavailable": "暂缺可靠历史内容"
+  },
+  "AssetKind": {
+    "illustration": "插画",
+    "placeholder": "占位素材",
+    "photo": "照片"
+  },
+  "AssetRightsStatus": {
+    "owned": "自有版权",
+    "placeholder": "占位素材",
+    "licensed": "已获授权"
+  }
+}

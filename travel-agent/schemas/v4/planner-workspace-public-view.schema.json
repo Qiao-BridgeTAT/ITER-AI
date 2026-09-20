@@ -1,0 +1,377 @@
+{
+  "$defs": {
+    "AskUserReasonCode": {
+      "enum": [
+        "incompatible_strong_commitments",
+        "fixed_booking_conflict",
+        "permission_to_relax_constraint",
+        "material_tradeoff_outside_delegation",
+        "missing_user_owned_booking_detail",
+        "revision_budget_exhausted"
+      ],
+      "title": "AskUserReasonCode",
+      "type": "string"
+    },
+    "InteractionStatus": {
+      "enum": [
+        "active",
+        "answered",
+        "superseded",
+        "expired"
+      ],
+      "title": "InteractionStatus",
+      "type": "string"
+    },
+    "PlannerDraftDayPreview": {
+      "additionalProperties": false,
+      "properties": {
+        "service_date": {
+          "format": "date",
+          "title": "Service Date",
+          "type": "string"
+        },
+        "stops": {
+          "items": {
+            "$ref": "#/$defs/PlannerDraftStopPreview"
+          },
+          "title": "Stops",
+          "type": "array"
+        },
+        "theme": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Theme",
+          "type": "string"
+        },
+        "transport_summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Transport Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_date",
+        "theme",
+        "transport_summary",
+        "stops"
+      ],
+      "title": "PlannerDraftDayPreview",
+      "type": "object"
+    },
+    "PlannerDraftPreview": {
+      "additionalProperties": false,
+      "properties": {
+        "content_digest": {
+          "maxLength": 128,
+          "minLength": 16,
+          "pattern": "\\S",
+          "title": "Content Digest",
+          "type": "string"
+        },
+        "days": {
+          "items": {
+            "$ref": "#/$defs/PlannerDraftDayPreview"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Days",
+          "type": "array"
+        },
+        "draft_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Draft Id",
+          "type": "string"
+        },
+        "draft_revision": {
+          "minimum": 1,
+          "title": "Draft Revision",
+          "type": "integer"
+        },
+        "lodging_summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Lodging Summary",
+          "type": "string"
+        },
+        "notice": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Notice",
+          "type": "string"
+        },
+        "status": {
+          "const": "unverified",
+          "default": "unverified",
+          "title": "Status",
+          "type": "string"
+        },
+        "unresolved_issues": {
+          "items": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Unresolved Issues",
+          "type": "array"
+        }
+      },
+      "required": [
+        "draft_id",
+        "draft_revision",
+        "content_digest",
+        "notice",
+        "days",
+        "lodging_summary",
+        "unresolved_issues"
+      ],
+      "title": "PlannerDraftPreview",
+      "type": "object"
+    },
+    "PlannerDraftStopPreview": {
+      "additionalProperties": false,
+      "properties": {
+        "draft_item_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Draft Item Id",
+          "type": "string"
+        },
+        "time_hint": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Time Hint",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "draft_item_id",
+        "title",
+        "time_hint"
+      ],
+      "title": "PlannerDraftStopPreview",
+      "type": "object"
+    },
+    "PlannerInteractionOption": {
+      "additionalProperties": false,
+      "properties": {
+        "affected_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Affected Refs",
+          "type": "array"
+        },
+        "option_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Option Id",
+          "type": "string"
+        },
+        "semantic_action": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Semantic Action",
+          "type": "string"
+        },
+        "verified_impact_summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Verified Impact Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "option_id",
+        "semantic_action",
+        "affected_refs",
+        "verified_impact_summary"
+      ],
+      "title": "PlannerInteractionOption",
+      "type": "object"
+    },
+    "PlannerInteractionPublicView": {
+      "additionalProperties": false,
+      "description": "Only fields required to render and answer the current user decision.",
+      "properties": {
+        "interaction_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Interaction Id",
+          "type": "string"
+        },
+        "option_contracts": {
+          "items": {
+            "$ref": "#/$defs/PlannerInteractionOption"
+          },
+          "minItems": 1,
+          "title": "Option Contracts",
+          "type": "array"
+        },
+        "question": {
+          "anyOf": [
+            {
+              "maxLength": 240,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Question"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/AskUserReasonCode"
+        },
+        "resume_token": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Resume Token",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/InteractionStatus"
+        }
+      },
+      "required": [
+        "interaction_id",
+        "reason_code",
+        "option_contracts",
+        "resume_token",
+        "status"
+      ],
+      "title": "PlannerInteractionPublicView",
+      "type": "object"
+    },
+    "PlannerStatus": {
+      "enum": [
+        "planning",
+        "awaiting_user",
+        "draft_ready",
+        "ready_to_publish",
+        "failed",
+        "cancelled",
+        "stale"
+      ],
+      "title": "PlannerStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/planner-workspace-public-view.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Minimal resumable Planner state safe to expose to the browser.",
+  "properties": {
+    "active_interaction": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PlannerInteractionPublicView"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "based_on_task_book_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Based On Task Book Id",
+      "type": "string"
+    },
+    "based_on_task_book_version": {
+      "minimum": 1,
+      "title": "Based On Task Book Version",
+      "type": "integer"
+    },
+    "draft_preview": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PlannerDraftPreview"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "generation_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Generation Id",
+      "type": "string"
+    },
+    "last_interaction_action": {
+      "anyOf": [
+        {
+          "enum": [
+            "keep_task_book",
+            "revise_task_book",
+            "supply_booking_detail",
+            "keep_required_candidate",
+            "omit_required_candidate"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Last Interaction Action"
+    },
+    "status": {
+      "$ref": "#/$defs/PlannerStatus"
+    },
+    "trip_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Trip Id",
+      "type": "string"
+    },
+    "workspace_revision": {
+      "minimum": 0,
+      "title": "Workspace Revision",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "trip_id",
+    "generation_id",
+    "based_on_task_book_id",
+    "based_on_task_book_version",
+    "workspace_revision",
+    "status"
+  ],
+  "title": "PlannerWorkspacePublicView",
+  "type": "object"
+}

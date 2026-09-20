@@ -1,0 +1,49 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/dining-query-hit.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "fact_reference_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Fact Reference Id",
+      "type": "string"
+    },
+    "page": {
+      "maximum": 2,
+      "minimum": 1,
+      "title": "Page",
+      "type": "integer"
+    },
+    "provider_entity_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Provider Entity Id",
+      "type": "string"
+    },
+    "provider_rank": {
+      "maximum": 20,
+      "minimum": 1,
+      "title": "Provider Rank",
+      "type": "integer"
+    },
+    "query_key": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Query Key",
+      "type": "string"
+    }
+  },
+  "required": [
+    "query_key",
+    "page",
+    "provider_rank",
+    "provider_entity_id",
+    "fact_reference_id"
+  ],
+  "title": "DiningQueryHit",
+  "type": "object"
+}

@@ -34,6 +34,7 @@ from backend.contracts.rest import (
 )
 from backend.contracts.state import TripState
 from backend.contracts.trip_setup import TripShell
+from backend.contracts.v4.memory import CreateUserMemory, UserMemoryList
 from backend.domain.account_profile import effective_nickname
 from backend.domain.anonymous_v4 import (
     ANONYMOUS_V4_OWNER_NICKNAME,
@@ -52,6 +53,7 @@ from backend.persistence.models import (
 )
 from backend.persistence.redis_temporary import RedisTemporaryStore
 from backend.persistence.trip_repository import TripNotFoundError, TripRepository
+from backend.persistence.user_memory_repository import UserMemoryRepository, UserMemorySourceError
 
 if TYPE_CHECKING:
     from backend.application.auth_service import PhoneProtector
@@ -333,13 +335,15 @@ class TravelRestService:
                 persisted_owner = await self._trip_owner_projection(request.trip_id)
                 guest_owner_id = anonymous_v4_owner_id(request.anonymous_session_id)
                 if persisted_owner is not None and persisted_owner[0] == guest_owner_id:
+                    # The Redis state is the legacy compatibility projection. A V4 trip can
+                    # advance its durable phase/version without rewriting that projection;
+                    # forcing the durable phase into a cityless legacy state makes an
+                    # otherwise valid ownership transfer fail validation.
                     migrated = TripState.model_validate(
                         {
                             **state.model_dump(mode="json"),
                             "owner_type": OwnerType.USER.value,
                             "owner_id": str(user_id),
-                            "phase": persisted_owner[1],
-                            "state_version": persisted_owner[2],
                             "active_generation_id": None,
                         }
                     )
@@ -348,6 +352,17 @@ class TravelRestService:
                         user_id,
                         migrated,
                     )
+                    try:
+                        migrated = await self._load_v4_shell_projection(user_id, request.trip_id)
+                    except RestConflictError:
+                        # Ownership transfer must not fail when a durable V4 phase cannot
+                        # be represented by the legacy TripState response contract.
+                        migrated = TripState.model_validate(
+                            {
+                                **migrated.model_dump(mode="json"),
+                                "state_version": persisted_owner[2],
+                            }
+                        )
                     await self._redis.clear_anonymous_session(request.anonymous_session_id)
                     return TripSnapshotView(state=migrated)
                 if persisted_owner is not None:
@@ -475,6 +490,32 @@ class TravelRestService:
             {"trip_id": trip_id},
             remove,
         )
+
+    async def get_memories(self, actor: RequestActor) -> UserMemoryList:
+        return await UserMemoryRepository(self._session_factory).list(self._user_id(actor))
+
+    async def create_memory(
+        self, actor: RequestActor, payload: CreateUserMemory, idempotency_key: str
+    ) -> UserMemoryList:
+        user_id = self._user_id(actor)
+
+        async def create() -> UserMemoryList:
+            try:
+                return await UserMemoryRepository(self._session_factory).create(user_id, payload)
+            except UserMemorySourceError as error:
+                raise RestResourceNotFoundError(str(error)) from error
+
+        return await self._idempotent_model(
+            "create-memory",
+            actor.owner_id,
+            idempotency_key,
+            payload.model_dump(mode="json"),
+            UserMemoryList,
+            create,
+        )
+
+    async def delete_memory(self, actor: RequestActor, memory_id: UUID) -> None:
+        await UserMemoryRepository(self._session_factory).delete(self._user_id(actor), memory_id)
 
     async def get_preferences(self, actor: RequestActor) -> PreferenceListView:
         return await self._preference_view(self._user_id(actor))

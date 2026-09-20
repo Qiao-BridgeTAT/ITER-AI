@@ -2,19 +2,19 @@
 // changes presentation; never rewrite selections, source facts or safety copy.
 export function discoveryOptionDescription(
   section: string | undefined,
-  description: string | null | undefined,
+  description: string | null | undefined
 ): string | null {
   if (!description) return null;
   if (
     /^走进.+感受这里的风景与人文|^以.+风味为主，可以体验这一菜系/u.test(
-      description,
+      description
     )
   )
     return null;
   if (section === "dining_specific") {
     if (
       /^(?:中餐厅|中式餐饮|餐饮服务|餐饮相关场所)[。.]?$/u.test(
-        description.trim(),
+        description.trim()
       )
     )
       return null;
@@ -22,8 +22,8 @@ export function discoveryOptionDescription(
     const parts = description.split(" · ");
     const rankingIndex = parts.findIndex((part) =>
       /^(用户尚未对这个地点[作做]出选择|用户明确标记为必去|用户明确表达想去|用户主动点名了这个地点)[；;]/u.test(
-        part,
-      ),
+        part
+      )
     );
     if (rankingIndex === 0 || rankingIndex === 1) {
       // Old shape: optional address · two ranking explanations · optional badge.

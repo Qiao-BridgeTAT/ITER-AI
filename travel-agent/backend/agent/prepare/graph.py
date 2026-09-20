@@ -48,6 +48,12 @@ from backend.agent.prepare.guard_recovery import (
     intake_schema_repair_instruction,
     is_action_conflict,
 )
+from backend.agent.prepare.progress import (
+    AttractionProgress,
+    DiningProgress,
+    report_attraction_progress,
+    report_dining_progress,
+)
 from backend.agent.prepare.prompts import (
     build_card_text_assessment_request,
     build_compound_trip_intake_request,
@@ -125,6 +131,7 @@ from backend.discovery.cards.candidate_composition import (
 )
 from backend.discovery.cards.service import PrepareCardService
 from backend.discovery.tools.registry import ExecutedToolObservation, PrepareToolExecutor
+from backend.domain.discovery.entity_identity import is_city_entity_ref
 from backend.domain.discovery.state_merge import (
     AcceptedV4Operation,
     V4SemanticMergeError,
@@ -153,7 +160,9 @@ class PrepareTurnInput:
     generation_id: UUID
     assistant_message_id: UUID
     expected_state_version: int
-    user_event_kind: Literal["text", "card_answer", "retry_interaction", "task_book_confirmation"]
+    user_event_kind: Literal[
+        "text", "trip_setup", "card_answer", "retry_interaction", "task_book_confirmation"
+    ]
     user_text: str
     user_message_ref: str
     semantic_state: TripSemanticState
@@ -238,13 +247,18 @@ class PrepareAgentGraph:
         gateway: ModelGateway,
         *,
         task_book_builder: TaskBookBuilder | None = None,
+        attraction_gateway: ModelGateway | None = None,
+        dining_gateway: ModelGateway | None = None,
     ) -> None:
         self._gateway = gateway
+        self._attraction_gateway = attraction_gateway or gateway
+        self._dining_gateway = dining_gateway or gateway
         self._task_books = task_book_builder or TaskBookBuilder()
         builder = StateGraph(PrepareGraphState, context_schema=PrepareGraphContext)
         builder.add_node("load_context", self._load_context)
         builder.add_node("apply_prevalidated_operations", self._apply_prevalidated_operations)
         builder.add_node("prepare_decision", self._prepare_decision)
+        builder.add_node("begin_attraction_preferences", self._begin_attraction_preferences)
         builder.add_node("merge_working_aggregate", self._merge_working_aggregate)
         builder.add_node("execute_tools", self._execute_tools)
         builder.add_node("bounded_redecide", self._bounded_redecide)
@@ -261,7 +275,12 @@ class PrepareAgentGraph:
                 "natural": "prepare_decision",
             },
         )
-        builder.add_edge("apply_prevalidated_operations", "prepare_decision")
+        builder.add_conditional_edges(
+            "apply_prevalidated_operations",
+            self._route_after_prevalidated,
+            {"trip_setup": "begin_attraction_preferences", "decide": "prepare_decision"},
+        )
+        builder.add_edge("begin_attraction_preferences", "merge_working_aggregate")
         builder.add_edge("prepare_decision", "merge_working_aggregate")
         builder.add_conditional_edges(
             "merge_working_aggregate",
@@ -402,13 +421,67 @@ class PrepareAgentGraph:
             **_visited(state, "apply_prevalidated_operations", maximum=1),
         }
 
+    @staticmethod
+    def _route_after_prevalidated(state: PrepareGraphState) -> Literal["trip_setup", "decide"]:
+        return "trip_setup" if state["turn_input"].user_event_kind == "trip_setup" else "decide"
+
+    async def _begin_attraction_preferences(self, state: PrepareGraphState) -> PrepareGraphState:
+        # A typed form submission has already been validated and merged. There is
+        # no natural-language intent to assess or next action for a model to choose.
+        if state["runtime_state"].current_section is not DiscoverySection.ATTRACTION_PREFERENCE:
+            raise PrepareGraphError("trip setup did not reach attraction preferences")
+        decision = PrepareDecision.model_validate(
+            {
+                "decision_id": f"trip-setup:{state['turn_input'].turn_id}",
+                "based_on_state_version": state["semantic_state"].state_version,
+                "semantic_operations": [],
+                "tool_requests": [],
+                "next_action": {
+                    "kind": "show_preference_card",
+                    "domain": "attraction",
+                    "requested_targets": ["attraction_preference"],
+                },
+                "section_proposal": {"kind": "stay", "section": "attraction_preference"},
+                "reply_goal": {"explain_next_step": "目的地与日期已记录，请选择感兴趣的景点方向。"},
+            }
+        )
+        return {
+            "decision": decision,
+            "decisions": [decision],
+            **_visited(state, "begin_attraction_preferences", maximum=1),
+        }
+
+    def _gateway_for(self, state: PrepareGraphState) -> ModelGateway:
+        turn = state["turn_input"]
+        # Output attachments take precedence when a turn advances into another domain.
+        sections = [getattr(item.root, "section", None) for item in state.get("attachments", [])]
+        section = next((item for item in sections if item is not None), None)
+        section = section or turn.required_card_section or turn.card_text_section
+        section = section or state["runtime_state"].current_section
+        if any(
+            item in {DiscoverySection.DINING_PREFERENCE, DiscoverySection.DINING_SPECIFIC}
+            for item in (
+                section,
+                turn.required_card_section,
+                turn.card_text_section,
+                state["runtime_state"].current_section,
+            )
+        ):
+            return self._dining_gateway
+        if turn.user_event_kind == "trip_setup" or section in {
+            DiscoverySection.ATTRACTION_PREFERENCE,
+            DiscoverySection.ATTRACTION_SPECIFIC,
+        }:
+            return self._attraction_gateway
+        return self._gateway
+
     async def _prepare_decision(
         self,
         state: PrepareGraphState,
         runtime: Runtime[PrepareGraphContext],
     ) -> PrepareGraphState:
         task_book_review_assessment = await _assess_task_book_review_modification(
-            self._gateway,
+            self._gateway_for(state),
             state,
             runtime.context.cancellation,
         )
@@ -450,9 +523,7 @@ class PrepareAgentGraph:
             for item in decision.semantic_operations
             if item.root.local_operation_key not in seen_keys
         ]
-        proposals, pending_entities = partition_pending_entities(
-            decision, proposals, state["known_entity_refs"]
-        )
+        proposals, pending_entities = partition_pending_entities(decision, proposals)
         advances_version = (
             state["semantic_state"].state_version == state["turn_input"].expected_state_version
         )
@@ -728,7 +799,10 @@ class PrepareAgentGraph:
                     observation_index=len(state.get("card_action_observations", [])),
                     failure_code=action_failure_code,
                 )
-                if card_observation is not None:
+                if (
+                    card_observation is not None
+                    and state["turn_input"].user_event_kind != "trip_setup"
+                ):
                     runtime_state = runtime_state.model_copy(
                         update={
                             "pending_interaction": None,
@@ -859,6 +933,16 @@ class PrepareAgentGraph:
         state: PrepareGraphState,
         runtime: Runtime[PrepareGraphContext],
     ) -> PrepareGraphState:
+        for attachment in state.get("attachments", []):
+            section = getattr(attachment.root, "section", None)
+            if section is DiscoverySection.ATTRACTION_PREFERENCE:
+                await report_attraction_progress(AttractionProgress.PREFERENCE_READY)
+            elif section is DiscoverySection.ATTRACTION_SPECIFIC:
+                await report_attraction_progress(AttractionProgress.SPECIFIC_READY)
+            elif section is DiscoverySection.DINING_PREFERENCE:
+                await report_dining_progress(DiningProgress.PREFERENCE_READY)
+            elif section is DiscoverySection.DINING_SPECIFIC:
+                await report_dining_progress(DiningProgress.SPECIFIC_READY)
         grounding = state["grounding_context"]
         failure_code = state.get("decision_failure_code")
         if failure_code is not None:
@@ -869,7 +953,7 @@ class PrepareAgentGraph:
             )
         else:
             response = await compose_prepare_response(
-                self._gateway,
+                self._gateway_for(state),
                 grounding,
                 cancellation=runtime.context.cancellation,
             )
@@ -980,7 +1064,7 @@ class PrepareAgentGraph:
             and state["decision_mode"] == "natural_text"
         ):
             try:
-                card_text_assessment = await self._gateway.generate_structured(
+                card_text_assessment = await self._gateway_for(state).generate_structured(
                     build_card_text_assessment_request(
                         user_text=state["turn_input"].user_text,
                         section=state["turn_input"].card_text_section,
@@ -1009,7 +1093,7 @@ class PrepareAgentGraph:
         try:
             assessment = (
                 await _assess_explicit_trip_basics(
-                    self._gateway,
+                    self._gateway_for(state),
                     state,
                     cancellation,
                 )
@@ -1042,7 +1126,7 @@ class PrepareAgentGraph:
         )
         final_supplement_assessment = (
             await _assess_final_supplement(
-                self._gateway,
+                self._gateway_for(state),
                 state,
                 cancellation,
             )
@@ -1193,12 +1277,6 @@ class PrepareAgentGraph:
                     "当前旅行已经确认目的地，但仍缺少可执行的具体起止日期。"
                     "必须只询问 date_range；不得提前展示景点卡、生成任务书或补造日期。"
                 )
-        elif _is_optional_preferences_closure(state):
-            issue = (
-                "窄范围语义核验确认本轮只结束可选补充，没有新增或修改要求。"
-                "保留所有已记录需求（包括住宿）；不得写入无偏好、不适用或委托。"
-                "按当前未完成章节展示下一张卡；只有其余章节已完成时才进入最终补充。"
-            )
         elif contextual_task_book_generation or (
             final_supplement_assessment is not None
             and final_supplement_assessment.explicitly_no_more_requirements
@@ -1273,7 +1351,7 @@ class PrepareAgentGraph:
                 )
         if forced_semantic_operation == "pace_requirement":
             extracted = await _extract_pace_requirement_decision(
-                self._gateway,
+                self._gateway_for(state),
                 state,
                 cancellation,
             )
@@ -1289,7 +1367,7 @@ class PrepareAgentGraph:
             == "resolve_place"
         ):
             extracted = await _extract_compound_trip_intake_decision(
-                self._gateway,
+                self._gateway_for(state),
                 state,
                 cancellation,
             )
@@ -1324,7 +1402,7 @@ class PrepareAgentGraph:
                 required_post_update_action = (
                     forced_post_update_action or _required_post_update_action(state)
                 )
-                result = await self._gateway.generate_structured(
+                result = await self._gateway_for(state).generate_structured(
                     build_prepare_decision_request(
                         published_plan_summary=_published_plan_reply_context(
                             state["turn_input"].published_plan
@@ -1459,14 +1537,14 @@ class PrepareAgentGraph:
                 ):
                     state["entity_inventory_attempted"] = True
                     inventory = await _assess_explicit_trip_basics(
-                        self._gateway, state, cancellation, require_entity_inventory=True
+                        self._gateway_for(state), state, cancellation, require_entity_inventory=True
                     )
                     if inventory is not None:
                         state["trip_basics_assessment"] = inventory
                 decision = _complete_intake_requirement_facts(decision, state)
                 decision = _complete_intake_entity_queries(decision, state)
                 decision = await _ground_resolve_queries(
-                    self._gateway,
+                    self._gateway_for(state),
                     decision,
                     state,
                     cancellation,
@@ -1474,7 +1552,7 @@ class PrepareAgentGraph:
                 decision = _bind_unambiguous_tool_entity_refs(decision, state)
                 decision = _normalize_tool_request_ids(decision, state)
                 decision = await _review_unverified_hard_intents(
-                    self._gateway, decision, state, cancellation
+                    self._gateway_for(state), decision, state, cancellation
                 )
                 decision = _align_card_action_after_merge(decision, state)
                 _validate_additional_semantic_coverage(decision, state, required_additional_targets)
@@ -1549,7 +1627,7 @@ class PrepareAgentGraph:
                         "card text answer requires an executable next interaction"
                     )
                 await record_model_call_annotation(
-                    self._gateway,
+                    self._gateway_for(state),
                     decision_call_id,
                     "llm_business_guard",
                     {
@@ -1567,7 +1645,7 @@ class PrepareAgentGraph:
                     raise
                 if decision_call_id is not None:
                     await record_model_call_annotation(
-                        self._gateway,
+                        self._gateway_for(state),
                         decision_call_id,
                         "llm_business_guard",
                         {
@@ -1651,36 +1729,7 @@ class PrepareAgentGraph:
                             ],
                         }
                         next_kind = _default_action_for_section(preview.current_section)
-                        if trip_intake_transition_action in {
-                            "ask_trip_dates",
-                            "ask_optional_preferences",
-                        }:
-                            # Required intake questions take precedence over the
-                            # merged discovery section, including delegated domains.
-                            target = (
-                                TRIP_DATE_RANGE_TARGET
-                                if trip_intake_transition_action == "ask_trip_dates"
-                                else OPTIONAL_TRIP_PREFERENCES_TARGET
-                            )
-                            feedback = replace(
-                                feedback,
-                                instruction=_decision_validation_repair_instruction(
-                                    PrepareGraphError(
-                                        "trip intake requires the date range follow-up"
-                                        if trip_intake_transition_action == "ask_trip_dates"
-                                        else (
-                                            "trip intake requires the optional "
-                                            "preferences follow-up"
-                                        )
-                                    )
-                                ),
-                                allowed_next_action={
-                                    "kind": "ask_clarification",
-                                    "domain": "general",
-                                    "requested_targets": [target],
-                                },
-                            )
-                        elif next_kind is not None:
+                        if next_kind is not None:
                             domain = preview.current_section.value.split("_", 1)[0]
                             feedback = replace(
                                 feedback,
@@ -1706,7 +1755,6 @@ class PrepareAgentGraph:
                                     "requested_targets": [target],
                                 },
                             )
-                issue = feedback.instruction
                 feedback_payload = feedback.payload()
                 fingerprint = feedback.fingerprint(evidence_context)
                 failure_counts[fingerprint] = failure_counts.get(fingerprint, 0) + 1
@@ -1714,7 +1762,7 @@ class PrepareAgentGraph:
                 if repeated_failure:
                     blocked_contexts.add(evidence_context)
                 await record_model_call_annotation(
-                    self._gateway,
+                    self._gateway_for(state),
                     decision_call_id,
                     "llm_business_guard",
                     {
@@ -2074,10 +2122,8 @@ def _decision_validation_repair_instruction(error: Exception) -> str:
     if issue == "optional trip preferences response requires an executable attraction interaction":
         return (
             "当前 user_text 正在回答 optional_trip_preferences。保留用户明确补充的语义；"
-            "若没有事实问题或真实歧义，必须执行合并后实际章节对应的交互。"
-            "未完成的景点章节继续展示卡片；已通过用户明确委托完成全部领域时，"
-            "允许 final_supplement，不得重新强制景点卡。不能 reply_only、跳过未完成章节"
-            "或再次询问同一个 optional_trip_preferences。"
+            "若没有事实问题或真实歧义，必须按合并后的实际章节展示景点偏好卡或具体景点卡，"
+            "不能 reply_only、跳到其他领域或再次询问同一个 optional_trip_preferences。"
         )
     if issue == "card text answer requires an executable next interaction":
         return (
@@ -2151,21 +2197,6 @@ def _validate_final_supplement_additions(
     decision: PrepareDecision, state: PrepareGraphState
 ) -> None:
     assessment = state.get("final_supplement_assessment")
-    if (
-        assessment is not None
-        and assessment.explicitly_no_more_requirements
-        and not assessment.has_additional_request
-    ):
-        allowed = (
-            {"confirm_final_supplement"} if _has_active_final_supplement_followup(state) else set()
-        )
-        for operation in decision.semantic_operations:
-            if operation.root.operation_type not in allowed:
-                raise PrepareGraphError(
-                    "discovery closure cannot change recorded requirements: "
-                    f"semantic_operations.{operation.root.local_operation_key}; "
-                    "remove this operation and continue the current section"
-                )
     if (
         assessment is not None
         and assessment.has_additional_request
@@ -2317,9 +2348,12 @@ async def _assess_explicit_trip_basics(
                 cancellation=cancellation,
             )
             call_id = result.audit_call_id
-            _validate_intake_grounding(result.value, state["turn_input"].user_text)
-            _validate_intake_date_basis(result.value, state)
-            if result.value.date_range_resolution.basis in {
+            assessment = _normalize_intake_preference_quotes(
+                result.value, state["turn_input"].user_text
+            )
+            _validate_intake_grounding(assessment, state["turn_input"].user_text)
+            _validate_intake_date_basis(assessment, state)
+            if assessment.date_range_resolution.basis in {
                 "contextual_completion",
                 "contextual_confirmation",
             } and not _has_active_date_range_followup(state):
@@ -2336,7 +2370,7 @@ async def _assess_explicit_trip_basics(
                     "accepted_or_rejected": "accepted",
                 },
             )
-            return result.value
+            return assessment
         except ModelGatewayError as error:
             if error.code is ModelFailureCode.CANCELLED or error.requires_runtime_recovery:
                 raise
@@ -2447,6 +2481,34 @@ def _validate_intake_grounding(intake: TripBasicsAssessment, user_text: str) -> 
             )
 
 
+def _normalize_intake_preference_quotes(
+    intake: TripBasicsAssessment, user_text: str
+) -> TripBasicsAssessment:
+    """Remove a redundant polarity prefix only when the remainder is verbatim input."""
+
+    prefixes = {
+        "select": ("喜欢", "偏爱", "想看", "想去", "想吃", "希望"),
+        "exclude": ("不喜欢", "不想看", "不想去", "不想吃", "避开", "不要"),
+    }
+    facts = []
+    changed = False
+    for fact in intake.requirement_facts:
+        if not isinstance(fact, IntakePreferenceFact) or fact.quote in user_text:
+            facts.append(fact)
+            continue
+        normalized = fact
+        for prefix in prefixes[fact.disposition]:
+            if not fact.quote.startswith(prefix):
+                continue
+            quote = fact.quote[len(prefix) :].lstrip("：:，,、 ")
+            if quote and quote in user_text:
+                normalized = fact.model_copy(update={"quote": quote})
+                changed = True
+                break
+        facts.append(normalized)
+    return intake.model_copy(update={"requirement_facts": facts}) if changed else intake
+
+
 def _has_active_date_range_followup(state: PrepareGraphState) -> bool:
     pending = state["runtime_state"].pending_interaction
     return bool(
@@ -2496,11 +2558,7 @@ async def _assess_final_supplement(
 
     if state["decision_mode"] != "natural_text":
         return None
-    optional_response = _is_optional_trip_preferences_response(state)
-    if (
-        not optional_response
-        and state["runtime_state"].current_section is not DiscoverySection.FINAL_SUPPLEMENT
-    ):
+    if state["runtime_state"].current_section is not DiscoverySection.FINAL_SUPPLEMENT:
         return None
     if state["runtime_state"].section_coverage[DiscoverySection.FINAL_SUPPLEMENT].status.value in {
         "complete",
@@ -2512,19 +2570,12 @@ async def _assess_final_supplement(
             build_final_supplement_assessment_request(
                 user_text=state["turn_input"].user_text,
                 semantic_state=state["semantic_state"],
-                current_question=(
-                    "optional_trip_preferences" if optional_response else "final_supplement"
-                ),
             ),
             FinalSupplementAssessment,
             cancellation=cancellation,
         )
     except ModelGatewayError as error:
-        if (
-            optional_response
-            or error.code is ModelFailureCode.CANCELLED
-            or error.requires_runtime_recovery
-        ):
+        if error.code is ModelFailureCode.CANCELLED or error.requires_runtime_recovery:
             raise
         return None
     return result.value
@@ -2975,19 +3026,12 @@ def _validate_decision(decision: PrepareDecision, state: PrepareGraphState) -> N
             action is PrepareActionKind.ASK_CLARIFICATION
             and OPTIONAL_TRIP_PREFERENCES_TARGET in decision.next_action.requested_targets
         )
-        allowed_actions = {
+        if repeats_optional_question or action not in {
             PrepareActionKind.SHOW_PREFERENCE_CARD,
             PrepareActionKind.SHOW_SPECIFIC_CARD,
             PrepareActionKind.USE_TOOL,
             PrepareActionKind.ASK_CLARIFICATION,
-        }
-        if (
-            action is PrepareActionKind.FINAL_SUPPLEMENT
-            and _preview_card_runtime(decision, state).current_section
-            is DiscoverySection.FINAL_SUPPLEMENT
-        ):
-            allowed_actions.add(PrepareActionKind.FINAL_SUPPLEMENT)
-        if repeats_optional_question or action not in allowed_actions:
+        }:
             raise PrepareGraphError(
                 "optional trip preferences response requires an executable attraction interaction"
             )
@@ -3577,19 +3621,61 @@ def _bind_authoritative_operation_sources(
         turn_input.user_message_ref,
         *turn_input.signed_source_refs,
     }
-    unambiguous_entity = _unambiguous_current_entity(state)
+    choices = _resolution_choices(state)
+    pending_queries = {
+        request.query
+        for wrapped in decision.tool_requests
+        if isinstance((request := wrapped.root), ResolvePlaceRequest)
+        and request.purpose.value == "validate_operation"
+    }
     payload = decision.model_dump(mode="json")
-    for raw_operation in payload["semantic_operations"]:
+    for index, raw_operation in enumerate(payload["semantic_operations"]):
         sources = set(message_sources)
-        if raw_operation["operation_type"] in {
+        concrete = raw_operation["operation_type"] in {
             "select_concrete_entity",
             "exclude_concrete_entity",
-        } or (
+        }
+        if concrete or (
             raw_operation["operation_type"] == "set_existing_booking"
             and raw_operation.get("canonical_entity_id") is not None
         ):
-            if unambiguous_entity is not None:
-                raw_operation["canonical_entity_id"] = unambiguous_entity
+            name = raw_operation.get("display_name") if concrete else None
+            matching = [
+                choice
+                for choice in choices
+                if len(choice.entity_refs) == 1
+                and not is_city_entity_ref(choice.entity_refs[0])
+                and (
+                    _normalize_place_reference(choice.query) == _normalize_place_reference(name)
+                    if isinstance(name, str)
+                    else choice.query in raw_operation.get("user_description", "")
+                )
+            ]
+            matching_refs = {choice.entity_refs[0] for choice in matching}
+            if len(matching_refs) == 1:
+                raw_operation["canonical_entity_id"] = next(iter(matching_refs))
+            elif concrete and name not in pending_queries:
+                # A previously accepted POI is reusable only for that named object
+                # and domain. A bare known ID is not proof for another label.
+                domain = raw_operation["domain"]
+                semantic = state["semantic_state"]
+                prior = (
+                    (*semantic.attractions.concrete_intents, *semantic.attractions.exclusions)
+                    if domain == "attraction"
+                    else (*semantic.dining.concrete_restaurant_intents, *semantic.dining.exclusions)
+                )
+                entity_ref = raw_operation["canonical_entity_id"]
+                if entity_ref in state["known_entity_refs"] and not any(
+                    item.canonical_entity_id == entity_ref
+                    and not is_city_entity_ref(entity_ref)
+                    and _normalize_place_reference(item.display_name)
+                    == _normalize_place_reference(str(name))
+                    for item in prior
+                ):
+                    raise SemanticCompilationError(
+                        "entity_identity_not_grounded",
+                        f"semantic_operations[{index}].canonical_entity_id",
+                    )
             entity_ref = raw_operation.get("canonical_entity_id")
             sources.update(
                 source
@@ -4449,10 +4535,16 @@ def _unambiguous_current_entity(state: PrepareGraphState) -> str | None:
             ToolObservationStatus.PARTIAL,
         }
         for entity_ref in item.observation.entity_refs
+        if not is_city_entity_ref(entity_ref)
     }
     if len(current_refs) == 1:
         return next(iter(current_refs))
-    known_refs = state["known_entity_refs"]
+    known_refs = {
+        entity_ref
+        for entity_ref in state["known_entity_refs"]
+        & _known_state_entity_refs(state["semantic_state"])
+        if not is_city_entity_ref(entity_ref)
+    }
     return next(iter(known_refs)) if not current_refs and len(known_refs) == 1 else None
 
 
@@ -4560,8 +4652,6 @@ def _required_next_tool_capability(
     the place query and disposition.
     """
 
-    if _is_optional_preferences_closure(state):
-        return None
     final_assessment = state.get("final_supplement_assessment")
     if _has_active_final_supplement_followup(state) and (
         _explicitly_requests_task_book_generation(state["turn_input"].user_text)
@@ -4764,7 +4854,7 @@ def _required_concrete_choice(
 def _required_initial_semantic_operation(
     state: PrepareGraphState,
 ) -> Literal["none", "lodging_booking", "dining_requirement"]:
-    if _is_optional_preferences_closure(state) or state["decision_mode"] == "bounded_redecide":
+    if state["decision_mode"] == "bounded_redecide":
         return "none"
     assessment = state.get("task_book_review_assessment")
     intake = state.get("trip_basics_assessment")
@@ -4787,17 +4877,13 @@ def _required_post_update_action(
     "show_specific_card",
     "final_supplement",
 ]:
-    optional_closure = _is_optional_preferences_closure(state)
-    if not optional_closure and state["decision_mode"] != "decide_after_update":
+    if state["decision_mode"] != "decide_after_update":
         return "none"
     if state["turn_input"].user_event_kind == "task_book_confirmation":
         return "reply_only"
     if not _trip_dates_complete(state["semantic_state"]):
         return "none"
-    if not optional_closure and state["turn_input"].user_event_kind not in {
-        "card_answer",
-        "retry_interaction",
-    }:
+    if state["turn_input"].user_event_kind not in {"card_answer", "retry_interaction"}:
         return "none"
     actions: dict[
         DiscoverySection,
@@ -4819,8 +4905,6 @@ def _required_post_update_action(
 
 
 def _forbid_initial_semantic_operations(state: PrepareGraphState) -> bool:
-    if _is_optional_preferences_closure(state):
-        return True
     if state["decision_mode"] == "bounded_redecide":
         return False
     if _required_initial_semantic_operation(state) != "none":
@@ -4930,20 +5014,7 @@ def _is_optional_trip_preferences_response(state: PrepareGraphState) -> bool:
         state["decision_mode"] == "natural_text"
         and pending is not None
         and pending.kind is PendingInteractionKind.FREE_TEXT_QUESTION
-        and pending.status == "active"
-        and pending.based_on_state_version == state["runtime_state"].state_version
         and OPTIONAL_TRIP_PREFERENCES_TARGET in pending.target_ids
-    )
-
-
-def _is_optional_preferences_closure(state: PrepareGraphState) -> bool:
-    """One assessed meaning controls both the model contract and mutation Guard."""
-    assessment = state.get("final_supplement_assessment")
-    return bool(
-        _is_optional_trip_preferences_response(state)
-        and assessment is not None
-        and assessment.explicitly_no_more_requirements
-        and not assessment.has_additional_request
     )
 
 

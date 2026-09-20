@@ -1,0 +1,1009 @@
+{
+  "$defs": {
+    "CandidateEntityKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "activity"
+      ],
+      "title": "CandidateEntityKind",
+      "type": "string"
+    },
+    "CandidateRef": {
+      "additionalProperties": false,
+      "description": "Revision-bound reference to one candidate in the current pool.",
+      "properties": {
+        "candidate_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "candidate_pool_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Candidate Pool Id",
+          "type": "string"
+        },
+        "candidate_pool_revision": {
+          "minimum": 1,
+          "title": "Candidate Pool Revision",
+          "type": "integer"
+        },
+        "canonical_entity_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Canonical Entity Id",
+          "type": "string"
+        },
+        "entity_kind": {
+          "$ref": "#/$defs/CandidateEntityKind"
+        },
+        "kind": {
+          "const": "candidate",
+          "default": "candidate",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_pool_id",
+        "candidate_pool_revision",
+        "candidate_id",
+        "entity_kind",
+        "canonical_entity_id"
+      ],
+      "title": "CandidateRef",
+      "type": "object"
+    },
+    "CrossClusterReasonCode": {
+      "enum": [
+        "reservation_or_fixed_commitment",
+        "date_specific_availability",
+        "strong_user_intent",
+        "lodging_or_transport_anchor",
+        "verified_global_route_improvement"
+      ],
+      "title": "CrossClusterReasonCode",
+      "type": "string"
+    },
+    "CrossClusterSegment": {
+      "additionalProperties": false,
+      "properties": {
+        "comparison_observation_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Comparison Observation Ref"
+        },
+        "covered_item_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Covered Item Ids",
+          "type": "array"
+        },
+        "expected_route_cost": {
+          "$ref": "#/$defs/ExpectedRouteCost"
+        },
+        "from_cluster_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "From Cluster Id",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/CrossClusterReasonCode"
+        },
+        "route_edge_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Route Edge Ids",
+          "type": "array"
+        },
+        "supporting_intent_or_fact_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Supporting Intent Or Fact Refs",
+          "type": "array"
+        },
+        "to_cluster_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "To Cluster Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from_cluster_id",
+        "to_cluster_id",
+        "covered_item_ids",
+        "reason_code",
+        "supporting_intent_or_fact_refs",
+        "route_edge_ids",
+        "expected_route_cost"
+      ],
+      "title": "CrossClusterSegment",
+      "type": "object"
+    },
+    "DiscardableObject": {
+      "additionalProperties": false,
+      "properties": {
+        "authorization_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Authorization Ref",
+          "type": "string"
+        },
+        "discard_rank": {
+          "minimum": 0,
+          "title": "Discard Rank",
+          "type": "integer"
+        },
+        "draft_item_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Draft Item Id",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "materializer_may_omit",
+            "planner_review_if_infeasible"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "reason_summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason Summary",
+          "type": "string"
+        },
+        "trigger_codes": {
+          "items": {
+            "enum": [
+              "capacity_conflict",
+              "route_conflict",
+              "opening_conflict",
+              "budget_conflict"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Trigger Codes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "draft_item_id",
+        "mode",
+        "trigger_codes",
+        "discard_rank",
+        "authorization_ref",
+        "reason_summary"
+      ],
+      "title": "DiscardableObject",
+      "type": "object"
+    },
+    "DraftItem": {
+      "additionalProperties": false,
+      "properties": {
+        "cluster_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cluster Id"
+        },
+        "commitment_level": {
+          "enum": [
+            "immutable",
+            "strong",
+            "soft",
+            "filler",
+            "neutral"
+          ],
+          "title": "Commitment Level",
+          "type": "string"
+        },
+        "draft_item_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Draft Item Id",
+          "type": "string"
+        },
+        "duration_preference": {
+          "anyOf": [
+            {
+              "enum": [
+                "short",
+                "normal",
+                "extended"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Preference"
+        },
+        "expected_window": {
+          "$ref": "#/$defs/ExpectedWindow"
+        },
+        "item_kind": {
+          "enum": [
+            "visit",
+            "dining",
+            "fixed_event",
+            "arrival",
+            "departure"
+          ],
+          "title": "Item Kind",
+          "type": "string"
+        },
+        "meal_slot": {
+          "anyOf": [
+            {
+              "enum": [
+                "breakfast",
+                "lunch",
+                "dinner",
+                "snack"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Meal Slot"
+        },
+        "object_ref": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/CandidateRef"
+            },
+            {
+              "$ref": "#/$defs/FixedCommitmentRef"
+            }
+          ],
+          "title": "Object Ref",
+          "type": "object"
+        },
+        "onsite_lunch": {
+          "default": false,
+          "title": "Onsite Lunch",
+          "type": "boolean"
+        },
+        "position": {
+          "minimum": 0,
+          "title": "Position",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "draft_item_id",
+        "position",
+        "item_kind",
+        "object_ref",
+        "expected_window",
+        "commitment_level"
+      ],
+      "title": "DraftItem",
+      "type": "object"
+    },
+    "DraftRouteModeSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "destination": {
+          "$ref": "#/$defs/SpatialRouteEndpoint"
+        },
+        "origin": {
+          "$ref": "#/$defs/SpatialRouteEndpoint"
+        },
+        "transport_mode": {
+          "enum": [
+            "taxi",
+            "public_transit",
+            "walking"
+          ],
+          "title": "Transport Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "origin",
+        "destination",
+        "transport_mode"
+      ],
+      "title": "DraftRouteModeSelection",
+      "type": "object"
+    },
+    "ExpectedRouteCost": {
+      "additionalProperties": false,
+      "properties": {
+        "distance_meters": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Distance Meters"
+        },
+        "duration_minutes": {
+          "maximum": 1440,
+          "minimum": 0,
+          "title": "Duration Minutes",
+          "type": "integer"
+        },
+        "transfer_count": {
+          "anyOf": [
+            {
+              "maximum": 20,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transfer Count"
+        }
+      },
+      "required": [
+        "duration_minutes"
+      ],
+      "title": "ExpectedRouteCost",
+      "type": "object"
+    },
+    "ExpectedWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "earliest": {
+          "anyOf": [
+            {
+              "format": "time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Earliest"
+        },
+        "latest": {
+          "anyOf": [
+            {
+              "format": "time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Latest"
+        },
+        "part_of_day": {
+          "enum": [
+            "morning",
+            "midday",
+            "afternoon",
+            "evening",
+            "anytime"
+          ],
+          "title": "Part Of Day",
+          "type": "string"
+        }
+      },
+      "required": [
+        "part_of_day"
+      ],
+      "title": "ExpectedWindow",
+      "type": "object"
+    },
+    "FixedCommitmentRef": {
+      "additionalProperties": false,
+      "description": "Reference to a user-owned immutable commitment in the task book.",
+      "properties": {
+        "commitment_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Commitment Id",
+          "type": "string"
+        },
+        "commitment_kind": {
+          "enum": [
+            "reservation",
+            "arrival",
+            "departure",
+            "named_hotel",
+            "existing_booking"
+          ],
+          "title": "Commitment Kind",
+          "type": "string"
+        },
+        "kind": {
+          "const": "fixed_commitment",
+          "default": "fixed_commitment",
+          "title": "Kind",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "task_book_id",
+        "task_book_version",
+        "commitment_id",
+        "commitment_kind"
+      ],
+      "title": "FixedCommitmentRef",
+      "type": "object"
+    },
+    "HotelOfferRef": {
+      "additionalProperties": false,
+      "description": "Inventory-snapshot-bound reference to a normalized hotel offer.",
+      "properties": {
+        "hotel_observation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Hotel Observation Id",
+          "type": "string"
+        },
+        "inventory_snapshot_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Inventory Snapshot Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "hotel_offer",
+          "default": "hotel_offer",
+          "title": "Kind",
+          "type": "string"
+        },
+        "offer_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Offer Id",
+          "type": "string"
+        },
+        "property_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Property Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hotel_observation_id",
+        "offer_id",
+        "property_id",
+        "inventory_snapshot_id"
+      ],
+      "title": "HotelOfferRef",
+      "type": "object"
+    },
+    "LodgingBaseline": {
+      "additionalProperties": false,
+      "properties": {
+        "fixed_commitment_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FixedCommitmentRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "mode": {
+          "enum": [
+            "not_applicable",
+            "fixed",
+            "selected_offer",
+            "unresolved"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "selected_offer_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HotelOfferRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "unresolved_reason": {
+          "anyOf": [
+            {
+              "enum": [
+                "provider_unavailable",
+                "no_verified_hotel",
+                "not_queried",
+                "no_results",
+                "query_failed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unresolved Reason"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "LodgingBaseline",
+      "type": "object"
+    },
+    "PlannerScope": {
+      "additionalProperties": false,
+      "description": "Optimistic-concurrency scope shared by one Planner decision round.",
+      "properties": {
+        "generation_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "v4",
+          "default": "v4",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "task_book_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Task Book Id",
+          "type": "string"
+        },
+        "task_book_state_version": {
+          "minimum": 0,
+          "title": "Task Book State Version",
+          "type": "integer"
+        },
+        "task_book_version": {
+          "minimum": 1,
+          "title": "Task Book Version",
+          "type": "integer"
+        },
+        "trip_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Trip Id",
+          "type": "string"
+        },
+        "workspace_revision": {
+          "minimum": 0,
+          "title": "Workspace Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "trip_id",
+        "generation_id",
+        "task_book_id",
+        "task_book_version",
+        "task_book_state_version",
+        "workspace_revision"
+      ],
+      "title": "PlannerScope",
+      "type": "object"
+    },
+    "SpatialRouteEndpoint": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "candidate",
+            "cluster",
+            "hotel_offer",
+            "fixed_commitment"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "reference_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reference Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reference_id"
+      ],
+      "title": "SpatialRouteEndpoint",
+      "type": "object"
+    },
+    "UnassignedIntent": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_ref": {
+          "$ref": "#/$defs/CandidateRef"
+        },
+        "commitment_level": {
+          "enum": [
+            "strong",
+            "soft"
+          ],
+          "title": "Commitment Level",
+          "type": "string"
+        },
+        "planner_reason": {
+          "anyOf": [
+            {
+              "maxLength": 160,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Agent 在已授权景点容量或餐厅整体安排取舍下给出的具体原因，不代表用户逐项确认。",
+          "title": "Planner Reason"
+        },
+        "reason_code": {
+          "enum": [
+            "infeasible_date",
+            "capacity_conflict",
+            "route_conflict",
+            "opening_conflict",
+            "budget_conflict",
+            "duplicate_experience",
+            "planner_tradeoff",
+            "user_requested",
+            "awaiting_user"
+          ],
+          "title": "Reason Code",
+          "type": "string"
+        },
+        "requires_user_resolution": {
+          "title": "Requires User Resolution",
+          "type": "boolean"
+        },
+        "supporting_observation_refs": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Supporting Observation Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "candidate_ref",
+        "commitment_level",
+        "reason_code",
+        "supporting_observation_refs",
+        "requires_user_resolution"
+      ],
+      "title": "UnassignedIntent",
+      "type": "object"
+    },
+    "WorkingItineraryDay": {
+      "additionalProperties": false,
+      "properties": {
+        "cross_cluster_segments": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CrossClusterSegment"
+          },
+          "title": "Cross Cluster Segments",
+          "type": "array"
+        },
+        "day_kind": {
+          "enum": [
+            "active",
+            "arrival_departure",
+            "rest"
+          ],
+          "title": "Day Kind",
+          "type": "string"
+        },
+        "day_theme": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Day Theme",
+          "type": "string"
+        },
+        "dining_goals": {
+          "default": [],
+          "items": {
+            "enum": [
+              "breakfast",
+              "lunch",
+              "dinner",
+              "snack"
+            ],
+            "type": "string"
+          },
+          "title": "Dining Goals",
+          "type": "array"
+        },
+        "end_time": {
+          "anyOf": [
+            {
+              "format": "time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Time"
+        },
+        "ordered_items": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DraftItem"
+          },
+          "title": "Ordered Items",
+          "type": "array"
+        },
+        "primary_cluster_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Primary Cluster Id"
+        },
+        "route_mode_selections": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DraftRouteModeSelection"
+          },
+          "title": "Route Mode Selections",
+          "type": "array"
+        },
+        "service_date": {
+          "format": "date",
+          "title": "Service Date",
+          "type": "string"
+        },
+        "start_time": {
+          "anyOf": [
+            {
+              "format": "time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Time"
+        },
+        "transport_preferences": {
+          "items": {
+            "enum": [
+              "public_transit",
+              "taxi",
+              "walking",
+              "driving"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Transport Preferences",
+          "type": "array"
+        }
+      },
+      "required": [
+        "service_date",
+        "day_kind",
+        "day_theme",
+        "transport_preferences"
+      ],
+      "title": "WorkingItineraryDay",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v4/working-itinerary-draft.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Planner-owned semantic skeleton before deterministic materialization.",
+  "properties": {
+    "based_on_strategy_revision": {
+      "minimum": 1,
+      "title": "Based On Strategy Revision",
+      "type": "integer"
+    },
+    "candidate_pool_revision": {
+      "minimum": 1,
+      "title": "Candidate Pool Revision",
+      "type": "integer"
+    },
+    "content_digest": {
+      "maxLength": 128,
+      "minLength": 16,
+      "pattern": "\\S",
+      "title": "Content Digest",
+      "type": "string"
+    },
+    "days": {
+      "items": {
+        "$ref": "#/$defs/WorkingItineraryDay"
+      },
+      "maxItems": 5,
+      "minItems": 1,
+      "title": "Days",
+      "type": "array"
+    },
+    "discardable_objects": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/DiscardableObject"
+      },
+      "title": "Discardable Objects",
+      "type": "array"
+    },
+    "draft_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Draft Id",
+      "type": "string"
+    },
+    "draft_revision": {
+      "minimum": 1,
+      "title": "Draft Revision",
+      "type": "integer"
+    },
+    "hotel_observation_id": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Hotel Observation Id"
+    },
+    "lodging_baseline": {
+      "$ref": "#/$defs/LodgingBaseline"
+    },
+    "reason_summary": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Reason Summary",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/PlannerScope"
+    },
+    "spatial_observation_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Spatial Observation Id",
+      "type": "string"
+    },
+    "unassigned_intents": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/UnassignedIntent"
+      },
+      "title": "Unassigned Intents",
+      "type": "array"
+    }
+  },
+  "required": [
+    "draft_id",
+    "draft_revision",
+    "content_digest",
+    "scope",
+    "based_on_strategy_revision",
+    "candidate_pool_revision",
+    "spatial_observation_id",
+    "lodging_baseline",
+    "days",
+    "reason_summary"
+  ],
+  "title": "WorkingItineraryDraft",
+  "type": "object"
+}

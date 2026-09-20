@@ -81,6 +81,40 @@
   outline: 2px solid #286b98;
   outline-offset: 3px;
 }
+.v4-draft-preview > section {
+  border-top: 1px solid #e5ebf0;
+  margin-top: 16px;
+  padding-top: 16px;
+}
+.v4-draft-preview h4 {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+.v4-draft-preview ol,
+.v4-draft-preview ul {
+  padding-left: 22px;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+.v4-draft-preview li {
+  margin: 6px 0;
+}
+.v4-draft-preview li span {
+  margin-right: 12px;
+  color: #536574;
+}
+.v4-draft-preview-caption {
+  color: #536574;
+}
+.v4-draft-preview details {
+  padding: 12px;
+  background: #f8f6f1;
+  border-radius: 8px;
+}
+.v4-draft-preview summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+}
 @media (max-width: 480px) {
   .v4-planner-panel {
     padding: 16px;

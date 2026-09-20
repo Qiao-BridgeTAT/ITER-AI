@@ -1,11 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
+import "./styles/tokens.css";
+import "./styles/global.css";
 import "./styles/app-boot.css";
 import "./styles/app-shell.css";
 import "./styles/conversation-plan-ready.css";
-import "./styles/global.css";
-import "./styles/tokens.css";
 
 const root = document.getElementById("root");
 
@@ -21,7 +21,7 @@ void import("./app/App")
     createRoot(root).render(
       <StrictMode>
         <App />
-      </StrictMode>,
+      </StrictMode>
     );
   })
   .catch(() => {

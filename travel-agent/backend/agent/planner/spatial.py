@@ -1,11 +1,11 @@
-"""Live route observations using the shared V3 complete-link spatial calculation."""
+"""Coordinate groups for ReAct, with independently sourced route observations."""
 
 from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timedelta
 from itertools import combinations, permutations
-from math import ceil, cos, radians
+from math import asin, ceil, cos, radians, sin, sqrt
 from typing import Literal
 from uuid import uuid4
 
@@ -33,6 +33,7 @@ from backend.providers.interfaces import RouteProvider
 
 MAX_INITIAL_DIRECTED_ROUTE_CALLS = 24
 MAX_PARALLEL_INITIAL_ROUTE_CALLS = 6
+COORDINATE_CLUSTER_MAX_DIAMETER_METERS = 5_000
 
 
 async def build_spatial_observation(
@@ -43,6 +44,8 @@ async def build_spatial_observation(
     city: ProviderCityScope,
     cancellation: ModelCancellation,
     now: datetime,
+    query_routes: bool = True,
+    retained_route_edges: tuple[SpatialRouteEdge, ...] = (),
 ) -> PlannerWorkspaceState:
     entries = tuple(
         sorted(
@@ -151,13 +154,27 @@ async def build_spatial_observation(
             return tuple(results), tuple(facts)
 
     # Full directed all-pairs grows quadratically (nine candidates used to issue
-    # 72 Provider calls). Coordinates only choose a bounded set of nearby pairs
-    # to *query*; they never become route duration evidence. Clustering below
-    # remains conservative and only joins candidates backed by observed routes.
-    pairs = _initial_directed_route_pairs(entries, places)
+    # 72 Provider calls). ReAct initializes with query_routes=False; coordinate
+    # grouping needs no requests. Distances never become route duration evidence.
+    pairs = _initial_directed_route_pairs(entries, places) if query_routes else ()
     batches = await asyncio.gather(*(query(left, right) for left, right in pairs))
     edges = tuple(edge for batch, _ in batches for edge in batch)
     facts = tuple(fact for _, batch_facts in batches for fact in batch_facts)
+    edges = tuple({edge.route_edge_id: edge for edge in (*retained_route_edges, *edges)}.values())
+    retained_fact_ids = {ref for edge in retained_route_edges for ref in edge.fact_reference_ids}
+    facts = tuple(
+        {
+            fact.fact_reference_id: fact
+            for fact in (
+                *(
+                    fact
+                    for fact in workspace.verified_facts
+                    if fact.fact_reference_id in retained_fact_ids
+                ),
+                *facts,
+            )
+        }.values()
+    )
     usable: dict[tuple[str, str], SpatialRouteEdge] = {}
     for edge in edges:
         if edge.duration_minutes is None:
@@ -173,13 +190,17 @@ async def build_spatial_observation(
             return None
         return max(outbound.duration_minutes or 0, inbound.duration_minutes or 0)
 
-    # Geography is independent of open dates. Calendar eligibility is separately
-    # retained in the pool and enforced when the model assigns actual dates.
-    groups = group_by_route_costs(
-        entries,
-        available_dates=lambda _: set(service_dates(book)),
-        duration_minutes=symmetric_cost,
-        threshold_minutes=35,
+    # Group by geometry before the first ReAct decision, even without routes.
+    # Legacy runs retain their route-based groups. Neither mode assigns days.
+    groups = (
+        _group_by_coordinate_distance(entries, places)
+        if workspace.react_state is not None
+        else group_by_route_costs(
+            entries,
+            available_dates=lambda _: set(service_dates(book)),
+            duration_minutes=symmetric_cost,
+            threshold_minutes=35,
+        )
     )
     clusters = tuple(
         SpatialCluster(
@@ -231,7 +252,16 @@ async def build_spatial_observation(
             for edge in edges
             if edge.status == "missing"
         ),
-        source_reference_ids=tuple(dict.fromkeys(fact.fact_reference_id for fact in facts))
+        source_reference_ids=tuple(
+            dict.fromkeys(
+                [fact.fact_reference_id for fact in facts]
+                + (
+                    [place.fact_reference_id for place in places.values()]
+                    if workspace.react_state is not None
+                    else []
+                )
+            )
+        )
         or tuple(place.fact_reference_id for place in places.values())
         or workspace.candidate_pool.source_reference_ids,
     )
@@ -272,6 +302,46 @@ async def build_spatial_observation(
     )
 
 
+def _group_by_coordinate_distance(
+    entries: tuple[CandidatePoolEntry, ...],
+    places: dict[str, PlannerPlaceEvidence],
+) -> tuple[tuple[CandidatePoolEntry, ...], ...]:
+    """Complete-link grouping prevents a chain of nearby points spanning a city."""
+    groups: list[list[CandidatePoolEntry]] = []
+    for entry in entries:
+        origin = places.get(entry.candidate_ref.canonical_entity_id)
+        choices: list[tuple[float, int]] = []
+        if origin is not None:
+            for index, group in enumerate(groups):
+                distances = []
+                for member in group:
+                    destination = places.get(member.candidate_ref.canonical_entity_id)
+                    if destination is None:
+                        break
+                    meters = _straight_line_meters(origin, destination)
+                    if meters > COORDINATE_CLUSTER_MAX_DIAMETER_METERS:
+                        break
+                    distances.append(meters)
+                else:
+                    choices.append((max(distances), index))
+        if choices:
+            groups[min(choices)[1]].append(entry)
+        else:
+            groups.append([entry])
+    return tuple(tuple(group) for group in groups)
+
+
+def _straight_line_meters(left: PlannerPlaceEvidence, right: PlannerPlaceEvidence) -> float:
+    """Haversine distance between normalized GCJ-02 points, never a road distance."""
+    a, b = left.coordinates, right.coordinates
+    lat_a, lat_b = radians(a.latitude), radians(b.latitude)
+    haversine = (
+        sin((lat_b - lat_a) / 2) ** 2
+        + cos(lat_a) * cos(lat_b) * sin(radians(b.longitude - a.longitude) / 2) ** 2
+    )
+    return 2 * 6_371_000 * asin(min(1.0, sqrt(haversine)))
+
+
 def _initial_directed_route_pairs(
     entries: tuple[CandidatePoolEntry, ...],
     places: dict[str, PlannerPlaceEvidence],
@@ -279,8 +349,8 @@ def _initial_directed_route_pairs(
     """Select a deterministic sparse route graph with bounded candidate coverage.
 
     The coordinate distance is only a query-prioritization heuristic. Every
-    returned cost, cluster merge, outlier, and inter-cluster value still comes
-    from a real directed Provider observation.
+    returned route cost, route-based outlier, and inter-cluster cost still comes
+    from a real directed Provider observation. ReAct groups use geometry instead.
     """
 
     if len(entries) < 2:

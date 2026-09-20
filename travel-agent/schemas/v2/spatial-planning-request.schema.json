@@ -1,0 +1,465 @@
+{
+  "$defs": {
+    "AnchorRole": {
+      "enum": [
+        "fixed_event",
+        "fixed_hotel",
+        "must_attraction",
+        "want_attraction",
+        "destination_restaurant",
+        "convenient_attraction",
+        "convenient_restaurant"
+      ],
+      "title": "AnchorRole",
+      "type": "string"
+    },
+    "CnyAmountRange": {
+      "additionalProperties": false,
+      "description": "A closed CNY range represented in integer fen.",
+      "properties": {
+        "currency": {
+          "default": "CNY",
+          "pattern": "^CNY$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "maximum_fen": {
+          "minimum": 0,
+          "title": "Maximum Fen",
+          "type": "integer"
+        },
+        "minimum_fen": {
+          "minimum": 0,
+          "title": "Minimum Fen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_fen",
+        "maximum_fen"
+      ],
+      "title": "CnyAmountRange",
+      "type": "object"
+    },
+    "FixedTimeWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "end_time": {
+          "format": "time",
+          "title": "End Time",
+          "type": "string"
+        },
+        "event_date": {
+          "format": "date",
+          "title": "Event Date",
+          "type": "string"
+        },
+        "start_time": {
+          "format": "time",
+          "title": "Start Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_date",
+        "start_time",
+        "end_time"
+      ],
+      "title": "FixedTimeWindow",
+      "type": "object"
+    },
+    "Gcj02Coordinates": {
+      "additionalProperties": false,
+      "description": "Canonical coordinates used by every internal planning contract.",
+      "properties": {
+        "coord_system": {
+          "const": "gcj_02",
+          "title": "Coord System",
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude",
+        "coord_system"
+      ],
+      "title": "Gcj02Coordinates",
+      "type": "object"
+    },
+    "PlaceCategory": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "hotel",
+        "transport",
+        "activity",
+        "other"
+      ],
+      "title": "PlaceCategory",
+      "type": "string"
+    },
+    "RecalledPlace": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Address"
+        },
+        "average_cost": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CnyAmountRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "category": {
+          "$ref": "#/$defs/PlaceCategory"
+        },
+        "city_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "City Id",
+          "type": "string"
+        },
+        "coordinates": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Gcj02Coordinates"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cuisine": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cuisine"
+        },
+        "image_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image Url"
+        },
+        "name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "place_id": {
+          "format": "uuid",
+          "title": "Place Id",
+          "type": "string"
+        },
+        "provider_parent_place_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider Parent Place Id"
+        },
+        "provider_typecode": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider Typecode"
+        },
+        "rating": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rating"
+        },
+        "short_description": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Short Description"
+        }
+      },
+      "required": [
+        "place_id",
+        "city_id",
+        "category",
+        "name"
+      ],
+      "title": "RecalledPlace",
+      "type": "object"
+    },
+    "RouteMode": {
+      "enum": [
+        "walking",
+        "cycling",
+        "transit",
+        "driving"
+      ],
+      "title": "RouteMode",
+      "type": "string"
+    },
+    "SpatialNodeInput": {
+      "additionalProperties": false,
+      "properties": {
+        "available_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Available Dates",
+          "type": "array"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "fixed_time_window": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FixedTimeWindow"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "format": "uuid",
+          "title": "Node Id",
+          "type": "string"
+        },
+        "place_id": {
+          "format": "uuid",
+          "title": "Place Id",
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/AnchorRole"
+        },
+        "source_reference_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Reference Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "node_id",
+        "place_id",
+        "role",
+        "available_dates",
+        "source_reference_ids"
+      ],
+      "title": "SpatialNodeInput",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/spatial-planning-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "city_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "City Id",
+      "type": "string"
+    },
+    "cluster_threshold_minutes": {
+      "default": 35,
+      "maximum": 180,
+      "minimum": 5,
+      "title": "Cluster Threshold Minutes",
+      "type": "integer"
+    },
+    "end_date": {
+      "format": "date",
+      "title": "End Date",
+      "type": "string"
+    },
+    "input_state_version": {
+      "minimum": 0,
+      "title": "Input State Version",
+      "type": "integer"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/SpatialNodeInput"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "title": "Nodes",
+      "type": "array"
+    },
+    "outlier_threshold_minutes": {
+      "default": 75,
+      "maximum": 360,
+      "minimum": 15,
+      "title": "Outlier Threshold Minutes",
+      "type": "integer"
+    },
+    "places": {
+      "items": {
+        "$ref": "#/$defs/RecalledPlace"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "title": "Places",
+      "type": "array"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "route_modes": {
+      "items": {
+        "$ref": "#/$defs/RouteMode"
+      },
+      "maxItems": 4,
+      "minItems": 1,
+      "title": "Route Modes",
+      "type": "array"
+    },
+    "start_date": {
+      "format": "date",
+      "title": "Start Date",
+      "type": "string"
+    },
+    "task_book_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Task Book Id"
+    },
+    "task_book_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Task Book Revision"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "trip_id",
+    "input_state_version",
+    "city_id",
+    "start_date",
+    "end_date",
+    "places",
+    "nodes",
+    "route_modes"
+  ],
+  "title": "SpatialPlanningRequest",
+  "type": "object"
+}

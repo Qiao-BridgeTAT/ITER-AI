@@ -4,14 +4,14 @@ import type { PlaceIntroductionView } from "../generated/v4/contracts";
 export type IntroductionLoader = (
   scopeKind: PlaceIntroductionView["scope_kind"],
   scopeId: string,
-  signal?: AbortSignal,
+  signal?: AbortSignal
 ) => Promise<PlaceIntroductionView>;
 
 export function usePlaceIntroductions(
   scopeId: string | undefined,
   scopeKind: PlaceIntroductionView["scope_kind"],
   enabled: boolean,
-  load?: IntroductionLoader,
+  load?: IntroductionLoader
 ): ReadonlyMap<string, string> {
   const [loaded, setLoaded] = useState<{
     result: PlaceIntroductionView;
@@ -44,10 +44,10 @@ export function usePlaceIntroductions(
           loaded?.result.scope_kind === scopeKind
           ? (loaded.result.places ?? []).map((place) => [
               place.place_id,
-              place.description,
+              place.description
             ])
-          : [],
+          : []
       ),
-    [loaded, load, scopeId, scopeKind],
+    [loaded, load, scopeId, scopeKind]
   );
 }

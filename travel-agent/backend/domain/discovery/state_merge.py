@@ -41,6 +41,7 @@ from backend.contracts.v4.state import (
     TripSemanticState,
 )
 from backend.contracts.v4.task_book import BookingReference, DelegatedScope, MoneyRange
+from backend.domain.discovery.entity_identity import is_city_entity_ref
 
 _OPERATION_NAMESPACE = UUID("f35e5a94-2a65-4b88-b8d3-0ea39d7eb8d4")
 
@@ -144,18 +145,34 @@ def merge_v4_operations(
                 or candidate.based_on_state_version != semantic_state.state_version
             ):
                 raise V4SemanticMergeError("task book confirmation is stale or mismatched")
-        if (
-            isinstance(
-                proposal,
-                (SelectConcreteEntityOperation, ExcludeConcreteEntityOperation),
-            )
-            and proposal.canonical_entity_id not in known_entity_refs
+        if isinstance(
+            proposal,
+            (SelectConcreteEntityOperation, ExcludeConcreteEntityOperation),
         ):
-            raise V4SemanticMergeError("concrete entity was not resolved or server-signed")
+            if (
+                is_city_entity_ref(proposal.canonical_entity_id)
+                or proposal.canonical_entity_id == working.trip_basics.destination_canonical_id
+            ):
+                raise V4SemanticMergeError("city identity cannot be a concrete entity")
+            if proposal.canonical_entity_id not in known_entity_refs:
+                raise V4SemanticMergeError("concrete entity was not resolved or server-signed")
+            other_domain_entities = (
+                (*working.dining.concrete_restaurant_intents, *working.dining.exclusions)
+                if proposal.domain is SemanticDomainV4.ATTRACTION
+                else (*working.attractions.concrete_intents, *working.attractions.exclusions)
+            )
+            if any(
+                item.canonical_entity_id == proposal.canonical_entity_id
+                for item in other_domain_entities
+            ):
+                raise V4SemanticMergeError("concrete identity belongs to another domain")
         if (
             isinstance(proposal, SetExistingBookingOperation)
             and proposal.canonical_entity_id is not None
-            and proposal.canonical_entity_id not in known_entity_refs
+            and (
+                is_city_entity_ref(proposal.canonical_entity_id)
+                or proposal.canonical_entity_id not in known_entity_refs
+            )
         ):
             raise V4SemanticMergeError("booking entity was not resolved or server-signed")
         if (
@@ -379,6 +396,7 @@ def _apply_operation(
                     "not_applicable": True,
                     "area_preferences": [],
                     "hotel_quality_tier": None,
+                    "hotel_quality_tiers": [],
                     "property_type_preferences": [],
                     "nightly_budget": None,
                     "facility_requirements": [],
@@ -515,6 +533,9 @@ def _apply_operation(
             description=proposal.description,
             tags=proposal.tags,
             search_query=proposal.search_query,
+            attraction_search_hints=proposal.attraction_search_hints,
+            dining_search_hints=proposal.dining_search_hints,
+            lodging_examples=proposal.lodging_examples,
             selected=selected,
             source_operation_refs=[operation_ref],
         )
@@ -556,7 +577,10 @@ def _apply_operation(
                 deep=True,
             )
         if proposal.target is SemanticTargetV4.LODGING_AREA:
-            values = _replace_direction(state.lodging.area_preferences, direction)
+            previous_areas = state.lodging.area_preferences
+            if proposal.replace_lodging_area_choices:
+                previous_areas = []
+            values = _replace_direction(previous_areas, direction)
             return state.model_copy(
                 update={
                     "lodging": state.lodging.model_copy(
@@ -591,7 +615,11 @@ def _apply_operation(
             )
         return state
     if isinstance(proposal, SetLodgingClassPreferenceOperation):
-        property_types = list(state.lodging.property_type_preferences)
+        property_types = list(
+            proposal.property_types
+            if proposal.property_types is not None
+            else state.lodging.property_type_preferences
+        )
         if proposal.property_type and proposal.property_type not in property_types:
             property_types.append(proposal.property_type)
         budget = (
@@ -608,7 +636,16 @@ def _apply_operation(
                 "lodging": state.lodging.model_copy(
                     update={
                         "hotel_quality_tier": (
-                            proposal.hotel_quality_tier or state.lodging.hotel_quality_tier
+                            None
+                            if proposal.hotel_quality_tiers is not None
+                            else proposal.hotel_quality_tier or state.lodging.hotel_quality_tier
+                        ),
+                        "hotel_quality_tiers": (
+                            proposal.hotel_quality_tiers
+                            if proposal.hotel_quality_tiers is not None
+                            else [proposal.hotel_quality_tier]
+                            if proposal.hotel_quality_tier
+                            else state.lodging.hotel_quality_tiers
                         ),
                         "property_type_preferences": property_types,
                         "nightly_budget": budget,
@@ -790,6 +827,10 @@ def _replace_direction(
                 "description": incoming.description or previous.description,
                 "tags": incoming.tags or previous.tags,
                 "search_query": incoming.search_query or previous.search_query,
+                "dining_search_hints": incoming.dining_search_hints or previous.dining_search_hints,
+                "attraction_search_hints": (
+                    incoming.attraction_search_hints or previous.attraction_search_hints
+                ),
                 "source_operation_refs": list(
                     dict.fromkeys(
                         [
@@ -900,6 +941,11 @@ def _revoke_operation_ref(state: TripSemanticState, prior_ref: str) -> TripSeman
                 for item in state.lodging.existing_bookings
                 if prior_ref not in item.source_operation_refs
             ],
+            "hotel_quality_tiers": (
+                []
+                if prior_ref in state.lodging.class_preference_source_operation_refs
+                else state.lodging.hotel_quality_tiers
+            ),
             "hotel_quality_tier": (
                 None
                 if prior_ref in state.lodging.class_preference_source_operation_refs
@@ -949,18 +995,6 @@ def _revoke_operation_ref(state: TripSemanticState, prior_ref: str) -> TripSeman
 
 def _affected_sections(proposal: object) -> set[DiscoverySection]:
     target = getattr(proposal, "target", None)
-    if isinstance(proposal, SetNotApplicableOperation) and target in {
-        SemanticTargetV4.LODGING_AREA,
-        SemanticTargetV4.LODGING_CLASS,
-        SemanticTargetV4.LODGING_BOOKING,
-    }:
-        # This operation clears the entire lodging projection, regardless of
-        # which lodging card originated it. Revalidate all affected evidence.
-        return {
-            DiscoverySection.LODGING_AREA_PREFERENCE,
-            DiscoverySection.LODGING_CLASS_PREFERENCE,
-            DiscoverySection.FINAL_SUPPLEMENT,
-        }
     if isinstance(proposal, SetTripBasicsOperation):
         if any(
             (

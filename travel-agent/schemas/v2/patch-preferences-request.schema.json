@@ -1,0 +1,49 @@
+{
+  "$defs": {
+    "PreferencePatchItem": {
+      "additionalProperties": false,
+      "properties": {
+        "active": {
+          "default": true,
+          "title": "Active",
+          "type": "boolean"
+        },
+        "preference_id": {
+          "format": "uuid",
+          "title": "Preference Id",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "preference_id",
+        "value"
+      ],
+      "title": "PreferencePatchItem",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/patch-preferences-request.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "preferences": {
+      "items": {
+        "$ref": "#/$defs/PreferencePatchItem"
+      },
+      "minItems": 1,
+      "title": "Preferences",
+      "type": "array"
+    }
+  },
+  "required": [
+    "preferences"
+  ],
+  "title": "PatchPreferencesRequest",
+  "type": "object"
+}

@@ -1,0 +1,81 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/planner-interaction-answer.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "affected_refs": {
+      "default": [],
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Affected Refs",
+      "type": "array"
+    },
+    "answer_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Answer Id",
+      "type": "string"
+    },
+    "interaction_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Interaction Id",
+      "type": "string"
+    },
+    "option_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Option Id",
+      "type": "string"
+    },
+    "semantic_action": {
+      "enum": [
+        "keep_task_book",
+        "revise_task_book",
+        "supply_booking_detail",
+        "keep_required_candidate",
+        "omit_required_candidate"
+      ],
+      "title": "Semantic Action",
+      "type": "string"
+    },
+    "source_turn_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Source Turn Id",
+      "type": "string"
+    },
+    "user_text": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "User Text"
+    }
+  },
+  "required": [
+    "answer_id",
+    "interaction_id",
+    "option_id",
+    "semantic_action",
+    "source_turn_id"
+  ],
+  "title": "PlannerInteractionAnswer",
+  "type": "object"
+}

@@ -40,6 +40,17 @@
   font-weight: 650;
 }
 
+.weather-overview-section .weather-empty-state {
+  padding: 18px 16px;
+  border: 1px dashed #cdd8e6;
+  border-radius: 10px;
+  color: #5f7088;
+  background: rgb(255 255 255 / 55%);
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+
 .weather-deck {
   position: relative;
   display: flex;

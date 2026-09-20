@@ -1,0 +1,73 @@
+{
+  "$defs": {
+    "LodgingAnchorDecision": {
+      "enum": [
+        "no_prebooked_hotel",
+        "single_base_ready",
+        "requires_single_base_clarification"
+      ],
+      "title": "LodgingAnchorDecision",
+      "type": "string"
+    },
+    "PrebookedHotel": {
+      "additionalProperties": false,
+      "properties": {
+        "check_in": {
+          "format": "date",
+          "title": "Check In",
+          "type": "string"
+        },
+        "check_out": {
+          "format": "date",
+          "title": "Check Out",
+          "type": "string"
+        },
+        "place_id": {
+          "format": "uuid",
+          "title": "Place Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "place_id",
+        "check_in",
+        "check_out"
+      ],
+      "title": "PrebookedHotel",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/lodging-anchor-assessment.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "decision": {
+      "$ref": "#/$defs/LodgingAnchorDecision"
+    },
+    "prebooked_hotels": {
+      "items": {
+        "$ref": "#/$defs/PrebookedHotel"
+      },
+      "title": "Prebooked Hotels",
+      "type": "array"
+    },
+    "selected_base_place_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Selected Base Place Id"
+    }
+  },
+  "required": [
+    "decision"
+  ],
+  "title": "LodgingAnchorAssessment",
+  "type": "object"
+}

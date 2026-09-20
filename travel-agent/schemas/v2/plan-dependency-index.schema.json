@@ -1,0 +1,112 @@
+{
+  "$defs": {
+    "PlanDayDependency": {
+      "additionalProperties": false,
+      "properties": {
+        "activity_ids": {
+          "default": [],
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Activity Ids",
+          "type": "array"
+        },
+        "attraction_place_ids": {
+          "default": [],
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Attraction Place Ids",
+          "type": "array"
+        },
+        "day_number": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Day Number",
+          "type": "integer"
+        },
+        "restaurant_place_ids": {
+          "default": [],
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Restaurant Place Ids",
+          "type": "array"
+        },
+        "route_leg_ids": {
+          "default": [],
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Route Leg Ids",
+          "type": "array"
+        },
+        "service_date": {
+          "format": "date",
+          "title": "Service Date",
+          "type": "string"
+        }
+      },
+      "required": [
+        "day_number",
+        "service_date"
+      ],
+      "title": "PlanDayDependency",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v2/plan-dependency-index.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "city_id": {
+      "minLength": 1,
+      "title": "City Id",
+      "type": "string"
+    },
+    "days": {
+      "items": {
+        "$ref": "#/$defs/PlanDayDependency"
+      },
+      "maxItems": 5,
+      "minItems": 1,
+      "title": "Days",
+      "type": "array"
+    },
+    "hotel_place_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Hotel Place Id"
+    },
+    "plan_version_id": {
+      "format": "uuid",
+      "title": "Plan Version Id",
+      "type": "string"
+    },
+    "trip_id": {
+      "format": "uuid",
+      "title": "Trip Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "trip_id",
+    "plan_version_id",
+    "city_id",
+    "days"
+  ],
+  "title": "PlanDependencyIndex",
+  "type": "object"
+}

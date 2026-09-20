@@ -64,8 +64,15 @@ def _one_line(value: str | None) -> str | None:
 
 
 class PlaceIntroductionService:
-    def __init__(self, gateway: ModelGateway, *, timeout_seconds: float = 20) -> None:
+    def __init__(
+        self,
+        gateway: ModelGateway,
+        *,
+        timeout_seconds: float = 20,
+        card_gateway: ModelGateway | None = None,
+    ) -> None:
         self._gateway = gateway
+        self._card_gateway = card_gateway
         self._timeout = timeout_seconds
         self._cache: OrderedDict[tuple[UUID, str, UUID], tuple[float, PlaceIntroductionView]] = (
             OrderedDict()
@@ -98,11 +105,27 @@ class PlaceIntroductionService:
                 unique.setdefault(item["place_id"], item)
             by_key = {f"p{index}": item for index, item in enumerate(list(unique.values())[:40])}
             descriptions: dict[str, str | None] = {}
+            use_card_gateway = scope_kind == "card" and self._card_gateway is not None
+            gateway = self._card_gateway if use_card_gateway else self._gateway
+            assert gateway is not None
+            schema = {
+                "type": "object",
+                "properties": {
+                    "descriptions": {
+                        "type": "object",
+                        "properties": {key: {"type": ["string", "null"]} for key in by_key},
+                        "required": list(by_key),
+                        "additionalProperties": False,
+                    }
+                },
+                "required": ["descriptions"],
+                "additionalProperties": False,
+            }
             if by_key:
                 try:
                     async with asyncio.timeout(self._timeout):
                         async with self._semaphore:
-                            result = await self._gateway.generate_structured(
+                            result = await gateway.generate_structured(
                                 ModelRequest(
                                     messages=[
                                         ModelMessage(role=ModelRole.SYSTEM, content=_INSTRUCTIONS),
@@ -112,10 +135,16 @@ class PlaceIntroductionService:
                                         ),
                                     ],
                                     max_output_tokens=2048,
-                                    structured_output_mode="json_object",
+                                    structured_output_mode="json_schema"
+                                    if use_card_gateway
+                                    else "json_object",
+                                    output_schema_override=schema if use_card_gateway else None,
                                     temperature_override=0.75,
                                     audit=ModelAuditMetadata(
-                                        stage="place_introduction",
+                                        stage="prepare_place_introduction"
+                                        if use_card_gateway
+                                        else "place_introduction",
+                                        node=f"{scope_kind}:{scope_id}",
                                         contract_version="natural-place-copy-v1",
                                         attempt=1,
                                     ),

@@ -1,0 +1,19 @@
+{
+  "$id": "https://travel-agent.local/schemas/v4/protocol.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "protocol_version": {
+      "const": "v4"
+    },
+    "schema_version": {
+      "const": "4.0.0"
+    }
+  },
+  "required": [
+    "protocol_version",
+    "schema_version"
+  ],
+  "title": "Travel Agent V4 protocol metadata",
+  "type": "object"
+}

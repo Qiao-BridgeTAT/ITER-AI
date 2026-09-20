@@ -245,6 +245,30 @@ class TripBasicsAssessment(V4ContractModel):
         Annotated[IntakeRequirementFact | IntakePreferenceFact, Field(discriminator="target")]
     ] = Field(default_factory=list, max_length=16)
 
+    @field_validator("requirement_facts", mode="before")
+    @classmethod
+    def discard_null_disposition_from_requirement_facts(cls, value: object) -> object:
+        """Tolerate JSON null on facts whose contract has no disposition field."""
+
+        if not isinstance(value, list):
+            return value
+        requirement_targets = {
+            "general_constraint",
+            "transport_and_pace",
+            "lodging_class",
+            "dining_requirement",
+        }
+        normalized: list[object] = []
+        for item in value:
+            if (
+                isinstance(item, dict)
+                and item.get("target") in requirement_targets
+                and item.get("disposition", ...) is None
+            ):
+                item = {key: field for key, field in item.items() if key != "disposition"}
+            normalized.append(item)
+        return normalized
+
     @field_validator("required_additional_targets", mode="before")
     @classmethod
     def intake_inventory_excludes_lifecycle_actions(cls, value: object) -> object:

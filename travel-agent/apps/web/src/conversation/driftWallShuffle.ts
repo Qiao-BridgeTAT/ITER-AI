@@ -4,7 +4,7 @@ import type { DriftWallItem } from "./DriftWall";
 export function shuffledWallColumns(
   items: readonly DriftWallItem[],
   columns: number,
-  seed: number,
+  seed: number
 ): DriftWallItem[][] {
   const unique = [...new Map(items.map((item) => [item.image, item])).values()];
   let state = seed >>> 0;
@@ -29,9 +29,9 @@ export function shuffledWallColumns(
             (item, index) =>
               item.image ===
               previous[(index - offset + shuffled.length) % shuffled.length]
-                .image,
+                .image
           ).length
-        : 0,
+        : 0
     }));
     const offset = shifts.sort((a, b) => a.matches - b.matches)[0]?.offset ?? 0;
     result.push([...shuffled.slice(offset), ...shuffled.slice(0, offset)]);

@@ -15,10 +15,10 @@ from uuid import UUID
 from backend.agent.model_gateway import ModelCancellation
 from backend.agent.planner.timing_quality import (
     MEAL_START_WINDOWS,
-    PREFERRED_MEAL_START_WINDOWS,
     day_timing_penalty,
     explicit_end_deadline,
     may_advance_departure,
+    meal_start_windows,
     meal_time_violations,
     permits_taxi_tradeoff,
 )
@@ -238,11 +238,39 @@ def _materialize_day(
     shortened visits, moved reservations or invented driving times are involved.
     """
     assert workspace.planning_strategy is not None
+    if (
+        workspace.react_state
+        and workspace.react_state.route_refresh_only
+        and workspace.materialized_schedule
+    ):
+        original = next(
+            (d for d in workspace.materialized_schedule.days if d.service_date == day.service_date),
+            None,
+        )
+        if original is not None:
+            overrides = {
+                item.draft_item_id: sum(
+                    a.duration_minutes
+                    for a in original.activities
+                    if a.place_id == _item_place_id(item)
+                )
+                for item in day.ordered_items
+            }
+            return _materialize_day_at(
+                day,
+                workspace,
+                book,
+                start_override=_time_minutes(original.start_time),
+                duration_overrides={key: value for key, value in overrides.items() if value > 0},
+            )
     policy = workspace.planning_strategy.daily_capacity_policy
-    preferred_start = _time_minutes(policy.preferred_start_window.earliest) or 9 * 60
+    preferred_start = (
+        _time_minutes(day.start_time or policy.preferred_start_window.earliest) or 9 * 60
+    )
     baseline = _materialize_day_at(day, workspace, book, start_override=preferred_start)
-    end = policy.preferred_end_window.latest
-    baseline_penalty = day_timing_penalty(day, baseline.day, end)
+    end = day.end_time or policy.preferred_end_window.latest
+    react = workspace.react_state is not None
+    baseline_penalty = day_timing_penalty(day, baseline.day, end, react=react)
     if baseline_penalty == 0 and not _known_hours_conflicts(day, baseline.day, workspace):
         return baseline
     starts = [preferred_start]
@@ -284,7 +312,7 @@ def _materialize_day(
         # just because its commute no longer delays dinner.
         return (
             bad_hours(result),
-            day_timing_penalty(day, result.day, end),
+            day_timing_penalty(day, result.day, end, react=react),
             departure_shift + changed_modes * 40,
         )
 
@@ -402,16 +430,21 @@ def _materialize_day_at(
     assert workspace.working_itinerary is not None
     assert workspace.planning_strategy is not None
     strategy = workspace.planning_strategy
+    react = workspace.react_state is not None
+    allowed_meals = meal_start_windows(react=react)
+    preferred_meals = meal_start_windows(react=react, preferred=True)
     pool_by_id = workspace.candidate_pool.candidate_by_id()
     places = {item.canonical_entity_id: item for item in workspace.place_evidence}
     hours = {item.canonical_entity_id: item for item in workspace.hours_evidence}
     discardable = {
         item.draft_item_id: item
         for item in workspace.working_itinerary.discardable_objects
-        if item.mode == "materializer_may_omit"
+        if item.mode == "materializer_may_omit" and workspace.react_state is None
     }
     start_limit = start_override
-    end_limit = _time_minutes(strategy.daily_capacity_policy.preferred_end_window.latest)
+    end_limit = _time_minutes(
+        day.end_time or strategy.daily_capacity_policy.preferred_end_window.latest
+    )
     if end_limit is None:
         end_limit = 20 * 60
     hard_end = explicit_end_deadline(book, day.service_date)
@@ -580,8 +613,7 @@ def _materialize_day_at(
                         else MISSING_ROUTE_PLACEHOLDER_MINUTES + MISSING_ROUTE_BUFFER_MINUTES
                     )
                 finish_limits = tuple(
-                    window[next_meal][1] - transfer
-                    for window in (PREFERRED_MEAL_START_WINDOWS, MEAL_START_WINDOWS)
+                    window[next_meal][1] - transfer for window in (preferred_meals, allowed_meals)
                 )
                 if isinstance(next_value, DraftItem) and isinstance(
                     next_value.object_ref, CandidateRef
@@ -603,19 +635,19 @@ def _materialize_day_at(
                                 _time_minutes(interval.closes_at) - meal_duration,
                                 _time_minutes(interval.last_entry_at) or 24 * 60,
                                 _expected_latest(next_value),
-                                MEAL_START_WINDOWS[next_meal][1],
+                                allowed_meals[next_meal][1],
                             )
                             for interval in meal_date.intervals
                             if max(
                                 _time_minutes(interval.opens_at),
                                 _time_minutes(next_value.expected_window.earliest) or 0,
-                                MEAL_START_WINDOWS[next_meal][0],
+                                allowed_meals[next_meal][0],
                             )
                             <= min(
                                 _time_minutes(interval.closes_at) - meal_duration,
                                 _time_minutes(interval.last_entry_at) or 24 * 60,
                                 _expected_latest(next_value),
-                                MEAL_START_WINDOWS[next_meal][1],
+                                allowed_meals[next_meal][1],
                             )
                         ]
                         if latest_starts:
@@ -645,8 +677,13 @@ def _materialize_day_at(
             places,
             hours,
             day_start=start_limit,
-            estimate=envelope_estimate,
-            finish_limits=finish_limits,
+            estimate=None
+            if workspace.react_state and workspace.react_state.route_refresh_only
+            else envelope_estimate,
+            # The Agent chooses visit depth. ReAct may adjust departure and
+            # meals, but must not shorten visits just to squeeze in more POIs.
+            finish_limits=() if react else finish_limits,
+            react=react,
         )
         duration = envelope_duration - meal_minutes
         projected_finish = start + envelope_duration
@@ -686,7 +723,10 @@ def _materialize_day_at(
         if item.onsite_lunch:
             # No extra journey, exit/re-entry assumption or fake restaurant.
             # Keep the original first segment ID and node for old consumers.
-            lunch_start = max(start + 30, min(13 * 60, max(12 * 60, start + 90)))
+            lunch_start = max(
+                start + 30,
+                min(preferred_meals["lunch"][1], max(12 * 60, start + 90)),
+            )
             before_lunch = min(max(1, duration - 30), lunch_start - start)
             lunch_start = start + before_lunch
             activities.append(
@@ -1058,13 +1098,15 @@ def _fit_item(
     hours: Mapping[str, PlannerHoursEvidence],
     *,
     day_start: int | None = None,
+    react: bool = False,
 ) -> tuple[int, DataAvailability, str | None, tuple[str, ...]]:
+    allowed_meals = meal_start_windows(react=react)
+    preferred_meals = meal_start_windows(react=react, preferred=True)
     preferred = _expected_start(item)
     if item.meal_slot == "dinner" and item.expected_window.earliest is None:
-        # The preferred 18:00-20:00 band is a quality target, not permission to
-        # strand travellers at a restaurant until 18:00. Actual visits can push
-        # dinner later, but after 17:00 an ordinary meal may start on arrival.
-        preferred = max(cursor, MEAL_START_WINDOWS["dinner"][0])
+        # The ideal range is a quality target. An ordinary dinner can start on
+        # arrival once this engine's allowed start window has opened.
+        preferred = max(cursor, allowed_meals["dinner"][0])
     if (
         isinstance(item.object_ref, CandidateRef)
         and item.item_kind == "visit"
@@ -1099,7 +1141,7 @@ def _fit_item(
         # Day parts and default mealtimes are preferences, not appointments.
         # Move within a sensible broad window instead of waiting for 13:30/18:00.
         floor = (
-            PREFERRED_MEAL_START_WINDOWS[item.meal_slot][0]
+            preferred_meals[item.meal_slot][0]
             if item.meal_slot
             else {
                 "morning": 9 * 60,
@@ -1112,9 +1154,13 @@ def _fit_item(
         preferred = max(floor, min(preferred, cursor + 30))
     earliest = max(cursor, preferred)
     latest = _expected_latest(item)
+    if react and item.item_kind == "visit" and item.expected_window.latest is None:
+        # ReAct's day parts are relative to meals; real opening hours still
+        # bound admission. An after-dinner visit is not limited by a 21:00 tag.
+        latest = 24 * 60
     if item.meal_slot is not None:
-        earliest = max(earliest, MEAL_START_WINDOWS[item.meal_slot][0])
-        latest = min(latest, MEAL_START_WINDOWS[item.meal_slot][1])
+        earliest = max(earliest, allowed_meals[item.meal_slot][0])
+        latest = min(latest, allowed_meals[item.meal_slot][1])
     if isinstance(item.object_ref, FixedCommitmentRef):
         has_explicit_start = item.expected_window.earliest is not None
         return (
@@ -1172,9 +1218,7 @@ def _fit_item(
     if item.meal_slot is not None and item.expected_window.earliest is None:
         # A preferred dinner time must not override verified restaurant hours.
         for interval in date_hours.intervals:
-            start = max(
-                cursor, MEAL_START_WINDOWS[item.meal_slot][0], _time_minutes(interval.opens_at)
-            )
+            start = max(cursor, allowed_meals[item.meal_slot][0], _time_minutes(interval.opens_at))
             deadline = min(
                 latest,
                 _time_minutes(interval.last_entry_at) or latest,
@@ -1197,6 +1241,7 @@ def _fit_flexible_visit(
     day_start: int,
     estimate: PlannerVisitDurationEstimate | None,
     finish_limits: tuple[int, ...] = (),
+    react: bool = False,
 ) -> tuple[tuple[int, DataAvailability, str | None, tuple[str, ...]], int]:
     """Fit advisory durations to real hours, never shorten a fixed commitment.
 
@@ -1204,7 +1249,15 @@ def _fit_flexible_visit(
     duration within the existing estimate; do not invent hours or a lower bound.
     """
     fitted = _fit_item(
-        item, service_date, cursor, duration, pool_by_id, places, hours, day_start=day_start
+        item,
+        service_date,
+        cursor,
+        duration,
+        pool_by_id,
+        places,
+        hours,
+        day_start=day_start,
+        react=react,
     )
     if (
         item.item_kind != "visit"
@@ -1239,7 +1292,15 @@ def _fit_flexible_visit(
             if not estimate.minimum_minutes <= adjusted <= duration:
                 continue
             candidate = _fit_item(
-                item, service_date, cursor, adjusted, pool_by_id, places, hours, day_start=day_start
+                item,
+                service_date,
+                cursor,
+                adjusted,
+                pool_by_id,
+                places,
+                hours,
+                day_start=day_start,
+                react=react,
             )
             if candidate[0] + adjusted <= limit and (
                 candidate[1] is DataAvailability.AVAILABLE
@@ -1346,7 +1407,7 @@ def _select_route(
         and edge.status in {"available", "partial"}
         and edge.duration_minutes is not None
     }
-    override = (
+    override = _refresh_route_mode(origin, destination, workspace, day) or (
         next(
             (
                 choice.transport_mode
@@ -1363,7 +1424,8 @@ def _select_route(
         return _RouteSelection(edge=edge, mode=_route_mode(override)) if edge is not None else None
     walking = by_mode.get("walking")
     if (
-        book is not None
+        workspace.react_state is None
+        and book is not None
         and walking is not None
         and walking.distance_meters is not None
         and walking.distance_meters <= 1000
@@ -1405,6 +1467,49 @@ def _select_route(
         ):
             return _RouteSelection(edge=taxi, mode=RouteMode.DRIVING)
         return _RouteSelection(edge=edge, mode=_route_mode(preference))
+    return None
+
+
+def _refresh_route_mode(
+    origin: SpatialRouteEndpoint,
+    destination: SpatialRouteEndpoint,
+    workspace: PlannerWorkspaceState,
+    day: WorkingItineraryDay | None,
+) -> TransportPreference | None:
+    if not (
+        day
+        and workspace.react_state
+        and workspace.react_state.route_refresh_only
+        and workspace.materialized_schedule
+        and workspace.working_itinerary
+    ):
+        return None
+    candidates = workspace.candidate_pool.candidate_by_id()
+    lodging = workspace.working_itinerary.lodging_baseline
+
+    def place_id(endpoint: SpatialRouteEndpoint) -> UUID | None:
+        if endpoint.kind == "candidate" and endpoint.reference_id in candidates:
+            return UUID(candidates[endpoint.reference_id].candidate_ref.canonical_entity_id)
+        if endpoint.kind == "hotel_offer" and lodging.selected_offer_ref:
+            return UUID(server_id("hotel-property", lodging.selected_offer_ref.property_id))
+        if endpoint.kind == "fixed_commitment" and lodging.fixed_commitment_ref:
+            return UUID(server_id("fixed-hotel", lodging.fixed_commitment_ref.commitment_id))
+        return None
+
+    left, right = place_id(origin), place_id(destination)
+    for old_day in workspace.materialized_schedule.days:
+        if old_day.service_date == day.service_date:
+            for leg in old_day.transport_legs:
+                if (leg.origin_place_id, leg.destination_place_id) == (left, right):
+                    if leg.mode is RouteMode.CYCLING:
+                        raise PlannerGuardError("route_refresh_unsupported_cycling_mode")
+                    return {
+                        RouteMode.DRIVING: "taxi"
+                        if "taxi" in day.transport_preferences
+                        else "driving",
+                        RouteMode.WALKING: "walking",
+                        RouteMode.TRANSIT: "public_transit",
+                    }[leg.mode]
     return None
 
 

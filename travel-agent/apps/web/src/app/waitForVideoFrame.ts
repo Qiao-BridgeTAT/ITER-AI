@@ -2,7 +2,7 @@
 export function waitForVideoFrame(
   video: HTMLVideoElement,
   signal: AbortSignal,
-  { retry = false, reducedMotion = false } = {},
+  { retry = false, reducedMotion = false } = {}
 ) {
   if (signal.aborted) return Promise.resolve();
 

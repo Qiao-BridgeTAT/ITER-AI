@@ -1,0 +1,510 @@
+{
+  "$defs": {
+    "AnchorRole": {
+      "enum": [
+        "fixed_event",
+        "fixed_hotel",
+        "must_attraction",
+        "want_attraction",
+        "destination_restaurant",
+        "convenient_attraction",
+        "convenient_restaurant"
+      ],
+      "type": "string"
+    },
+    "ArtifactStatus": {
+      "enum": [
+        "pending",
+        "ready",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "AssetKind": {
+      "enum": [
+        "illustration",
+        "placeholder",
+        "photo"
+      ],
+      "type": "string"
+    },
+    "AssetRightsStatus": {
+      "enum": [
+        "owned",
+        "placeholder",
+        "licensed"
+      ],
+      "type": "string"
+    },
+    "AssumptionKind": {
+      "enum": [
+        "user_override",
+        "system_default",
+        "data_missing",
+        "planning_tradeoff"
+      ],
+      "type": "string"
+    },
+    "AttractionIntent": {
+      "enum": [
+        "must",
+        "want",
+        "if_convenient",
+        "avoid"
+      ],
+      "type": "string"
+    },
+    "CityBriefStatus": {
+      "enum": [
+        "viewed",
+        "skipped_intro"
+      ],
+      "type": "string"
+    },
+    "CityCode": {
+      "enum": [
+        "beijing",
+        "nanjing"
+      ],
+      "type": "string"
+    },
+    "CityHistoryStatus": {
+      "enum": [
+        "available",
+        "not_applicable",
+        "unavailable"
+      ],
+      "type": "string"
+    },
+    "CityThemeMode": {
+      "enum": [
+        "selected",
+        "open_to_any"
+      ],
+      "type": "string"
+    },
+    "CommandType": {
+      "enum": [
+        "cold_start_submit",
+        "city_select",
+        "city_brief_acknowledge",
+        "personal_defaults_confirm",
+        "personal_defaults_adjust",
+        "personal_defaults_not_use",
+        "trip_setup_submit",
+        "city_themes_submit",
+        "attraction_feedback_submit",
+        "dining_preferences_submit",
+        "restaurant_feedback_submit",
+        "hotel_favorites_submit",
+        "task_book_confirm",
+        "user_message",
+        "accept_plan",
+        "cancel_generation",
+        "reset_trip"
+      ],
+      "type": "string"
+    },
+    "Confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "type": "string"
+    },
+    "ConfirmationStatus": {
+      "enum": [
+        "pending",
+        "confirmed",
+        "rejected"
+      ],
+      "type": "string"
+    },
+    "ConstraintKind": {
+      "enum": [
+        "mobility",
+        "schedule",
+        "dietary",
+        "accessibility",
+        "companion",
+        "other"
+      ],
+      "type": "string"
+    },
+    "CoordinateSystem": {
+      "enum": [
+        "gcj_02",
+        "wgs_84",
+        "bd_09"
+      ],
+      "type": "string"
+    },
+    "CostCategory": {
+      "enum": [
+        "lodging",
+        "dining",
+        "attraction_tickets",
+        "local_transport"
+      ],
+      "type": "string"
+    },
+    "DataAvailability": {
+      "enum": [
+        "available",
+        "partial",
+        "missing"
+      ],
+      "type": "string"
+    },
+    "DateInputMode": {
+      "enum": [
+        "suggestion",
+        "natural_language"
+      ],
+      "type": "string"
+    },
+    "DateSuggestionKind": {
+      "enum": [
+        "nearest_weekend",
+        "nearby_holiday"
+      ],
+      "type": "string"
+    },
+    "DayReturn": {
+      "enum": [
+        "before_20",
+        "around_21",
+        "after_22",
+        "flexible"
+      ],
+      "type": "string"
+    },
+    "DayStart": {
+      "enum": [
+        "before_07",
+        "around_08",
+        "around_09",
+        "around_10",
+        "after_11",
+        "flexible"
+      ],
+      "type": "string"
+    },
+    "DiningOptionKind": {
+      "enum": [
+        "local_cuisine",
+        "popular_eatery"
+      ],
+      "type": "string"
+    },
+    "EventType": {
+      "enum": [
+        "state_patch",
+        "stream_token",
+        "gesture_ready",
+        "map_update",
+        "itinerary_update",
+        "generation_status",
+        "issue",
+        "error"
+      ],
+      "type": "string"
+    },
+    "EvidenceSource": {
+      "enum": [
+        "cold_start",
+        "card",
+        "dialogue",
+        "agent_inference",
+        "system_default",
+        "provider"
+      ],
+      "type": "string"
+    },
+    "EvidenceStatus": {
+      "enum": [
+        "confirmed",
+        "inferred",
+        "assumed",
+        "unknown"
+      ],
+      "type": "string"
+    },
+    "ExcludedCostKind": {
+      "enum": [
+        "airfare",
+        "rail",
+        "intercity_transport"
+      ],
+      "type": "string"
+    },
+    "FeedbackSource": {
+      "enum": [
+        "card",
+        "dialogue",
+        "system_default"
+      ],
+      "type": "string"
+    },
+    "FiveLevel": {
+      "enum": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "type": "integer"
+    },
+    "FixedEventKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "hotel",
+        "activity",
+        "other"
+      ],
+      "type": "string"
+    },
+    "GenerationStatus": {
+      "enum": [
+        "started",
+        "running",
+        "completed",
+        "cancelled",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "GestureKind": {
+      "enum": [
+        "city_brief",
+        "personal_profile",
+        "trip_setup",
+        "city_themes",
+        "attractions",
+        "dining_options",
+        "restaurants",
+        "lodging",
+        "task_book",
+        "plan_ready",
+        "export_ready"
+      ],
+      "type": "string"
+    },
+    "HotelSelectionSource": {
+      "enum": [
+        "prebooked",
+        "user_favorites",
+        "system_candidates"
+      ],
+      "type": "string"
+    },
+    "HttpMethod": {
+      "enum": [
+        "GET",
+        "POST",
+        "PATCH",
+        "DELETE"
+      ],
+      "type": "string"
+    },
+    "IssueSeverity": {
+      "enum": [
+        "info",
+        "warning",
+        "hard"
+      ],
+      "type": "string"
+    },
+    "ItineraryEntryKind": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "activity",
+        "hotel",
+        "rest",
+        "buffer"
+      ],
+      "type": "string"
+    },
+    "LodgingAnchorDecision": {
+      "enum": [
+        "no_prebooked_hotel",
+        "single_base_ready",
+        "requires_single_base_clarification"
+      ],
+      "type": "string"
+    },
+    "LodgingCenterKind": {
+      "enum": [
+        "area",
+        "transit_station",
+        "walking_radius"
+      ],
+      "type": "string"
+    },
+    "MobilityTolerance": {
+      "enum": [
+        "never",
+        "within_5",
+        "around_10",
+        "15_plus"
+      ],
+      "type": "string"
+    },
+    "OwnerType": {
+      "enum": [
+        "anonymous",
+        "user"
+      ],
+      "type": "string"
+    },
+    "PlaceCategory": {
+      "enum": [
+        "attraction",
+        "restaurant",
+        "hotel",
+        "transport",
+        "activity",
+        "other"
+      ],
+      "type": "string"
+    },
+    "PlaceFactKind": {
+      "enum": [
+        "address",
+        "rating",
+        "popularity",
+        "review_count",
+        "regular_hours",
+        "price",
+        "phone",
+        "website",
+        "other"
+      ],
+      "type": "string"
+    },
+    "PlanningIssueCode": {
+      "enum": [
+        "date_conflict",
+        "opening_hours_conflict",
+        "fixed_event_conflict",
+        "insufficient_travel_time",
+        "time_overlap",
+        "walking_limit",
+        "daily_load",
+        "lodging_coverage",
+        "repeated_experience",
+        "cross_area_backtracking",
+        "meal_timing",
+        "insufficient_buffer",
+        "weather_risk",
+        "missing_data"
+      ],
+      "type": "string"
+    },
+    "PreferenceDecisionMode": {
+      "enum": [
+        "use_defaults",
+        "adjust_for_trip",
+        "use_neutral"
+      ],
+      "type": "string"
+    },
+    "PriorityGoal": {
+      "enum": [
+        "must_see_places",
+        "comfortable_stay",
+        "satisfying_food",
+        "smooth_routes",
+        "good_value"
+      ],
+      "type": "string"
+    },
+    "ProviderCode": {
+      "enum": [
+        "amap",
+        "baidu",
+        "flyai",
+        "weather",
+        "city_content",
+        "official",
+        "manual"
+      ],
+      "type": "string"
+    },
+    "RestAuthMode": {
+      "enum": [
+        "public",
+        "session"
+      ],
+      "type": "string"
+    },
+    "RestOwnershipPolicy": {
+      "enum": [
+        "none",
+        "same_owner",
+        "anonymous_handoff"
+      ],
+      "type": "string"
+    },
+    "RestResourceKind": {
+      "enum": [
+        "account",
+        "anonymous_session",
+        "trip",
+        "preference",
+        "export"
+      ],
+      "type": "string"
+    },
+    "RestaurantIntent": {
+      "enum": [
+        "destination",
+        "if_convenient",
+        "avoid"
+      ],
+      "type": "string"
+    },
+    "TransportMode": {
+      "enum": [
+        "walk",
+        "bicycle",
+        "public_transit",
+        "taxi"
+      ],
+      "type": "string"
+    },
+    "TripPhase": {
+      "enum": [
+        "cold_start",
+        "city_selection",
+        "city_brief",
+        "trip_setup",
+        "interest_selection",
+        "attraction_selection",
+        "dining_selection",
+        "lodging_selection",
+        "task_reflection",
+        "planning",
+        "draft_ready",
+        "revising",
+        "confirmed"
+      ],
+      "type": "string"
+    },
+    "VersionStatus": {
+      "enum": [
+        "draft",
+        "confirmed",
+        "superseded"
+      ],
+      "type": "string"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/enums.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Travel Agent shared enums"
+}

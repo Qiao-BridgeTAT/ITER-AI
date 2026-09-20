@@ -1,4 +1,11 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type ReactNode,
+  FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 
 import { ContinuousPreferenceSlider } from "../components/ContinuousPreferenceSlider";
 import type { ColdStartSubmission } from "../generated/contracts";
@@ -7,7 +14,7 @@ import type {
   DayStart,
   FiveLevel,
   MobilityTolerance,
-  PriorityGoal,
+  PriorityGoal
 } from "../generated/enums";
 import { PriorityGoalsQuestion } from "./PriorityGoalsQuestion";
 
@@ -18,6 +25,7 @@ interface ColdStartModalProps {
   mode?: "onboarding" | "editing";
   submitting?: boolean;
   submissionError?: string | null;
+  memoryManager?: ReactNode;
 }
 
 interface ColdStartValues {
@@ -37,7 +45,7 @@ const STEP_LABELS = [
   "熟悉与新鲜",
   "行走方式",
   "出行习惯",
-  "最在意的事",
+  "最在意的事"
 ] as const;
 
 const DAY_START_OPTIONS: ReadonlyArray<{ value: DayStart; label: string }> = [
@@ -45,24 +53,24 @@ const DAY_START_OPTIONS: ReadonlyArray<{ value: DayStart; label: string }> = [
   { value: "around_08", label: "8 点左右" },
   { value: "around_09", label: "9 点左右" },
   { value: "around_10", label: "10 点左右" },
-  { value: "after_11", label: "11 点后" },
+  { value: "after_11", label: "11 点后" }
 ];
 
 const DAY_RETURN_OPTIONS: ReadonlyArray<{ value: DayReturn; label: string }> = [
   { value: "before_20", label: "20 点前" },
   { value: "around_21", label: "21 点左右" },
-  { value: "after_22", label: "22 点后" },
+  { value: "after_22", label: "22 点后" }
 ];
 
 const INITIAL_VALUES: ColdStartValues = {
   dayStart: "around_09",
   dayReturn: "around_21",
-  pace: 38,
+  pace: 50,
   classicNiche: 50,
-  walking: 52,
+  walking: 50,
   bikeTolerance: null,
-  transitTaxi: 46,
-  priorityGoals: [],
+  transitTaxi: 50,
+  priorityGoals: []
 };
 
 export function ColdStartModal({
@@ -72,17 +80,15 @@ export function ColdStartModal({
   mode = "onboarding",
   submitting = false,
   submissionError = null,
+  memoryManager
 }: ColdStartModalProps) {
   const isEditing = mode === "editing";
   const [step, setStep] = useState(0);
   const [values, setValues] = useState<ColdStartValues>(() =>
-    initialSubmission
-      ? valuesFromSubmission(initialSubmission)
-      : INITIAL_VALUES,
+    initialSubmission ? valuesFromSubmission(initialSubmission) : INITIAL_VALUES
   );
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(
-    () =>
-      new Set(initialSubmission ? STEP_LABELS.map((_, index) => index) : []),
+    () => new Set(initialSubmission ? STEP_LABELS.map((_, index) => index) : [])
   );
   const titleRef = useRef<HTMLHeadingElement>(null);
 
@@ -121,11 +127,9 @@ export function ColdStartModal({
       classicNicheDescription(values.classicNiche),
       walkingDescription(values.walking),
       transitDescription(values.transitTaxi),
-      values.priorityGoals.length
-        ? `${values.priorityGoals.length} 项优先`
-        : "",
+      values.priorityGoals.length ? `${values.priorityGoals.length} 项优先` : ""
     ],
-    [values],
+    [values]
   );
 
   const submitCurrentStep = (event: FormEvent) => {
@@ -146,7 +150,7 @@ export function ColdStartModal({
       walking_tolerance: walkingToTolerance(values.walking),
       bike_tolerance: values.bikeTolerance ?? "never",
       transit_taxi_level: continuousToFiveLevel(values.transitTaxi),
-      priority_goals: values.priorityGoals,
+      priority_goals: values.priorityGoals
     });
   };
 
@@ -211,6 +215,7 @@ export function ColdStartModal({
 
           <form className="cold-start-stage" onSubmit={submitCurrentStep}>
             <div className="cold-start-stage-content">
+              {memoryManager}
               <StepContent
                 step={step}
                 values={values}
@@ -259,7 +264,7 @@ function StepContent({
   step,
   values,
   setValues,
-  titleRef,
+  titleRef
 }: {
   step: number;
   values: ColdStartValues;
@@ -390,7 +395,7 @@ function StepContent({
               onClick={() =>
                 setValues((current) => ({
                   ...current,
-                  bikeTolerance: "around_10",
+                  bikeTolerance: "around_10"
                 }))
               }
             >
@@ -402,7 +407,7 @@ function StepContent({
               onClick={() =>
                 setValues((current) => ({
                   ...current,
-                  bikeTolerance: "never",
+                  bikeTolerance: "never"
                 }))
               }
             >
@@ -465,7 +470,7 @@ function QuestionHeading({
   eyebrow,
   title,
   help,
-  titleRef,
+  titleRef
 }: {
   eyebrow: string;
   title: string;
@@ -487,7 +492,7 @@ function TimeChoice<T extends string>({
   label,
   value,
   options,
-  onChange,
+  onChange
 }: {
   label: string;
   value: T;
@@ -528,13 +533,13 @@ function toleranceToWalking(value: MobilityTolerance): number {
     never: 8,
     within_5: 30,
     around_10: 56,
-    "15_plus": 86,
+    "15_plus": 86
   };
   return positions[value];
 }
 
 function valuesFromSubmission(
-  submission: ColdStartSubmission,
+  submission: ColdStartSubmission
 ): ColdStartValues {
   return {
     dayStart: submission.day_start,
@@ -544,7 +549,7 @@ function valuesFromSubmission(
     walking: toleranceToWalking(submission.walking_tolerance),
     bikeTolerance: submission.bike_tolerance,
     transitTaxi: fiveLevelToContinuous(submission.transit_taxi_level),
-    priorityGoals: [...submission.priority_goals],
+    priorityGoals: [...submission.priority_goals]
   };
 }
 
@@ -627,7 +632,7 @@ function shortTime(value: DayStart | DayReturn): string {
     before_20: "20:00 前",
     around_21: "21:00",
     after_22: "22:00 后",
-    flexible: "灵活",
+    flexible: "灵活"
   };
   return labels[value];
 }

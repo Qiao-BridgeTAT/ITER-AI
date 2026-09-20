@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import type {
   CardControlAction,
@@ -9,21 +9,25 @@ import type {
   TripSemanticState,
   V4Attachment,
   V4CardAnswerPayload,
-  V4CardSelection,
+  V4CardSelection
 } from "../generated/v4/contracts";
+import { V4TaskBookPreview } from "../task-book/V4TaskBookPreview";
 import {
   usePlaceIntroductions,
-  type IntroductionLoader,
+  type IntroductionLoader
 } from "../planning/usePlaceIntroductions";
-import { V4TaskBookPreview } from "../task-book/V4TaskBookPreview";
 import {
   AttractionAccordionAttachment,
   type AttractionAccordionItem,
-  type RecommendationIntent,
+  type RecommendationIntent
 } from "./AttractionAccordionAttachment";
 import { AttractionDepthCarouselAttachment } from "./AttractionDepthCarouselAttachment";
-import { DiningFacts } from "./DiningFacts";
 import { discoveryOptionDescription } from "./discoveryCopy";
+import { DiningFacts } from "./DiningFacts";
+import {
+  LodgingQualityOption,
+  LodgingAreaIllustration
+} from "./LodgingPreferenceVisuals";
 import { recommendationGalleryMode } from "./recommendationGalleryMode";
 
 export type V4CardAnswerDraft = Omit<V4CardAnswerPayload, "answer_id">;
@@ -45,6 +49,7 @@ type V4DiscoveryAttachmentProps = {
   onModifyTaskBook?: () => void;
   onReload?: () => void;
   loadIntroductions?: IntroductionLoader;
+  onFocusOption?: (attachmentId: string, optionId: string) => void;
 };
 
 const DISPOSITION_LABELS: Record<CardDisposition, string> = {
@@ -54,7 +59,7 @@ const DISPOSITION_LABELS: Record<CardDisposition, string> = {
   want: "想去",
   destination: "必吃",
   if_convenient: "顺路去",
-  avoid: "不去",
+  avoid: "不去"
 };
 
 const CARD_SECTION_LABELS: Record<CardSection, string> = {
@@ -62,8 +67,8 @@ const CARD_SECTION_LABELS: Record<CardSection, string> = {
   attraction_specific: "具体景点",
   dining_preference: "饮食方向",
   dining_specific: "具体餐厅",
-  lodging_area_preference: "住宿区位",
-  lodging_class_preference: "住宿档次与类型",
+  lodging_area_preference: "住宿区域",
+  lodging_class_preference: "住宿品质"
 };
 
 export function V4DiscoveryAttachment({
@@ -78,6 +83,7 @@ export function V4DiscoveryAttachment({
   onModifyTaskBook,
   onReload,
   loadIntroductions,
+  onFocusOption
 }: V4DiscoveryAttachmentProps) {
   if (isTaskBook(attachment)) {
     const taskBook =
@@ -92,6 +98,7 @@ export function V4DiscoveryAttachment({
         taskBook.based_on_state_version;
     return (
       <V4TaskBookPreview
+        triggerVariant="conversation"
         taskBook={taskBook}
         semanticState={semanticState}
         disabled={disabled || !isActive}
@@ -117,6 +124,11 @@ export function V4DiscoveryAttachment({
       onSubmit={onSubmitCard}
       onReload={onReload}
       loadIntroductions={loadIntroductions}
+      onFocusOption={
+        isActive || attachment.section === "dining_specific"
+          ? onFocusOption
+          : undefined
+      }
     />
   );
 }
@@ -130,6 +142,7 @@ function DiscoveryCard({
   onSubmit,
   onReload,
   loadIntroductions,
+  onFocusOption
 }: {
   card: CardAttachment;
   semanticState?: TripSemanticState | null;
@@ -139,29 +152,61 @@ function DiscoveryCard({
   onSubmit: (answer: V4CardAnswerDraft) => boolean;
   onReload?: () => void;
   loadIntroductions?: IntroductionLoader;
+  onFocusOption?: (attachmentId: string, optionId: string) => void;
 }) {
+  const focusOption = useCallback(
+    (id: string) => onFocusOption?.(card.attachment_id, id),
+    [onFocusOption, card.attachment_id]
+  );
   const introductions = usePlaceIntroductions(
     card.attachment_id,
     "card",
     card.section === "dining_specific",
-    loadIntroductions,
+    loadIntroductions
   );
   const [selections, setSelections] = useState<Record<string, CardDisposition>>(
-    () => initialSelections(card, semanticState),
+    () => initialSelections(card, semanticState)
   );
   const [textControl, setTextControl] = useState<CardControlAction | null>(
-    null,
+    null
   );
   const [freeText, setFreeText] = useState("");
   const selected = useMemo<V4CardSelection[]>(
     () =>
       Object.entries(selections).map(([option_id, disposition]) => ({
         option_id,
-        disposition,
+        disposition
       })),
-    [selections],
+    [selections]
   );
-  const isSingleChoice = card.section === "lodging_class_preference";
+  const isQualityCard =
+    card.section === "lodging_class_preference" &&
+    card.generation_metadata.strategy_version === "lodging-v2";
+  const isLodgingCard =
+    isQualityCard ||
+    (card.section === "lodging_area_preference" &&
+      card.generation_metadata.strategy_version === "lodging-v2");
+  const isSingleChoice =
+    card.section === "lodging_class_preference" && !isQualityCard;
+  const qualityGroupsComplete =
+    !isQualityCard ||
+    ["quality", "property_type"].every((group) =>
+      card.options.some(
+        (option) =>
+          option.selection_group === group &&
+          selections[option.option_id] === "selected"
+      )
+    );
+  const isAttractionPreference = card.section === "attraction_preference";
+  const isDining = card.domain === "dining";
+  const usePreferenceStyle =
+    isAttractionPreference || isDining || isLodgingCard;
+  const visibleControls =
+    isAttractionPreference || isDining
+      ? (card.control_actions ?? [])
+          .filter((control) => control.kind === "no_preference")
+          .slice(0, 1)
+      : (card.control_actions ?? []);
   const isAttractionGallery =
     card.kind === "specific_card" && card.domain === "attraction";
   const visibleOptions = useMemo(
@@ -170,10 +215,10 @@ function DiscoveryCard({
         ? [...card.options].sort(
             (a, b) =>
               Number(b.composition_role === "representative_extra") -
-              Number(a.composition_role === "representative_extra"),
+              Number(a.composition_role === "representative_extra")
           )
         : card.options,
-    [card.options, card.section],
+    [card.options, card.section]
   );
   const galleryItems: AttractionAccordionItem[] = isAttractionGallery
     ? card.options.map((option) => ({
@@ -189,11 +234,12 @@ function DiscoveryCard({
           option.composition_role === "representative_extra"
             ? "城市代表"
             : "个性化推荐",
-        experience:
-          card.generation_metadata.strategy_version === "attraction-v2"
-            ? (option.description ?? "")
-            : "",
-        compact: true,
+        experience: ["attraction-v2", "attraction-v3"].includes(
+          card.generation_metadata.strategy_version ?? "legacy"
+        )
+          ? (option.description ?? "")
+          : "",
+        compact: true
       }))
     : [];
   const galleryValues: Record<string, RecommendationIntent> = {};
@@ -230,10 +276,10 @@ function DiscoveryCard({
   };
 
   const submitSelections = () => {
-    if (disabled || selected.length === 0) return;
+    if (disabled || selected.length === 0 || !qualityGroupsComplete) return;
     onSubmit({
       interaction_id: card.interaction_id,
-      selections: selected,
+      selections: selected
     });
   };
 
@@ -246,7 +292,7 @@ function DiscoveryCard({
     onSubmit({
       interaction_id: card.interaction_id,
       selections: [],
-      control_action_id: control.control_id,
+      control_action_id: control.control_id
     });
   };
 
@@ -258,7 +304,7 @@ function DiscoveryCard({
         interaction_id: card.interaction_id,
         selections: [],
         control_action_id: textControl.control_id,
-        optional_user_text: value,
+        optional_user_text: value
       })
     ) {
       setTextControl(null);
@@ -268,7 +314,7 @@ function DiscoveryCard({
 
   return (
     <section
-      className={`v4-discovery-card${inactive ? " is-inactive" : ""}${isAttractionGallery ? " v4-attraction-gallery" : ""}`}
+      className={`v4-discovery-card${inactive ? " is-inactive" : ""}${isAttractionGallery ? " v4-attraction-gallery" : ""}${usePreferenceStyle ? " v4-preference-style" : ""}${isLodgingCard ? " v4-lodging-card" : ""}`}
       data-v4-attachment-kind={card.kind}
       data-v4-attachment-id={card.attachment_id}
       data-v4-interaction-id={card.interaction_id}
@@ -287,7 +333,7 @@ function DiscoveryCard({
           </span>
           <h3>{card.prompt}</h3>
         </div>
-        {card.domain !== "attraction" ? (
+        {card.domain !== "attraction" && !isDining && !isQualityCard ? (
           <span className="v4-discovery-card-count">
             {card.options.length} 项
           </span>
@@ -297,13 +343,14 @@ function DiscoveryCard({
       {isAttractionGallery ? (
         <Gallery
           label="景点推荐"
+          onFocusItem={focusOption}
           items={galleryItems}
           values={galleryValues}
           intentOptions={[
             { value: "must", label: "必去" },
             { value: "want", label: "想去" },
             { value: "if_convenient", label: "顺路去" },
-            { value: "avoid", label: "不去" },
+            { value: "avoid", label: "不去" }
           ]}
           disabled={disabled}
           confirmDisabled={selected.length === 0}
@@ -319,6 +366,35 @@ function DiscoveryCard({
           }}
           onConfirm={submitSelections}
         />
+      ) : isQualityCard ? (
+        <div className="lodging-quality-groups">
+          {(["quality", "property_type"] as const).map((group) => (
+            <fieldset
+              className="lodging-quality-group"
+              data-lodging-group={group}
+              key={group}
+            >
+              <legend>
+                {group === "quality" ? "住宿档次 · 多选" : "住宿类型 · 多选"}
+              </legend>
+              <div className="lodging-quality-options">
+                {visibleOptions
+                  .filter((option) => option.selection_group === group)
+                  .map((option) => (
+                    <LodgingQualityOption
+                      key={option.option_id}
+                      option={option}
+                      selected={selections[option.option_id] === "selected"}
+                      disabled={disabled}
+                      onToggle={() =>
+                        setDisposition(option.option_id, "selected")
+                      }
+                    />
+                  ))}
+              </div>
+            </fieldset>
+          ))}
+        </div>
       ) : (
         <div className="v4-discovery-options">
           {visibleOptions.map((option) => (
@@ -327,13 +403,21 @@ function DiscoveryCard({
               card={card}
               option={option}
               introduction={introductions.get(
-                option.entity_ref?.canonical_entity_id ?? "",
+                option.entity_ref?.canonical_entity_id ?? ""
               )}
               value={selections[option.option_id]}
               disabled={disabled}
-              onChange={(disposition) =>
-                setDisposition(option.option_id, disposition)
+              usePreferenceStyle={usePreferenceStyle}
+              onLocate={
+                card.section === "dining_specific" && onFocusOption
+                  ? () => focusOption(option.option_id)
+                  : undefined
               }
+              onChange={(disposition) => {
+                if (card.section === "dining_specific")
+                  focusOption(option.option_id);
+                setDisposition(option.option_id, disposition);
+              }}
             />
           ))}
         </div>
@@ -344,31 +428,39 @@ function DiscoveryCard({
           <button
             type="button"
             className="v4-card-primary-action"
-            disabled={disabled || selected.length === 0}
+            disabled={
+              disabled || selected.length === 0 || !qualityGroupsComplete
+            }
             onClick={submitSelections}
           >
             确认选择
           </button>
           <div className="v4-card-control-actions" aria-label="其他处理方式">
-            {(card.control_actions ?? []).map((control) => (
+            {visibleControls.map((control) => (
               <button
                 key={control.control_id}
                 type="button"
+                className={
+                  usePreferenceStyle ? "v4-card-text-action" : undefined
+                }
                 disabled={disabled}
                 onClick={() => submitControl(control)}
               >
-                {control.label}
+                {isAttractionPreference
+                  ? "我没有特别偏好"
+                  : isDining
+                    ? "没有具体要求"
+                    : control.label}
               </button>
             ))}
           </div>
         </div>
-      ) : inactive ? (
-        <p className="v4-discovery-card-complete" role="status">
-          这张卡已经完成，或已被后续互动替代。
-        </p>
       ) : null}
 
-      {textControl !== null && !inactive ? (
+      {textControl !== null &&
+      !inactive &&
+      !isAttractionPreference &&
+      !isDining ? (
         <div className="v4-card-free-text">
           <label htmlFor={`v4-card-text-${card.attachment_id}`}>
             {textControl.kind === "existing_booking"
@@ -416,34 +508,51 @@ function DiscoveryOption({
   option,
   value,
   disabled,
+  usePreferenceStyle,
+  onLocate,
   onChange,
-  introduction,
+  introduction
 }: {
   card: CardAttachment;
   option: CardOption;
   value?: CardDisposition;
   disabled: boolean;
+  usePreferenceStyle: boolean;
+  onLocate?: () => void;
   onChange: (value: CardDisposition) => void;
   introduction?: string;
 }) {
   const dispositions = optionDispositions(card, option);
+  const isLodgingArea =
+    card.section === "lodging_area_preference" &&
+    card.generation_metadata.strategy_version === "lodging-v2";
   const description = discoveryOptionDescription(
     card.section,
-    introduction ?? option.description,
+    introduction ?? option.description
   );
   return (
     <article
-      className={`v4-discovery-option${value ? " is-selected" : ""}`}
+      className={`v4-discovery-option${value ? " is-selected" : ""}${isLodgingArea ? " lodging-area-option" : ""}${onLocate ? " has-map-target" : ""}`}
+      data-lodging-disposition={isLodgingArea ? value : undefined}
       data-option-id={option.option_id}
       data-composition-role={option.composition_role ?? undefined}
       data-entity-kind={option.entity_ref?.entity_kind ?? undefined}
     >
+      {onLocate ? (
+        <button
+          type="button"
+          className="v4-dining-map-target"
+          aria-label={`在地图上查看${option.label}`}
+          onClick={onLocate}
+        />
+      ) : null}
+      {isLodgingArea ? <LodgingAreaIllustration option={option} /> : null}
       <div className="v4-discovery-option-copy">
         <div className="v4-discovery-option-title">
           <strong>{option.label}</strong>
           {option.composition_role === "representative_extra" ? (
             <span data-badge-tone="city">城市代表</span>
-          ) : (card.domain === "attraction" || card.domain === "dining") &&
+          ) : card.domain === "attraction" &&
             option.composition_role === "personalized_top" ? (
             <span data-badge-tone="personalized">个性化推荐</span>
           ) : null}
@@ -451,7 +560,27 @@ function DiscoveryOption({
         {card.section === "dining_specific" ? (
           <DiningFacts facts={option.dining_details} />
         ) : null}
-        {description ? (
+        {option.lodging_area_copy ? (
+          <>
+            <p className={isLodgingArea ? "lodging-area-examples" : undefined}>
+              {isLodgingArea
+                ? option.lodging_area_copy.examples.map((example) => (
+                    <span key={example.search_keyword}>{example.name}</span>
+                  ))
+                : option.lodging_area_copy.examples
+                    .map((example) => example.name)
+                    .join("、")}
+            </p>
+            <p>
+              <strong>优点：</strong>
+              {option.lodging_area_copy.advantage}
+            </p>
+            <p>
+              <strong>取舍：</strong>
+              {option.lodging_area_copy.tradeoff}
+            </p>
+          </>
+        ) : option.selection_group ? null : description ? (
           <p
             className={
               card.section === "dining_specific"
@@ -469,6 +598,7 @@ function DiscoveryOption({
           <button
             key={disposition}
             type="button"
+            className={usePreferenceStyle ? "v4-preference-choice" : undefined}
             aria-pressed={value === disposition}
             disabled={disabled || option.selection_state === "unavailable"}
             onClick={() => onChange(disposition)}
@@ -483,7 +613,7 @@ function DiscoveryOption({
 
 function optionDispositions(
   card: CardAttachment,
-  option: CardOption,
+  option: CardOption
 ): CardDisposition[] {
   if (card.section === "lodging_class_preference") return ["selected"];
   if (card.kind === "specific_card") {
@@ -496,7 +626,7 @@ function optionDispositions(
 
 function specificDispositionLabel(
   card: CardAttachment,
-  disposition: CardDisposition,
+  disposition: CardDisposition
 ): string {
   if (card.section === "lodging_class_preference") return "选择";
   if (card.domain === "dining" && disposition === "if_convenient") {
@@ -509,24 +639,31 @@ function specificDispositionLabel(
 
 function initialSelections(
   card: CardAttachment,
-  semanticState?: TripSemanticState | null,
+  semanticState?: TripSemanticState | null
 ): Record<string, CardDisposition> {
   const selections: Record<string, CardDisposition> = {};
   if (card.kind === "specific_card") {
-    if (card.domain !== "attraction" || !semanticState) return selections;
-    const intents = [
-      ...(semanticState.attractions?.concrete_intents ?? []),
-      ...(semanticState.attractions?.exclusions ?? []),
-    ];
+    if (!semanticState) return selections;
+    const intents =
+      card.domain === "dining"
+        ? [
+            ...(semanticState.dining?.concrete_restaurant_intents ?? []),
+            ...(semanticState.dining?.exclusions ?? [])
+          ]
+        : [
+            ...(semanticState.attractions?.concrete_intents ?? []),
+            ...(semanticState.attractions?.exclusions ?? [])
+          ];
     for (const option of card.options) {
       const intent = intents.find(
         (item) =>
-          item.canonical_entity_id === option.entity_ref?.canonical_entity_id,
+          item.canonical_entity_id === option.entity_ref?.canonical_entity_id
       );
       if (
         intent &&
         (intent.disposition === "must" ||
           intent.disposition === "want" ||
+          intent.disposition === "destination" ||
           intent.disposition === "if_convenient" ||
           intent.disposition === "avoid")
       ) {
@@ -537,12 +674,39 @@ function initialSelections(
   }
   for (const option of card.options) {
     const semantic = option.semantic_value;
+    if (
+      card.generation_metadata.strategy_version === "lodging-v2" &&
+      card.section === "lodging_class_preference" &&
+      semantic.kind === "direction" &&
+      semanticState?.lodging
+    ) {
+      const lodging = semanticState.lodging;
+      const tiers = lodging.hotel_quality_tiers ?? [];
+      if (
+        (semantic.hotel_quality_tier &&
+          (tiers.includes(semantic.hotel_quality_tier) ||
+            lodging.hotel_quality_tier === semantic.hotel_quality_tier)) ||
+        (semantic.property_type &&
+          lodging.property_type_preferences?.includes(semantic.property_type))
+      ) {
+        selections[option.option_id] = "selected";
+      }
+      continue;
+    }
     const savedDirection =
-      card.domain === "attraction" && semantic.kind === "direction"
-        ? semanticState?.attractions?.preference_directions?.find(
-            (direction) => direction.direction_id === semantic.direction_id,
+      (card.domain === "attraction" || card.domain === "dining") &&
+      semantic.kind === "direction"
+        ? (card.domain === "dining"
+            ? semanticState?.dining?.preference_directions
+            : semanticState?.attractions?.preference_directions
+          )?.find(
+            (direction) => direction.direction_id === semantic.direction_id
           )
-        : undefined;
+        : card.domain === "lodging_area" && semantic.kind === "direction"
+          ? semanticState?.lodging?.area_preferences?.find(
+              (direction) => direction.direction_id === semantic.direction_id
+            )
+          : undefined;
     if (savedDirection) {
       selections[option.option_id] = savedDirection.selected
         ? "selected"

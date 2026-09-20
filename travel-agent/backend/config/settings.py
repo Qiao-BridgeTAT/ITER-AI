@@ -40,7 +40,7 @@ class ConfigurationError(ValueError):
 
 @dataclass(frozen=True)
 class AmapSearchProxySettings:
-    """Optional server-only transport for the six basic POI search endpoints."""
+    """Optional server-only transport for explicitly allowed POI search endpoints."""
 
     base_url: str
     api_key: str = field(repr=False, compare=False)
@@ -71,9 +71,9 @@ class AmapSearchProxySettings:
         try:
             parsed = urlsplit(self.base_url)
             valid = (
-                parsed.scheme == "https"
+                parsed.scheme in {"http", "https"}
                 and bool(parsed.hostname)
-                and parsed.port in {None, 443}
+                and parsed.port in {None, 80 if parsed.scheme == "http" else 443}
                 and parsed.username is None
                 and parsed.password is None
                 and parsed.path in {"", "/"}
@@ -84,12 +84,61 @@ class AmapSearchProxySettings:
             valid = False
         if not valid:
             raise ConfigurationError(
-                "AMAP_SEARCH_PROXY_URL must be an HTTPS origin without credentials, path or query"
+                "AMAP_SEARCH_PROXY_URL requires an HTTP(S) origin without credentials/path/query"
             ) from None
         if not self.api_key.strip():
             raise ConfigurationError("AMAP_SEARCH_PROXY_KEY must not be empty")
         if self.key_parameter not in {"KEY", "key"}:
             raise ConfigurationError("AMAP_SEARCH_PROXY_KEY_PARAMETER must be KEY or key")
+        object.__setattr__(self, "base_url", self.base_url.rstrip("/"))
+
+
+@dataclass(frozen=True)
+class AmapPolygonProxySettings:
+    """Separate user-configured transport and credential for v5 polygon only."""
+
+    base_url: str
+    api_key: str = field(repr=False, compare=False)
+    key_parameter: Literal["KEY", "key"] = "key"
+
+    @classmethod
+    def from_environment(cls, environ: Mapping[str, str]) -> AmapPolygonProxySettings | None:
+        proxy_url = environ.get("AMAP_POLYGON_PROXY_URL", "").strip()
+        proxy_key = environ.get("AMAP_POLYGON_PROXY_KEY", "").strip()
+        if bool(proxy_url) != bool(proxy_key):
+            raise ConfigurationError(
+                "AMAP_POLYGON_PROXY_URL and AMAP_POLYGON_PROXY_KEY must be configured together"
+            )
+        parameter = environ.get("AMAP_POLYGON_PROXY_KEY_PARAMETER", "key").strip()
+        if parameter not in {"KEY", "key"}:
+            raise ConfigurationError("AMAP_POLYGON_PROXY_KEY_PARAMETER must be KEY or key")
+        return (
+            cls(proxy_url, proxy_key, cast(Literal["KEY", "key"], parameter)) if proxy_url else None
+        )
+
+    def __post_init__(self) -> None:
+        try:
+            parsed = urlsplit(self.base_url)
+            valid = (
+                parsed.scheme in {"http", "https"}
+                and bool(parsed.hostname)
+                and parsed.port in {None, 80 if parsed.scheme == "http" else 443}
+                and parsed.username is None
+                and parsed.password is None
+                and parsed.path in {"", "/"}
+                and not parsed.query
+                and not parsed.fragment
+            )
+        except ValueError:
+            valid = False
+        if not valid:
+            raise ConfigurationError(
+                "AMAP_POLYGON_PROXY_URL requires an HTTP(S) origin without credentials/path/query"
+            ) from None
+        if not self.api_key.strip():
+            raise ConfigurationError("AMAP_POLYGON_PROXY_KEY must not be empty")
+        if self.key_parameter not in {"KEY", "key"}:
+            raise ConfigurationError("AMAP_POLYGON_PROXY_KEY_PARAMETER must be KEY or key")
         object.__setattr__(self, "base_url", self.base_url.rstrip("/"))
 
 
@@ -116,6 +165,12 @@ class ModelAuditSettings:
 
 
 @dataclass(frozen=True)
+class TavilyMcpSettings:
+    auth_mode: Literal["key", "keyless"]
+    api_key: str = field(default="", repr=False, compare=False)
+
+
+@dataclass(frozen=True)
 class Settings:
     app_env: str
     provider_mode: str
@@ -125,6 +180,8 @@ class Settings:
     model_audit: ModelAuditSettings
     values: Mapping[str, str] = field(repr=False)
     amap_search_proxy: AmapSearchProxySettings | None = None
+    amap_polygon_proxy: AmapPolygonProxySettings | None = None
+    tavily_mcp: TavilyMcpSettings | None = None
 
     @property
     def v4_planner_enabled(self) -> bool:
@@ -182,8 +239,6 @@ class Settings:
         provider_mode = raw.get("PROVIDER_MODE", str(profile["provider_mode"]))
         if provider_mode not in {"live", "replay"}:
             raise ConfigurationError("PROVIDER_MODE must be live or replay")
-        if app_env == "production" and provider_mode != "live":
-            raise ConfigurationError("PROVIDER_MODE must be live in production")
 
         conversation_mode = raw.get("CONVERSATION_MODE", str(profile["conversation_mode"]))
         if conversation_mode not in {"disabled", "replay"}:
@@ -193,7 +248,22 @@ class Settings:
         if raw.get("V4_PLANNER_ENABLED", "true") not in {"true", "false"}:
             raise ConfigurationError("V4_PLANNER_ENABLED must be true or false")
 
+        if raw.get("V4_PLANNER_ENGINE", "legacy") not in {"legacy", "langgraph-react-2"}:
+            raise ConfigurationError("V4_PLANNER_ENGINE must be legacy or langgraph-react-2")
+
+        if raw.get("V4_PLANNER_TIME_LIMIT_ENABLED", "true") not in {"true", "false"}:
+            raise ConfigurationError("V4_PLANNER_TIME_LIMIT_ENABLED must be true or false")
+        try:
+            planner_max_decisions = int(raw.get("V4_PLANNER_MAX_DECISIONS", "12"))
+        except ValueError:
+            raise ConfigurationError(
+                "V4_PLANNER_MAX_DECISIONS must be an integer from 1 to 24"
+            ) from None
+        if not 1 <= planner_max_decisions <= 24:
+            raise ConfigurationError("V4_PLANNER_MAX_DECISIONS must be an integer from 1 to 24")
+
         amap_search_proxy = AmapSearchProxySettings.from_environment(raw)
+        amap_polygon_proxy = AmapPolygonProxySettings.from_environment(raw)
 
         model_provider = raw.get("MODEL_PROVIDER", str(profile["model_provider"])).strip()
         if model_provider not in {"disabled", "qwen"}:
@@ -257,6 +327,31 @@ class Settings:
             encryption_key=model_audit_key,
         )
 
+        search_mcp_url = raw.get("AMAP_SEARCH_MCP_URL", "").strip()
+        if search_mcp_url:
+            from backend.providers.amap_mcp import validate_search_mcp_url
+
+            try:
+                validate_search_mcp_url(search_mcp_url)
+            except ValueError:
+                raise ConfigurationError(
+                    "AMAP_SEARCH_MCP_URL requires a loopback HTTP /mcp URL"
+                ) from None
+
+        tavily_mcp = None
+        tavily_enabled = raw.get("TAVILY_MCP_ENABLED", "false").strip()
+        if tavily_enabled not in {"true", "false"}:
+            raise ConfigurationError("TAVILY_MCP_ENABLED must be true or false")
+        if tavily_enabled == "true":
+            mode = raw.get("TAVILY_MCP_AUTH_MODE", "key").strip()
+            key = raw.get("TAVILY_API_KEY", "").strip()
+            if mode not in {"key", "keyless"} or (mode == "key" and not key):
+                raise ConfigurationError(
+                    "Tavily requires key mode with TAVILY_API_KEY or explicit keyless mode"
+                )
+            if mode == "keyless" and key:
+                raise ConfigurationError("Tavily keyless mode cannot carry TAVILY_API_KEY")
+            tavily_mcp = TavilyMcpSettings(cast(Literal["key", "keyless"], mode), key)
         known_names = set(contract["server"]["always_required"])
         known_names.update(contract["server"]["production_required"])
         known_names.update(contract["server"]["optional"])
@@ -264,7 +359,14 @@ class Settings:
             name: raw[name]
             for name in known_names
             if name in raw
-            and name not in {"QWEN_API_KEY", "LLM_AUDIT_ENCRYPTION_KEY", "AMAP_SEARCH_PROXY_KEY"}
+            and name
+            not in {
+                "QWEN_API_KEY",
+                "LLM_AUDIT_ENCRYPTION_KEY",
+                "AMAP_SEARCH_PROXY_KEY",
+                "AMAP_POLYGON_PROXY_KEY",
+                "TAVILY_API_KEY",
+            }
         }
         return cls(
             app_env=app_env,
@@ -275,6 +377,8 @@ class Settings:
             model_audit=model_audit_settings,
             values=MappingProxyType(safe_values),
             amap_search_proxy=amap_search_proxy,
+            amap_polygon_proxy=amap_polygon_proxy,
+            tavily_mcp=tavily_mcp,
         )
 
 

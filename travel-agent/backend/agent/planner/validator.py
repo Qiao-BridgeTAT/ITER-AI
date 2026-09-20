@@ -7,7 +7,7 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time
 from functools import partial
-from typing import Literal
+from typing import Literal, cast
 from uuid import UUID
 
 from backend.agent.model_gateway import ModelCancellation
@@ -463,10 +463,15 @@ def _validate_routes(
     boundary = _hotel_endpoint(workspace)
     if boundary is not None and endpoints:
         endpoints = [boundary, *endpoints, boundary]
-    route_edges = (
-        *workspace.route_evidence,
-        *(workspace.spatial_observation.route_edges if workspace.spatial_observation else ()),
-    )
+    # Exact route receipts also appear in the spatial view. They are one fact,
+    # including when unavailable; duplicate references cannot form an issue.
+    route_edges = {
+        edge.route_edge_id: edge
+        for edge in (
+            *(workspace.spatial_observation.route_edges if workspace.spatial_observation else ()),
+            *workspace.route_evidence,
+        )
+    }.values()
     result: list[PlannerValidationIssue] = []
     for index, (origin, destination) in enumerate(zip(endpoints, endpoints[1:], strict=False)):
         chosen_mode = next(
@@ -543,8 +548,11 @@ def _validate_daily_capacity(
     result: list[PlannerValidationIssue] = []
     visits = [item for item in day.ordered_items if item.item_kind == "visit"]
     maximum = strategy.daily_capacity_policy.major_activity_target.maximum
-    end_limit = strategy.daily_capacity_policy.preferred_end_window.latest
-    deadline = explicit_end_deadline(book, day.service_date) if book is not None else None
+    flexible = workspace.react_state is not None
+    end_limit = day.end_time or strategy.daily_capacity_policy.preferred_end_window.latest
+    deadline = (
+        explicit_end_deadline(book, day.service_date) if book is not None and not flexible else None
+    )
     hard_over_time = deadline is not None and scheduled.end_time > deadline[0]
     # A modest overrun of a preferred end is normal, not removal authority.
     preferred_overrun = (
@@ -562,8 +570,13 @@ def _validate_daily_capacity(
         "intensive": 12 * 60,
         "custom": 10 * 60,
     }[strategy.daily_capacity_policy.pace_profile]
-    hard_conflict = len(visits) > maximum or hard_over_time
-    if hard_conflict or scheduled.active_minutes > pace_threshold or preferred_overrun > 60:
+    hard_conflict = not flexible and (len(visits) > maximum or hard_over_time)
+    if (
+        len(visits) > maximum
+        or hard_conflict
+        or scheduled.active_minutes > pace_threshold + (60 if flexible else 0)
+        or preferred_overrun > 60
+    ):
         late_visits = [
             activity
             for activity in _draft_activities(day, scheduled)
@@ -659,8 +672,20 @@ def _validate_meals(
     }
     pauses = [item for item in scheduled.pauses if item.kind is SchedulePauseKind.MEAL]
     pause_slots = {_meal_slot(item.start_time) for item in pauses}
+    flexible = workspace.react_state is not None
+    if (
+        flexible
+        and any(item.onsite_lunch for item in day.ordered_items)
+        and any(
+            str(pause.pause_id) == server_id(item.draft_item_id, day.service_date, "onsite-lunch")
+            for pause in pauses
+            for item in day.ordered_items
+            if item.onsite_lunch
+        )
+    ):
+        pause_slots.add("lunch")
     result: list[PlannerValidationIssue] = []
-    for problem in meal_time_violations(day, scheduled):
+    for problem in meal_time_violations(day, scheduled, react=flexible):
         result.append(
             _issue(
                 workspace,
@@ -673,7 +698,12 @@ def _validate_meals(
                 message=(
                     f"{problem['path']}：{problem['name']} 的 {problem['meal']} 被排到 "
                     f"{problem['actual_start']}，合理开始窗口为 {problem['start_window']}；"
-                    "提前出发、改用省时交通、调整前后景点或替换非指定餐厅，不要推迟正餐。"
+                    + (
+                        "已超出允许的开始范围；在范围内动态安排，不必追求固定理想时刻。"
+                        "请调整餐次位置、出发时间或取舍非必去景点，保留正常游览时长。"
+                        if flexible
+                        else "提前出发、改用省时交通、调整前后景点或替换非指定餐厅，不要推迟正餐。"
+                    )
                 ),
                 actions=(
                     "move_item",
@@ -705,7 +735,7 @@ def _validate_meals(
                 _issue(
                     workspace,
                     code="meal_constraint_violation",
-                    severity="error",
+                    severity="warning" if flexible else "error",
                     scope_kind="day",
                     affected_dates=(day.service_date,),
                     violated_constraint_refs=("meal:timing",),
@@ -773,6 +803,8 @@ def _validate_hotel(
             )
         return ()
     if baseline.mode == "unresolved":
+        from backend.agent.planner.hotel_status import hotel_gap_message
+
         return (
             _issue(
                 workspace,
@@ -781,11 +813,7 @@ def _validate_hotel(
                 scope_kind="hotel",
                 affected_dates=all_dates,
                 violated_constraint_refs=("hotel:overnight_coverage",),
-                message=(
-                    "酒店 Provider 当前不可用，正式行程保留住宿待核验提示。"
-                    if baseline.unresolved_reason == "provider_unavailable"
-                    else "当前没有可核验的酒店结果，正式行程保留住宿待补充提示。"
-                ),
+                message=hotel_gap_message(workspace),
                 actions=("request_evidence",),
                 user_authority_required=False,
             ),
@@ -1092,8 +1120,10 @@ def _validate_unassigned(
     draft = workspace.working_itinerary
     assert draft is not None
     result: list[PlannerValidationIssue] = []
+    from backend.agent.planner.candidate_tradeoffs import authorized_omission
+
     for intent in draft.unassigned_intents:
-        if intent.commitment_level != "strong":
+        if intent.commitment_level != "strong" or authorized_omission(workspace, intent):
             continue
         result.append(
             _issue(
@@ -1233,12 +1263,17 @@ def _validate_schedule_quality(
             )
         )
     for issue in schedule_coverage_issues(workspace, book):
-        period = "上午" if issue["period"] == "morning" else "下午"
+        react = workspace.react_state is not None
+        period = (
+            ("午餐前" if issue["period"] == "morning" else "午餐后至晚餐前")
+            if react
+            else ("上午" if issue["period"] == "morning" else "下午")
+        )
         result.append(
             _issue(
                 workspace,
                 code="half_day_without_visit",
-                severity="warning",
+                severity="error" if react and not issue["visit_minutes"] else "warning",
                 scope_kind="day",
                 affected_dates=(date.fromisoformat(str(issue["date"])),),
                 violated_constraint_refs=(f"internal_schedule_quality:{issue['period']}",),
@@ -1277,9 +1312,13 @@ def _validate_schedule_quality(
                 affected_dates=(date.fromisoformat(str(detour["date"])),),
                 draft_item_ids=(str(detour["draft_item_id"]),),
                 candidate_refs=(entry.candidate_ref,),
-                fact_reference_ids=tuple(detour["fact_reference_ids"]),
+                fact_reference_ids=cast(tuple[str, ...], detour["fact_reference_ids"]),
                 violated_constraint_refs=("internal_schedule_quality:dining_detour",),
-                message=f"该非预约餐厅前后真实交通合计{detour['combined_minutes']}分钟，应比较沿途替换或改餐次，必吃意愿不豁免路线取舍。",
+                message=(
+                    f"餐厅前后真实交通合计{detour['combined_minutes']}分钟，"
+                    "其中含必要行程，不能直接视作额外绕路。"
+                    "想去或顺路去可换同区域候选；缺少直达对照时保留改善建议，不必为证明建议补查。"
+                ),
                 actions=("replace_item", "move_item", "remove_item"),
             )
         )

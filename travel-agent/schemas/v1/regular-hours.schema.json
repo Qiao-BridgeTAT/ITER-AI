@@ -1,0 +1,125 @@
+{
+  "$defs": {
+    "DataAvailability": {
+      "enum": [
+        "available",
+        "partial",
+        "missing"
+      ],
+      "title": "DataAvailability",
+      "type": "string"
+    },
+    "ProviderCode": {
+      "enum": [
+        "amap",
+        "baidu",
+        "flyai",
+        "weather",
+        "city_content",
+        "official",
+        "manual"
+      ],
+      "title": "ProviderCode",
+      "type": "string"
+    },
+    "WeeklyHoursPeriod": {
+      "additionalProperties": false,
+      "properties": {
+        "closes_at": {
+          "format": "time",
+          "title": "Closes At",
+          "type": "string"
+        },
+        "opens_at": {
+          "format": "time",
+          "title": "Opens At",
+          "type": "string"
+        },
+        "weekday": {
+          "maximum": 7,
+          "minimum": 1,
+          "title": "Weekday",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "weekday",
+        "opens_at",
+        "closes_at"
+      ],
+      "title": "WeeklyHoursPeriod",
+      "type": "object"
+    }
+  },
+  "$id": "https://travel-agent.local/schemas/v1/regular-hours.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "availability": {
+      "$ref": "#/$defs/DataAvailability"
+    },
+    "display_text": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Display Text"
+    },
+    "fetched_at": {
+      "format": "date-time",
+      "title": "Fetched At",
+      "type": "string"
+    },
+    "missing_reason": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Missing Reason"
+    },
+    "place_id": {
+      "format": "uuid",
+      "title": "Place Id",
+      "type": "string"
+    },
+    "provider": {
+      "$ref": "#/$defs/ProviderCode"
+    },
+    "source_record_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Source Record Id",
+      "type": "string"
+    },
+    "weekly_periods": {
+      "items": {
+        "$ref": "#/$defs/WeeklyHoursPeriod"
+      },
+      "title": "Weekly Periods",
+      "type": "array"
+    }
+  },
+  "required": [
+    "place_id",
+    "provider",
+    "availability",
+    "source_record_id",
+    "fetched_at"
+  ],
+  "title": "RegularHours",
+  "type": "object"
+}
