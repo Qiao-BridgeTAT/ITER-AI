@@ -5,6 +5,7 @@ import {
   useState,
   type KeyboardEvent
 } from "react";
+import { createPortal } from "react-dom";
 import {
   CaretLeft,
   CaretRight,
@@ -193,7 +194,7 @@ function DestinationDateDialog({
       );
     }
   };
-  return (
+  return createPortal(
     <div className="destination-date-backdrop">
       <section
         className="destination-date-dialog"
@@ -475,6 +476,7 @@ function DestinationDateDialog({
           </footer>
         </form>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }
