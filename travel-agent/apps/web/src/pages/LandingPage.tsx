@@ -17,6 +17,7 @@ import {
   useViewerSession,
   useViewerSessionActions,
 } from "../session/viewerSession";
+import { AboutIterModal } from "./AboutIterModal";
 import { MobileHomeNotice } from "./MobileHomeNotice";
 import { isMobilePhone } from "./mobileDevice";
 const capabilities = ["理解偏好", "权衡取舍", "编排行程", "随时调整"] as const;
@@ -34,7 +35,7 @@ export function LandingPage() {
   const v4TripState = useTripRuntime((state) => state.v4.tripState);
   const homeMainRef = useRef<HTMLElement>(null);
   const needsMobileNotice = isMobilePhone(window.navigator) || null;
-  const [homeOverlay, setHomeOverlay] = useState<"account" | "mobile" | null>(
+  const [homeOverlay, setHomeOverlay] = useState<"about" | "account" | "mobile" | null>(
     () => (needsMobileNotice ? "mobile" : null),
   );
   const closeHomeOverlay = useCallback(() => setHomeOverlay(null), []);
@@ -202,6 +203,14 @@ export function LandingPage() {
               type="button"
               data-entrance
               aria-haspopup="dialog"
+              onClick={() => setHomeOverlay("about")}
+            >
+              关于 ITER AI
+            </button>
+            <button
+              type="button"
+              data-entrance
+              aria-haspopup="dialog"
               onClick={() => setHomeOverlay("account")}
             >
               {viewer.kind === "user" ? "我的账号" : "登录"}
@@ -260,6 +269,9 @@ export function LandingPage() {
           onContinue={closeHomeOverlay}
           returnFocusRef={homeMainRef}
         />
+      ) : null}
+      {homeOverlay === "about" ? (
+        <AboutIterModal onClose={closeHomeOverlay} />
       ) : null}
       {homeOverlay === "account"
         ? createPortal(

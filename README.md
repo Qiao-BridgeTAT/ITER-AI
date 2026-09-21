@@ -132,6 +132,8 @@ pnpm build
 
 静态产物位于 `apps/web/dist/`。构建成功不等于生产部署完成：
 
+首页包含“关于 ITER AI”入口。背景视频通过构建时的 `VITE_HOME_BACKGROUND_URL` 配置；未配置时只显示蓝色背景。升级已有站点时必须沿用其背景地址，在重建前加载配置，并实际检查视频播放、关于弹窗、登录入口和开始规划按钮。容器启动后再设置该变量不会改变已生成的静态页面。
+
 - 使用正式 Web 服务器托管静态产物，配置 SPA 路由回退；不要将 Vite 开发服务器作为公网生产服务。
 - 将 `/api` 转发到 API，并支持 WebSocket Upgrade；代理读取超时应能覆盖长时间规划。不要直接暴露数据库或 Redis。
 - 使用地图时需要部署 `/_AMapService` 代理：地图样式请求转发到 `webapi.amap.com`，其余请求转发到 `restapi.amap.com`，由服务端注入安全码。具体开发代理实现见 `travel-agent/apps/web/vite.config.ts`；静态文件托管不会自动继承它。
