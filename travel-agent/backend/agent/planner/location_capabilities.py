@@ -639,12 +639,20 @@ async def _hotels(
     fixed_observation = None
     attempts: list[HotelQueryAttempt] = []
 
-    def record_search(hotel_request: HotelSearchRequest, response=None, error=None) -> None:
+    def record_search(
+        hotel_request: HotelSearchRequest,
+        response: ProviderResponse[ProviderHotelOffer] | None = None,
+        error: ProviderError | None = None,
+    ) -> None:
         attempts.append(
             HotelQueryAttempt(
                 anchor_name=hotel_request.anchor_name,
                 search_keyword=hotel_request.query,
-                outcome="failed" if error else "results" if response.items else "empty",
+                outcome="failed"
+                if error
+                else "results"
+                if response and response.items
+                else "empty",
                 result_count=len(response.items) if response else 0,
                 error_code=error.code.value if error else None,
                 retryable=error.retryable if error else False,
@@ -1126,7 +1134,7 @@ async def _hotels(
                     expires_at=expires,
                 )
             )
-    query_status = (
+    query_status: Literal["available", "failed", "unverified", "empty"] = (
         "available"
         if offers or (fixed_observation and fixed_observation.verification_status == "verified")
         else "failed"

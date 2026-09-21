@@ -293,7 +293,7 @@ def create_app(
                 == "langgraph-react-2",
                 time_limit_enabled=settings.values.get("V4_PLANNER_TIME_LIMIT_ENABLED", "true")
                 == "true",
-                max_decisions=int(settings.values.get("V4_PLANNER_MAX_DECISIONS", "12")),
+                max_decisions=int(settings.values.get("V4_PLANNER_MAX_DECISIONS", "24")),
             ),
             prepared_evidence=prepared_evidence,
             planning_pool=planning_pool,

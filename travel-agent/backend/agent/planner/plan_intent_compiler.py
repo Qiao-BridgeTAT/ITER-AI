@@ -730,11 +730,14 @@ def _compile_lodging(
             )
         from backend.agent.planner.hotel_status import hotel_query_status
 
-        unresolved_reason = {
+        reasons: dict[
+            str, Literal["not_queried", "no_results", "query_failed", "no_verified_hotel"]
+        ] = {
             "not_queried": "not_queried",
             "empty": "no_results",
             "failed": "query_failed",
-        }.get(hotel_query_status(workspace), "no_verified_hotel")
+        }
+        unresolved_reason = reasons.get(hotel_query_status(workspace), "no_verified_hotel")
         return (
             LodgingBaseline(
                 mode="unresolved",

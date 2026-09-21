@@ -56,7 +56,7 @@ from backend.agent.planner.react_prompts import PROMPT_VERSION, agent_system_pro
 from backend.agent.planner.react_review import evidence_digest, has_current_review
 from backend.agent.planner.react_schema import bind_plan_tool_schemas
 from backend.agent.planner.workspace import PlannerGuardError, advance
-from backend.agent.schema_tool_dialogue import generate_schema_tool_turn
+from backend.agent.schema_tool_dialogue import SchemaDecisionError, generate_schema_tool_turn
 from backend.agent.tool_dialogue import MAX_TOOL_BATCH_SIZE, generate_tool_turn
 from backend.agent.tool_schema_errors import tool_schema_error_details
 from backend.contracts.v4.enums import PlannerStatus
@@ -521,6 +521,15 @@ class ReActRuntime:
                         "请根据以下字段问题修正，再按当前 Schema 返回完整决策。"
                     ),
                     "validation_issues": list(failure.validation_issues),
+                    **(
+                        {
+                            "rejected_decision": failure.rejected_decision,
+                            "repair_scope": "这份决策未执行、未保存。优先在原方案上修正上述格式；"
+                            "无需仅因格式错误重查已取得的事实。修正后仍须通过工具参数与业务校验。",
+                        }
+                        if isinstance(failure, SchemaDecisionError)
+                        else {}
+                    ),
                 },
                 ensure_ascii=False,
             ),

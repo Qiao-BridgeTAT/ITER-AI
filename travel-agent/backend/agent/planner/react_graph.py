@@ -24,7 +24,11 @@ from backend.agent.planner.workspace import advance
 from backend.contracts.v4.enums import PlannerStatus
 from backend.contracts.v4.plan_change import PlanChangeRequest
 from backend.contracts.v4.planner_decision import BuildOrUpdateStrategyPayload
-from backend.contracts.v4.planner_react import PlannerReactState
+from backend.contracts.v4.planner_react import (
+    DEFAULT_PLANNER_CALL_LIMIT,
+    PLANNER_EXECUTION_SECONDS,
+    PlannerReactState,
+)
 from backend.contracts.v4.planner_workspace import PlannerWorkspaceState
 from backend.contracts.v4.task_book import TaskBookV4
 from backend.providers.amap_mcp import AmapMcpRouter
@@ -40,7 +44,7 @@ class PlannerEngineRouter(PlannerAgentGraph):
         *,
         new_engine: bool = False,
         time_limit_enabled: bool = True,
-        max_decisions: int = 12,
+        max_decisions: int = DEFAULT_PLANNER_CALL_LIMIT,
         mcp: AmapMcpRouter | None = None,
         react_gateway: ModelGateway | None = None,
         web_search: TavilyMcpClient | None = None,
@@ -64,7 +68,7 @@ class PlannerEngineRouter(PlannerAgentGraph):
         return workspace.model_copy(
             update={
                 "react_state": PlannerReactState(
-                    deadline_at=datetime.now(UTC) + timedelta(seconds=180),
+                    deadline_at=datetime.now(UTC) + timedelta(seconds=PLANNER_EXECUTION_SECONDS),
                     time_limit_disabled=not self.time_limit_enabled,
                     planner_call_limit=self.max_decisions,
                     dialogue_mode="json_schema",
@@ -82,7 +86,10 @@ class PlannerEngineRouter(PlannerAgentGraph):
             update={
                 "react_state": react_memory(workspace).model_copy(
                     update={
-                        "deadline_at": datetime.now(UTC) + timedelta(seconds=180),
+                        "deadline_at": datetime.now(UTC)
+                        + timedelta(seconds=PLANNER_EXECUTION_SECONDS),
+                        "time_limit_disabled": not self.time_limit_enabled,
+                        "planner_call_limit": self.max_decisions,
                         "planner_calls": 0,
                         "external_requests": 0,
                         "web_search_calls": 0,
@@ -103,8 +110,37 @@ class PlannerEngineRouter(PlannerAgentGraph):
     def resume_with_configured_budget(
         self, workspace: PlannerWorkspaceState
     ) -> PlannerWorkspaceState:
-        """Explicit user resume may extend an exhausted allowance without refunding work."""
+        """Only an admitted user resume may start a new exhausted execution segment.
+
+        Automatic/crash recovery never calls this method. Immutable workspace
+        revisions retain the previous segment's counters and deadline.
+        """
         state = workspace.react_state
+        if (
+            state is not None
+            and workspace.status is PlannerStatus.FAILED
+            and (
+                state.stop_reason
+                in {
+                    "deadline_exceeded",
+                    "decision_time_budget_exhausted",
+                    "planner_decision_budget_exhausted",
+                    "external_budget_exhausted",
+                    "repeated_malformed_decision",
+                    "repeated_failed_action",
+                }
+                or (
+                    not state.time_limit_disabled
+                    and state.deadline_at <= datetime.now(UTC) + timedelta(seconds=20)
+                )
+            )
+        ):
+            renewed = self.begin_answer_segment(workspace)
+            assert renewed.react_state is not None
+            return advance(
+                renewed,
+                react_state=renewed.react_state.model_copy(update={"review": state.review}),
+            )
         if (
             state is None
             or state.stop_reason != "planner_decision_budget_exhausted"
@@ -270,7 +306,7 @@ class PlannerEngineRouter(PlannerAgentGraph):
                 "empty": "住宿预查正常返回，但没有匹配结果，已保留这个缺口。",
                 "failed": "住宿预查或位置核验失败，已记录具体原因。",
                 "unverified": "已查到酒店候选，但暂时没有通过条件与位置核验的酒店。",
-            }.get(update.hotel.query_status)
+            }.get(update.hotel.query_status or "")
             if message:
                 await session.progress("runtime", message)
 
@@ -290,6 +326,25 @@ class PlannerEngineRouter(PlannerAgentGraph):
         change_request: PlanChangeRequest | None = None,
         gateway: ModelGateway | None = None,
     ) -> str:
+        # Execution status is authoritative. An LLM must not reinterpret a
+        # timeout as missing inventory, prices, or an unavailable hotel provider.
+        if workspace.react_state and workspace.status is PlannerStatus.FAILED:
+            reason = {
+                "deadline_exceeded": "本轮规划时间已用完",
+                "decision_time_budget_exhausted": "本轮规划时间已用完",
+                "planner_decision_budget_exhausted": "本轮规划尝试次数已用完",
+                "external_budget_exhausted": "本轮查询次数已用完",
+                "repeated_malformed_decision": "本轮方案格式修正未完成",
+                "repeated_failed_action": "本轮仍有未解决的执行问题",
+            }.get(workspace.react_state.stop_reason or "")
+            if reason:
+                cancellation.raise_if_cancelled("planner_failure_response")
+                saved = (
+                    "已保留当前安排和查询资料"
+                    if workspace.working_itinerary is not None
+                    else "已保留任务书和查询资料"
+                )
+                return f"{reason}，尚未完成本次行程规划。{saved}，可以点击继续规划。"
         return await self.legacy.compose_response(
             workspace,
             book,

@@ -36,6 +36,20 @@ SCHEMA_TURN_INSTRUCTION = (
 )
 
 
+class SchemaDecisionError(ModelGatewayError):
+    """Keep a complete rejected decision in private repair context, never in error text."""
+
+    def __init__(self, issues: tuple[str, ...], decision: dict[str, Any], call_id: str | None):
+        super().__init__(
+            ModelFailureCode.MALFORMED_RESPONSE,
+            "schema_tool_dialogue",
+            retryable=False,
+            validation_issues=issues,
+            audit_call_id=call_id,
+        )
+        self.rejected_decision = decision
+
+
 def tool_turn_schema(
     request: ModelRequest, *, parallel_tool_names: Collection[str] | None = None
 ) -> dict[str, Any]:
@@ -127,13 +141,13 @@ def schema_dialogue(messages: list[ModelMessage]) -> list[ModelMessage]:
     action once in its identified result; durable native messages are unchanged.
     """
     result = []
-    calls: dict[str, tuple[int, ModelToolCall]] = {}
+    calls: dict[str, ModelToolCall] = {}
     for message in messages:
         if message.tool_calls:
-            calls.update((call.id, (i, call)) for i, call in enumerate(message.tool_calls, 1))
+            calls.update((call.id, call) for call in message.tool_calls)
         elif message.role is ModelRole.TOOL:
             assert message.tool_call_id is not None
-            index, call = calls[message.tool_call_id]
+            call = calls[message.tool_call_id]
             try:
                 observation = json.loads(message.content)
             except ValueError:
@@ -149,7 +163,6 @@ def schema_dialogue(messages: list[ModelMessage]) -> list[ModelMessage]:
                     content=json.dumps(
                         {
                             "tool_result": {
-                                "call_index": index,
                                 "name": call.function.name,
                                 **(
                                     {
@@ -239,6 +252,17 @@ def _envelope_issues(schema: dict[str, Any], value: Any) -> tuple[str, ...]:
             detail = {"loc": path, "type": leaf.validator, "expected": expected}
             if leaf.validator == "additionalProperties":
                 detail["allowed_fields"] = list(leaf.schema.get("properties", {}))
+                if isinstance(leaf.instance, dict):
+                    detail["unexpected_fields"] = sorted(
+                        set(leaf.instance) - set(detail["allowed_fields"])
+                    )
+                    detail["repair"] = "删除 unexpected_fields 列出的字段，保留其他方案内容。"
+            elif leaf.validator == "maxItems" and path == ["tool_calls"]:
+                detail["actual_count"] = len(leaf.instance)
+                detail["repair"] = (
+                    "写入、修改、试算、评审、完成存在状态依赖，每轮只提交一个。"
+                    "先单独提交前置操作，收到成功结果后再请求下一项；本轮全部尚未执行。"
+                )
             item = json.dumps(detail, ensure_ascii=False)
             if item not in issues:
                 issues.append(item)
@@ -342,6 +366,8 @@ async def generate_schema_tool_turn(
         # complete repair request; types, envelope and all tool contracts still apply.
         envelope["properties"]["public_summary"] = {"type": "string"}
         if issues := _envelope_issues(envelope, value):
+            if isinstance(value, dict):
+                raise SchemaDecisionError(issues, value, call_id)
             raise malformed(*issues)
         await publish(value["public_summary"])
         calls = tuple(

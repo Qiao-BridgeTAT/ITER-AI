@@ -12,7 +12,9 @@ from backend.contracts.v4.memory import UserMemoryView
 
 REACT_ENGINE: Literal["langgraph-react-2"] = "langgraph-react-2"
 REACT_CHECKPOINT: Literal["v4-planner-react-2"] = "v4-planner-react-2"
-MAX_EFFECTIVE_REVISIONS = 5
+MAX_EFFECTIVE_REVISIONS = 6
+PLANNER_EXECUTION_SECONDS = 480
+DEFAULT_PLANNER_CALL_LIMIT = 24
 
 
 class ReviewIssue(V4ContractModel):

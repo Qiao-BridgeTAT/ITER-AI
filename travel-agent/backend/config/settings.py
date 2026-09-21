@@ -254,7 +254,7 @@ class Settings:
         if raw.get("V4_PLANNER_TIME_LIMIT_ENABLED", "true") not in {"true", "false"}:
             raise ConfigurationError("V4_PLANNER_TIME_LIMIT_ENABLED must be true or false")
         try:
-            planner_max_decisions = int(raw.get("V4_PLANNER_MAX_DECISIONS", "12"))
+            planner_max_decisions = int(raw.get("V4_PLANNER_MAX_DECISIONS", "24"))
         except ValueError:
             raise ConfigurationError(
                 "V4_PLANNER_MAX_DECISIONS must be an integer from 1 to 24"
