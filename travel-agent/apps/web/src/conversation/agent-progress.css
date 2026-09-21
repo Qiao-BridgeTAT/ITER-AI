@@ -32,13 +32,13 @@
   transform: rotate(90deg);
 }
 .agent-progress-content {
-  --progress-line-height: 24px;
-  --progress-paragraph-gap: 10px;
+  --progress-line-height: 20px;
+  --progress-paragraph-gap: 6px;
   box-sizing: border-box;
   width: min(100%, 72ch);
   min-width: 0;
   max-block-size: min(
-    calc(10 * var(--progress-line-height) + 9 * var(--progress-paragraph-gap)),
+    calc(6 * var(--progress-line-height) + 5 * var(--progress-paragraph-gap)),
     40vh
   );
   overflow-y: auto;
@@ -149,6 +149,20 @@
   cursor: default;
 }
 .long-term-memory-manager :is(button, input, summary):focus-visible {
+  outline: 2px solid #176bff;
+  outline-offset: 2px;
+}
+
+.agent-loading-text-trigger {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.agent-loading-text-trigger:focus-visible {
   outline: 2px solid #176bff;
   outline-offset: 2px;
 }

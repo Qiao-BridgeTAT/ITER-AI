@@ -132,6 +132,16 @@ export function AgentLoadingIndicator({
       document.removeEventListener("visibilitychange", visibility);
     };
   }, []);
+  const loadingLabel = (
+    <span className="agent-loading-label" aria-hidden="true">
+      <span className="agent-loading-copy-measure">{visibleMessage}</span>
+      <span className="agent-loading-copy-measure">{PLANNING_COPY}</span>
+      <LoadingSplitText
+        text={alternate ? PLANNING_COPY : visibleMessage}
+        durationMs={alternate ? PLANNING_DURATION_MS : STAGE_DURATION_MS}
+      />
+    </span>
+  );
   return (
     <article className="conversation-message-row conversation-message-row-agent">
       <div className="conversation-message-stack">
@@ -148,20 +158,22 @@ export function AgentLoadingIndicator({
               className="agent-loading-animation"
               aria-hidden="true"
             />
-            <span className="agent-loading-label" aria-hidden="true">
-              <span className="agent-loading-copy-measure">
-                {visibleMessage}
-              </span>
-              <span className="agent-loading-copy-measure">
-                {PLANNING_COPY}
-              </span>
-              <LoadingSplitText
-                text={alternate ? PLANNING_COPY : visibleMessage}
-                durationMs={
-                  alternate ? PLANNING_DURATION_MS : STAGE_DURATION_MS
+            {progressEntries !== undefined ? (
+              <button
+                type="button"
+                className="agent-loading-text-trigger"
+                aria-label={
+                  progressOpen ? "点击收起规划思考过程" : "点击展开规划思考过程"
                 }
-              />
-            </span>
+                aria-expanded={progressOpen}
+                aria-controls={progressId}
+                onClick={() => setProgressOpen((open) => !open)}
+              >
+                {loadingLabel}
+              </button>
+            ) : (
+              loadingLabel
+            )}
             <span className="visually-hidden">{visibleMessage}</span>
           </div>
           {progressEntries !== undefined ? (

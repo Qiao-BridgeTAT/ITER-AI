@@ -1,5 +1,6 @@
 import { CaretRight } from "@phosphor-icons/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useLayoutEffect, useRef } from "react";
 import type { AgentProgressEntry } from "../generated/v4/contracts";
 import {
   groupAgentProgress,
@@ -47,16 +48,34 @@ export function AgentProgressContent({
   active?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
+  const scrollContainer = useRef<HTMLDivElement>(null);
+  const visibleEntries = visibleAgentProgress(entries);
+  useLayoutEffect(() => {
+    const element = scrollContainer.current;
+    if (!element) return;
+    const followLatest = () => {
+      element.scrollTop = element.scrollHeight;
+    };
+    followLatest();
+    // Opening restored history and wrapping text can change the visible height.
+    const observer =
+      typeof ResizeObserver === "undefined"
+        ? undefined
+        : new ResizeObserver(followLatest);
+    observer?.observe(element);
+    return () => observer?.disconnect();
+  }, [entries]);
   return (
     <div
       id={id}
+      ref={scrollContainer}
       className="agent-progress-content"
       role="region"
       aria-label="规划过程"
       tabIndex={0}
     >
       <AnimatePresence initial={false}>
-        {visibleAgentProgress(entries).map((entry) => (
+        {visibleEntries.map((entry) => (
           <motion.p
             key={entry.event_id}
             data-progress-source={entry.source}

@@ -823,8 +823,7 @@ function OverviewPanel({
   days,
   overview,
   weatherDays,
-  budgetEstimate,
-  notices = []
+  budgetEstimate
 }: {
   idPrefix: string;
   onSelectDay: (dayId: Exclude<PlanSectionId, "overview">) => void;
@@ -832,7 +831,6 @@ function OverviewPanel({
   overview: PlanOverviewSummary;
   weatherDays: readonly WeatherDayData[];
   budgetEstimate?: PlanBudgetEstimate | null;
-  notices?: readonly string[];
 }) {
   const overviewAttractions = days.flatMap((day) =>
     day.stops
@@ -915,26 +913,6 @@ function OverviewPanel({
       </div>
 
       <PlanBudgetSummary estimate={budgetEstimate} />
-      {notices.length > 0 ? (
-        <section className="inline-plan-notices" aria-label="行程提示">
-          <h3>行程提示</h3>
-          <ul>
-            {notices.slice(0, 3).map((notice) => (
-              <li key={notice}>{notice}</li>
-            ))}
-          </ul>
-          {notices.length > 3 ? (
-            <details>
-              <summary>查看其余 {notices.length - 3} 条提示</summary>
-              <ul>
-                {notices.slice(3).map((notice) => (
-                  <li key={notice}>{notice}</li>
-                ))}
-              </ul>
-            </details>
-          ) : null}
-        </section>
-      ) : null}
     </div>
   );
 }
@@ -1127,7 +1105,6 @@ export function PlanReadyAttachment({
             days={days}
             overview={overview}
             weatherDays={resolvedWeatherDays}
-            notices={presentation?.notices}
             budgetEstimate={
               presentation ? presentation.budgetEstimate : budgetEstimate
             }

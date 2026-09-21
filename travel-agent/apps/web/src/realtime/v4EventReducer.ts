@@ -173,7 +173,7 @@ export function reduceV4Event(
         streamText: "",
         generationId: event.generation_id,
         agentStatusCode: "accepted",
-        agentStatusMessage: "消息已接收。",
+        agentStatusMessage: "点击展开规划思考过程",
         terminalEvent: null,
         readyAttachmentIds: [],
         failureCode: null

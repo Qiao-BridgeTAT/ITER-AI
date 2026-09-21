@@ -155,3 +155,10 @@ pnpm build
 原创源码采用 [ITER AI 非商业源码许可](LICENSE)：允许非商业下载、使用、研究和修改，商业使用须事先获得书面授权。它不是 OSI 批准的开源许可证。
 
 字体、依赖库和外部服务遵循各自条款，详见[第三方内容与许可](THIRD_PARTY_NOTICES.md)。
+
+
+### 高德行政区边界与 JSONP
+
+如果 `DistrictSearch` 接口返回成功，但浏览器回调为 `error` / `[object Event]`，检查地图代理的响应 MIME 类型。高德 JSONP 可能携带 `application/json`，在 `X-Content-Type-Options: nosniff` 下无法作为脚本执行。应只对合法 `callback` 请求返回 `application/javascript`，普通 JSON 保留上游类型；不要关闭 `nosniff`。Nginx 在 location 新增 `add_header` 会覆盖上层继承的响应头，必须同时保留该站点原有的安全响应头。
+
+规划过程视窗最多约六条单行消息，内部自动跟随最新内容；完整历史保留。最终行程页不展示黄色“行程提示”区，服务端校验记录仍保留。
